@@ -2,17 +2,9 @@
  :deps {org.clojure/clojure            {:mvn/version "RELEASE"}
         datascript                     {:mvn/version "0.17.1"}
         org.clojure/clojurescript      {:mvn/version "1.10.516"}
-        reagent                        {:mvn/version "0.8.1"}
-        re-frame                       {:mvn/version "0.10.8"}
         compojure                      {:mvn/version "1.6.1"}
         yogthos/config                 {:mvn/version "1.1.5"}
         ring                           {:mvn/version "1.7.1"}
-        day8.re-frame/http-fx          {:mvn/version "0.1.6"}
-        dorothy                        {:mvn/version "0.0.7"}
-        cljsjs/d3                      {:mvn/version "5.9.2-0"}
-        ring-cors                      {:mvn/version "0.1.13"}
-        clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
 
-        ;; move to dev
-        com.bhauman/figwheel-main      {:mvn/version "0.2.3"}
+        clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
         }}

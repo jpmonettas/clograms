@@ -16,3 +16,8 @@
                           [p d])
                         depends)))
          (into #{})))))
+
+(re-frame/reg-sub
+ ::diagram
+ (fn [{:keys [diagram]} _]
+   diagram))

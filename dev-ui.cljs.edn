@@ -1,4 +1,0 @@
-^{:watch-dirs ["src/cljs"]
-  :css-dirs ["resources/public/css"]
-  :auto-testing true}
-{:main clograms.core}

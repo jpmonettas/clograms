@@ -4,9 +4,10 @@
             [clograms.subs :as subs]
             [clograms.events :as events]
             [clojure.string :as str]
-            cljsjs.d3
+;;            cljsjs.d3
             [dorothy.core :as dorothy]
-            [goog.string :as gstring]))
+            [goog.string :as gstring]
+            [clograms.components.diagrams :as diagrams]))
 
 (defn all-projects [& {:keys [on-change selected-id]}]
   [:div "All projects"]
@@ -87,5 +88,4 @@
 
 (defn main-panel []
   [:div
-   (when @(re-frame/subscribe [::subs/projecs-dependencies-edges])
-     [dependency-explorer])])
+   [diagrams/diagram]])

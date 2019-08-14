@@ -1,0 +1,13 @@
+{:source-paths ["src/cljs"]
+ :dependencies [[day8.re-frame/http-fx "0.1.6"]
+                [dorothy "0.0.7"]
+                [datascript "0.17.1"]
+                [reagent "0.8.1"]
+                [re-frame "0.10.8"]]
+ :dev-http {9500 "resources/public/"}
+ :builds {:app {:output-dir "resources/public/js/"
+                :asset-path "/js"
+                :target :browser
+                :compiler-options {:output-feature-set :es6}
+                :modules {:main {:init-fn clograms.core/init}}
+                :devtools {:after-load clograms.core/mount-root}}}}
