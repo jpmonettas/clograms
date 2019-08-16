@@ -1,5 +1,8 @@
 /*.log
 /target
 /*-init.clj
-/resources/public/js/compiled
+/resources/public/js/cljs-runtime
 out
+/node_modules
+/.shadow-cljs
+/.cpcache

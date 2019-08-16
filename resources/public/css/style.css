@@ -1,3 +1,40 @@
 .srd-diagram {
-        overflow: unset !important;
+     height: 100%
 }
+.diagram-layer {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: black;
+}
+
+.entity-selector{
+    position: absolute;
+    z-index: 10;
+    left: 50%;
+    top: 3%;
+    margin-left: -450px;
+}
+
+.entity-selector .var-namespace {
+    font-weight: bold;
+}
+
+.side-bar {
+    position: absolute;
+    top: 100px;
+    left: 10px;
+    width: 200px;
+    height: 601px;
+    background: white;
+    z-index: 5;
+}
+
+.side-bar ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.side-bar ul li {
+    background: orange;
+    margin: 5px;

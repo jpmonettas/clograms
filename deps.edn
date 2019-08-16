@@ -1,10 +1,10 @@
-{:paths ["resources" "src/clj" "src/cljs" "target"]
+{:paths ["resources" "src/clj"]
  :deps {org.clojure/clojure            {:mvn/version "RELEASE"}
-        datascript                     {:mvn/version "0.17.1"}
         org.clojure/clojurescript      {:mvn/version "1.10.516"}
         compojure                      {:mvn/version "1.6.1"}
         yogthos/config                 {:mvn/version "1.1.5"}
         ring                           {:mvn/version "1.7.1"}
-
+        ring-cors                      {:mvn/version "0.1.13"}
+        datascript                     {:mvn/version "0.17.1"}
         clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
         }}

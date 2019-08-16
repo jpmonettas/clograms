@@ -11,16 +11,10 @@
 ;; (d/pull @db-conn '[:project/name {:project/dependency 6}] 2)
 ;; (d/pull @db-conn '[:project/name :project/dependency] 1)
 
+
 (defn create-diagram-engine-and-model []
   (let [engine (doto (storm/DiagramEngine.) (.installDefaultFactories))
-        model (storm/DiagramModel.)
-        node1 (doto (storm/DefaultNodeModel. "Node 1" "rgb(0,192,255)") (.setPosition 100 100))
-        port1 (.addOutPort node1 "Out")
-        node2 (doto (storm/DefaultNodeModel. "Node 2" "rgb(0,192,255)") (.setPosition 400 100))
-        port2 (.addOutPort node2 "In")
-        link1 (.link port1 port2)
-        ]
-    (.addAll model node1 node2)
+        model (storm/DiagramModel.)]
     (.setDiagramModel engine model)
     {:storm/model model
      :storm/engine engine}))
@@ -56,3 +50,53 @@
      (assoc db
             :datascript/db datascript-db
             :main-project/id main-project-id))))
+
+(re-frame/reg-event-db
+ ::add-entity-to-diagram
+ (fn [db [_ e {:keys [link-to-selected? x y]}]]
+   (let [node (storm/DefaultNodeModel. (str (:namespace/name e) "/" (:var/name e)) "rgb(0,192,255)")
+         in-port (.addInPort node "In")
+
+         out-port (.addOutPort node "Out")
+         _ (js/console.log "O PORT " out-port)]
+
+     (if link-to-selected?
+       (let [{:keys [:storm.entity/id :storm.entity/in-port-name]} (-> db :diagram :selected-entity)
+             dia-model (-> db :diagram :storm/model)
+             selected-node-model (.getNode dia-model id)
+             selected-node-in-port (.getPort selected-node-model in-port-name)
+             link (.link out-port selected-node-in-port)]
+         (.addAll (-> db :diagram :storm/model) node link))
+       (.addAll (-> db :diagram :storm/model) node))
+
+     (.setPosition node (or x 500) (or y 500))
+     (.addListener node #js {:selectionChanged (fn [obj]
+                                                 (re-frame/dispatch
+                                                  [::select-entity
+                                                   (assoc e
+                                                          :storm.entity/id (-> obj .-entity .-id)
+                                                          :storm.entity/in-port-name (.getName in-port)
+                                                          :storm.entity/out-port-name (.getName out-port))]))}))
+   db))
+
+(re-frame/reg-event-db
+ ::select-entity
+ (fn [db [_ e]]
+   (println "Selecting entity " e)
+   (assoc-in db [:diagram :selected-entity] e)))
+
+;; node1 (doto (storm/DefaultNodeModel. "Node 1" "rgb(0,192,255)") (.setPosition 100 100))
+;; port1 (.addOutPort node1 "Out")
+;; node2 (doto (storm/DefaultNodeModel. "Node 2" "rgb(0,192,255)") (.setPosition 400 100))
+;; port2 (.addInPort node2 "In")
+;; node3 (doto (storm/DefaultNodeModel. "Node 3" "rgb(0,192,255)") (.setPosition 600 300))
+;; port3 (.addInPort node3 "In")
+;; link1 (doto (.link port1 port2)
+;;         (.addLabel "Whats Up"))
+
+;; // add a selection listener to each
+;;  models.forEach(item => {
+;;      item.addListener({
+;;          selectionChanged: action("selectionChanged")
+;;      });
+;;  });

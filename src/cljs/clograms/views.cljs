@@ -7,7 +7,8 @@
 ;;            cljsjs.d3
             [dorothy.core :as dorothy]
             [goog.string :as gstring]
-            [clograms.components.diagrams :as diagrams]))
+            [clograms.components.diagrams :as diagrams]
+            [re-com.core :as re-com]))
 
 (defn all-projects [& {:keys [on-change selected-id]}]
   [:div "All projects"]
@@ -84,8 +85,43 @@
       [:div
        [:span.name {:style name-style} full-name]])]))
 
+(defn entity-selector []
+  (let [all-entities (re-frame/subscribe [::subs/all-entities])]
+    [:div.entity-selector
+     [re-com/typeahead
+      :width "900px"
+      :change-on-blur? true
+      :data-source (fn [q]
+                     (when (> (count q) 2)
+                       (filter #(str/includes? (name (:var/name %)) q) @all-entities)))
+      :render-suggestion (fn [e q]
+                           [:span.selector-option
+                            [:span.var-namespace (str (:namespace/name e) "/")]
+                            [:span.var-name (:var/name e)]
+                            [:span.project-name (str "(" (:project/name e) ")")]])
+      :suggestion-to-string (fn [e]
+                              (str (:namespace/name e) "/" (:var/name e)))
+      :on-change (fn [e]
+                   (re-frame/dispatch [::events/add-entity-to-diagram e]))]]))
 
+(defn side-bar []
+  [:div.side-bar
+   (let [refs @(re-frame/subscribe [::subs/selected-entity-refs])]
+     (when-let [cbr (:called-by refs)]
+       [:ul
+        (doall
+         (for [r cbr]
+           (let [s (str (:project/name r) ">" (:namespace/name r) "/" (:var/name r))]
+             ^{:key s}
+             [:li {:draggable true
+                   :on-drag-start (fn [event]
+                                    (-> event
+                                        .-dataTransfer
+                                        (.setData "ref-data" (pr-str r))))}
+              s])))]))])
 
 (defn main-panel []
   [:div
+   [entity-selector]
+   [side-bar]
    [diagrams/diagram]])
