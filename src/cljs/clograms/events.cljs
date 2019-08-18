@@ -1,6 +1,7 @@
 (ns clograms.events
   (:require [re-frame.core :as re-frame]
             [clograms.db :as db]
+            [reagent.dom :as rdom]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [datascript.core :as d]
@@ -53,36 +54,43 @@
 
 (re-frame/reg-event-db
  ::add-entity-to-diagram
- (fn [db [_ e {:keys [link-to-selected? x y]}]]
-   (let [node (storm/DefaultNodeModel. (str (:namespace/name e) "/" (:var/name e)) "rgb(0,192,255)")
-         in-port (.addInPort node "In")
-
-         out-port (.addOutPort node "Out")
-         _ (js/console.log "O PORT " out-port)]
+ (fn [db [_ e {:keys [link-to-selected? x y] :as opts}]]
+   (let [new-node (storm/DefaultNodeModel. (str (:namespace/name e) "/" (:var/name e)) "rgb(0,192,255)")
+         new-in-port (.addInPort new-node ">")
+         new-out-port (.addOutPort new-node ">")]
 
      (if link-to-selected?
-       (let [{:keys [:storm.entity/id :storm.entity/in-port-name]} (-> db :diagram :selected-entity)
+       (let [{:keys [:storm.entity/id :storm.entity/in-port-name :storm.entity/out-port-name]} (-> db :diagram :selected-entity)
              dia-model (-> db :diagram :storm/model)
              selected-node-model (.getNode dia-model id)
-             selected-node-in-port (.getPort selected-node-model in-port-name)
-             link (.link out-port selected-node-in-port)]
-         (.addAll (-> db :diagram :storm/model) node link))
-       (.addAll (-> db :diagram :storm/model) node))
+             [selected-node-port new-node-port] (case (:type e)
+                                                  :call-to   [(.getPort selected-node-model out-port-name)
+                                                              new-in-port]
+                                                  :called-by [(.getPort selected-node-model in-port-name)
+                                                              new-out-port])
 
-     (.setPosition node (or x 500) (or y 500))
-     (.addListener node #js {:selectionChanged (fn [obj]
-                                                 (re-frame/dispatch
-                                                  [::select-entity
-                                                   (assoc e
-                                                          :storm.entity/id (-> obj .-entity .-id)
-                                                          :storm.entity/in-port-name (.getName in-port)
-                                                          :storm.entity/out-port-name (.getName out-port))]))}))
+             link (.link new-node-port selected-node-port)]
+         (.addAll (-> db :diagram :storm/model) new-node link))
+       (.addAll (-> db :diagram :storm/model) new-node))
+
+     (.setPosition new-node (or x 500) (or y 500))
+
+     ;; super hacky
+     (rdom/force-update-all)
+
+
+     (.addListener new-node #js {:selectionChanged (fn [obj]
+                                                     (re-frame/dispatch
+                                                      [::select-entity
+                                                       (assoc e
+                                                              :storm.entity/id (-> obj .-entity .-id)
+                                                              :storm.entity/in-port-name (.getName new-in-port)
+                                                              :storm.entity/out-port-name (.getName new-out-port))]))}))
    db))
 
 (re-frame/reg-event-db
  ::select-entity
  (fn [db [_ e]]
-   (println "Selecting entity " e)
    (assoc-in db [:diagram :selected-entity] e)))
 
 ;; node1 (doto (storm/DefaultNodeModel. "Node 1" "rgb(0,192,255)") (.setPosition 100 100))

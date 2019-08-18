@@ -89,36 +89,53 @@
   (let [all-entities (re-frame/subscribe [::subs/all-entities])]
     [:div.entity-selector
      [re-com/typeahead
-      :width "900px"
+      :width "600px"
       :change-on-blur? true
       :data-source (fn [q]
                      (when (> (count q) 2)
                        (filter #(str/includes? (name (:var/name %)) q) @all-entities)))
       :render-suggestion (fn [e q]
                            [:span.selector-option
-                            [:span.var-namespace (str (:namespace/name e) "/")]
+                            [:span.namespace-name (str (:namespace/name e) "/")]
                             [:span.var-name (:var/name e)]
                             [:span.project-name (str "(" (:project/name e) ")")]])
       :suggestion-to-string (fn [e]
                               (str (:namespace/name e) "/" (:var/name e)))
       :on-change (fn [e]
-                   (re-frame/dispatch [::events/add-entity-to-diagram e]))]]))
+                   (when (map? e)
+                     (re-frame/dispatch [::events/add-entity-to-diagram e])))]]))
+
+(defn fn-ref-node [r]
+  [:li {:draggable true
+        :on-drag-start (fn [event]
+                         (-> event
+                             .-dataTransfer
+                             (.setData "ref-data" (pr-str r))))}
+   [:div
+    [:div.namespace-name (:namespace/name r)]
+    [:div.var-name (name (:var/name r) )]]
+   [:div.project-name (str "(" (:project/name r) ")")]])
 
 (defn side-bar []
-  [:div.side-bar
-   (let [refs @(re-frame/subscribe [::subs/selected-entity-refs])]
-     (when-let [cbr (:called-by refs)]
-       [:ul
+  (let [refs @(re-frame/subscribe [::subs/selected-entity-refs])]
+    [:div.side-bar
+     [:div
+      [:div.calls-to "Calls to"]
+      (when-let [cbr (:calls-to refs)]
+        [:ul
+         (doall
+          (for [r cbr]
+            (let [s (str (:project/name r) ">" (:namespace/name r) "/" (:var/name r))]
+              ^{:key s}
+              [fn-ref-node r])))])]
+     [:ul
+      [:div.calls-to "Called by"]
+      (when-let [cbr (:called-by refs)]
         (doall
          (for [r cbr]
            (let [s (str (:project/name r) ">" (:namespace/name r) "/" (:var/name r))]
              ^{:key s}
-             [:li {:draggable true
-                   :on-drag-start (fn [event]
-                                    (-> event
-                                        .-dataTransfer
-                                        (.setData "ref-data" (pr-str r))))}
-              s])))]))])
+             [fn-ref-node r]))))]]))
 
 (defn main-panel []
   [:div

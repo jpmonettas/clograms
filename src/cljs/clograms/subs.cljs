@@ -42,16 +42,81 @@
  (fn [{:keys [selected-entity]} _]
    selected-entity))
 
+(def callers-refs
+  (memoize
+   (fn [db ns vname]
+     (let [q-result (d/q '[:find ?pname ?vrnsn ?vn ?in-fn ?vrline ?vrcolumn ?fname
+                           :in $ ?nsn ?vn
+                           :where
+                           [?nid :namespace/name ?nsn]
+                           [?vid :var/namespace ?nid]
+                           [?vid :var/name ?vn]
+                           [?vrid :var-ref/var ?vid]
+                           [?vrid :var-ref/namespace ?vrnid]
+                           [?vrid :var-ref/line ?vrline]
+                           [?vrid :var-ref/column ?vrcolumn]
+                           [?vrid :var-ref/in-function ?fnid]
+                           [?fnid :function/var ?fnvid]
+                           [?fnvid :var/name ?in-fn]
+                           [?vrnid :namespace/name ?vrnsn]
+                           [?pid :project/name ?pname]
+                           [?vrnid :namespace/project ?pid]
+                           [?vrnid :namespace/file ?fid]
+                           [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
+                         db
+                         ns
+                         vname)]
+       (->> q-result
+            (map #(zipmap [:project :ns :var-name :in-fn :line :column :file] %)))))))
+
+(defn callers-fns [x-refs]
+  (->> x-refs
+       (map (fn [x]
+              {:type :called-by
+               :project/name (:project x)
+               :namespace/name (:ns x)
+               :var/name (:in-fn x)}))
+       (into #{})))
+
+(def calls-refs
+  (memoize
+   (fn [db ns vname]
+     (let [q-result (d/q '[:find ?pname ?destnsname ?destvname
+                           :in $ ?nsn ?vn
+                           :where
+                           [?pid :project/name ?pname]
+                           [?destns :namespace/project ?pid]
+                           [?dvid :var/name ?destvname]
+                           [?dvid :var/namespace ?destns]
+                           [?destns :namespace/name ?destnsname]
+                           [?vrid :var-ref/var ?dvid]
+                           [?vrid :var-ref/in-function ?fid]
+                           [?fid :function/var ?fvid]
+                           [?fvid :var/name ?vn]
+                           [?fvid :var/namespace ?fvnsid]
+                           [?fvnsid :namespace/name ?nsn]]
+                         db
+                         ns
+                         vname)]
+       (->> q-result
+            (map #(zipmap [:project :ns :var-name] %)))))))
+
+(defn calls-fns [x-refs]
+  (->> x-refs
+       (map (fn [x]
+              {:type :call-to
+               :project/name (:project x)
+               :namespace/name (:ns x)
+               :var/name (:var-name x)}))
+       (into #{})))
+
 (re-frame/reg-sub
  ::selected-entity-refs
  (fn [{:keys [:datascript/db :diagram]} _]
    (when-let [selected-entity (:selected-entity diagram)]
-     (let [calls []
-           called-by [{:project/name 'clojurescript
-                       :namespace/name 'cljs.pprint
-                       :var/name 'pprint-vector}
-                      {:project/name 'clojurescript
-                       :namespace/name 'cjs.pprint
-                       :var/name 'pprint}]]
-       {:calls calls
+     (let [all-calls-refs (calls-refs db (:namespace/name selected-entity) (:var/name selected-entity))
+           calls (calls-fns all-calls-refs)
+           all-callers-refs (callers-refs db (:namespace/name selected-entity) (:var/name selected-entity))
+           called-by (callers-fns all-callers-refs)]
+       {:calls-to calls
         :called-by called-by}))))
