@@ -1,26 +1,60 @@
 (ns  clograms.diagrams
   (:require ["@projectstorm/react-diagrams" :as storm]
             ["@projectstorm/react-canvas-core" :as storm-canvas]
+            ["@projectstorm/react-diagrams-defaults" :as storm-defaults]
             ["react" :as react]
             [re-frame.core :as re-frame]
             [reagent.core :as r]
-            [clograms.events :as events]))
-
+            [clograms.events :as events]
+            [goog.object :as gobj]))
 
 (defonce storm-atom (atom {}))
 
-(defn build-node [{:keys [entity] :as node-map}]
-  (doto (storm/DefaultNodeModel. (str (:namespace/name entity)
-                                      "/"
-                                      (:var/name entity))
-                                 "rgb(0,192,255)")
-    (.addInPort ">")
-    (.addOutPort ">")))
+(defn custom-node-cmp [props]
+  [:div (str "Tha real thing" props)])
+
+(do
+  (defn CustomModel [m]
+    (let [obj (js/Reflect.construct storm/NodeModel  #js [#js {:type "custom-node"}] CustomModel)]
+      (set! (.-bla obj) (:bla m))
+      obj))
+
+  (js/Reflect.setPrototypeOf CustomModel.prototype storm/NodeModel.prototype)
+  (js/Reflect.setPrototypeOf CustomModel storm/NodeModel))
+
+(do (defn CustomFactory []
+      (js/Reflect.construct storm-canvas/AbstractReactFactory  #js ["custom-node"] CustomFactory))
+
+    (set! (-> CustomFactory .-prototype .-generateModel) (fn [event] (CustomModel {})))
+    (set! (-> CustomFactory .-prototype .-generateReactWidget) (fn [event]
+                                                                 (js/console.log "EVENT" event)
+                                                                 (r/create-element (r/reactify-component custom-node-cmp)
+                                                                                   #js {:name (-> event .-model .-bla)})))
+
+    (js/Reflect.setPrototypeOf CustomFactory.prototype storm-canvas/AbstractReactFactory.prototype)
+    (js/Reflect.setPrototypeOf CustomFactory storm-canvas/AbstractReactFactory))
+
+
+(defn build-node [{:keys [entity x y] :as node-map}]
+  (doto (storm/DefaultNodeModel. #js {:name (str (:namespace/name entity)
+                                                 "/"
+                                                 (:var/name entity))
+                                      :color "rgb(0,192,255)"})
+    (.setPosition x y)
+    (.addInPort "In")
+    (.addOutPort "Out")))
 
 (defn create-engine-and-model! []
   (let [model (storm/DiagramModel.)
         engine (doto (storm/default)
                  (.setModel model))]
+
+   (-> engine
+        .getNodeFactories
+        (.registerFactory (CustomFactory)))
+
+   (.addAll model (CustomModel {:bla "The good name"}))
+
 
     (reset! storm-atom
             {:storm/model model
@@ -43,22 +77,23 @@
    (let [{:keys [link-to x y on-node-selected on-node-unselected]} node-map
          new-node (build-node node-map)
          dia-model (-> @storm-atom :storm/model)]
-     (if link-to
+
+     (.addAll dia-model new-node)
+
+
+
+     (when link-to
        (let [link-to-node-model (get-node dia-model (:id link-to))
              link-to-port (get-port link-to-node-model (:port link-to))
              new-node-port (get-port new-node (case (:port link-to)
                                                 :in :out
                                                 :out :in))
-             _ (js/console.log "Node 1" link-to-port)
-             _ (js/console.log "Node 2" new-node-port)
-             link (.link link-to-port new-node-port)
-             _ (js/console.log "Link" link)]
+             link (.link new-node-port link-to-port)]
          ;; TODO : Auto link disabled, don't know why doesn't work
-         (.addAll dia-model new-node #_link))
-       (.addAll dia-model new-node))
+         #_(.addAll dia-model link))
+       )
+     (.repaintCanvas (-> @storm-atom :storm/engine))
 
-     (.setPosition new-node x y)
-     ;; (r/force-update-all)
      (.registerListener new-node #js {:selectionChanged (fn [obj]
                                                           (re-frame/dispatch
                                                            (conj (if (.-isSelected obj)
@@ -74,9 +109,9 @@
                               :onDrop (fn [event]
                                         (let [entity (cljs.reader/read-string (-> event .-dataTransfer (.getData "entity-data")))
                                               points (.getRelativeMousePoint engine event)]
-                                          (re-frame/dispatch-sync [::events/add-entity-to-diagram entity
-                                                                   {:link-to-selected? true
-                                                                    :x (.-x points)
-                                                                    :y (.-y points)}])))
+                                          (re-frame/dispatch [::events/add-entity-to-diagram entity
+                                                              {:link-to-selected? true
+                                                               :x (.-x points)
+                                                               :y (.-y points)}])))
                               :onDragOver (fn [e] (.preventDefault e))}
                          (react/createElement storm-canvas/CanvasWidget #js {:engine engine} nil))))
