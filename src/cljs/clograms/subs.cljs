@@ -113,7 +113,7 @@
 (re-frame/reg-sub
  ::selected-entity-refs
  (fn [{:keys [:datascript/db :diagram]} _]
-   (when-let [selected-entity (:selected-entity diagram)]
+   (when-let [selected-entity (:selected-node diagram)]
      (let [all-calls-refs (calls-refs db (:namespace/name selected-entity) (:var/name selected-entity))
            calls (calls-fns all-calls-refs)
            all-callers-refs (callers-refs db (:namespace/name selected-entity) (:var/name selected-entity))

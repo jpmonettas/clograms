@@ -7,7 +7,9 @@
     "doc": "docs"
   },
   "dependencies": {
-    "@projectstorm/react-diagrams": "5.3.2",
+    "@emotion/core": "^10.0.16",
+    "@emotion/styled": "^10.0.15",
+    "@projectstorm/react-diagrams": "6.0.1-beta.2",
     "closest": "0.0.1",
     "create-react-class": "^15.6.3",
     "d3": "^5.9.7",

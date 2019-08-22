@@ -7,7 +7,6 @@
 ;;            cljsjs.d3
             [dorothy.core :as dorothy]
             [goog.string :as gstring]
-            [clograms.components.diagrams :as diagrams]
             [re-com.core :as re-com]))
 
 (defn all-projects [& {:keys [on-change selected-id]}]
@@ -110,7 +109,7 @@
         :on-drag-start (fn [event]
                          (-> event
                              .-dataTransfer
-                             (.setData "ref-data" (pr-str r))))}
+                             (.setData "entity-data" (pr-str r))))}
    [:div
     [:div.namespace-name (:namespace/name r)]
     [:div.var-name (name (:var/name r) )]]
@@ -140,5 +139,4 @@
 (defn main-panel []
   [:div
    [entity-selector]
-   [side-bar]
-   [diagrams/diagram]])
+   [side-bar]])

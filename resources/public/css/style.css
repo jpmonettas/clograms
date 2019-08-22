@@ -1,9 +1,10 @@
 body {
     font-size: 11px !important;
 }
-.srd-diagram {
+.diagram-layer > * {
      height: 100%
 }
+
 .diagram-layer {
     width: 100%;
     height: 100%;
