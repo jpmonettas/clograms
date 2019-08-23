@@ -10,8 +10,13 @@
                     :position :absolute
                     :background (color :light-grey)}
    ["> *" {:height "100%"}]
+   [:.custom-node {:padding "5px"
+                   :border-radius "5px"}]
    [:.namespace-node {:background-color :orange}]
-   [:.function-node {:background-color :red}]])
+   [:.function-node {:background-color :red}
+    [:.source {:max-width "500px"
+               :font-size "10px"
+               :max-height "200px"}]]])
 
 (def general
   [:body {:font-size "11px"

@@ -26,16 +26,18 @@
 (re-frame/reg-sub
  ::all-entities
  (fn [{:keys [:datascript/db]} _]
-   (->> (d/q '[:find ?pname ?nsname ?vname
+   (->> (d/q '[:find ?pname ?nsname ?vname ?fsrc
                :in $
                :where
                [?vid :var/name ?vname]
                [?vid :var/namespace ?nsid]
+               [?fid :function/var ?vid]
+               [?fid :function/source ?fsrc]
                [?nsid :namespace/name ?nsname]
                [?pid :project/name ?pname]
                [?nsid :namespace/project ?pid]]
              db)
-        (map #(zipmap [:project/name :namespace/name :var/name] %)))))
+        (map #(zipmap [:project/name :namespace/name :var/name :function/source] %)))))
 
 (re-frame/reg-sub
  ::selected-entity

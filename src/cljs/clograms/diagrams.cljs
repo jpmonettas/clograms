@@ -6,7 +6,8 @@
             [re-frame.core :as re-frame]
             [reagent.core :as r]
             [clograms.events :as events]
-            [goog.object :as gobj])
+            [goog.object :as gobj]
+            [zprint.core :as zp])
   (:require-macros [clograms.diagrams :refer [def-storm-custom-node]]))
 
 (defonce storm-atom (atom {}))
@@ -14,13 +15,26 @@
 (def abstract-react-factory storm-canvas/AbstractReactFactory)
 (def node-model storm/NodeModel)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Custom nodes components ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn namespace-node-component [{:keys [nsname vars]}]
-  [:div.namespace-node
+  [:div.namespace-node.custom-node
    [:div nsname]
    [:ul
     [:li "var 1"]
     [:li "var 2"]
     [:li "var 3"]]])
+
+(defn function-node-component [{:keys [nsname var-name source]}]
+  [:div.function-node.custom-node
+   [:div [:span.namespace-name (str nsname "/")] [:span var-name]]
+   [:pre.source source]])
+
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Custom node types ;;
+;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-storm-custom-node "namespace-node"
   :node-factory-base abstract-react-factory
@@ -29,15 +43,13 @@
   :node-model-builder   (make-namespace-node-model [nsname vars])
   :render namespace-node-component)
 
-(defn function-node-component [{:keys [nsname var-name]}]
-  [:div.function-node
-   [:div [:span.namespace-name (str nsname "/")] [:span var-name]]])
+
 
 (def-storm-custom-node "function-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
   :node-factory-builder (make-function-node-factory [])
-  :node-model-builder   (make-function-node-model [nsname var-name])
+  :node-model-builder   (make-function-node-model [nsname var-name source])
   :render function-node-component)
 
 
@@ -46,7 +58,9 @@
 (defmethod build-node :function
   [node-map]
   (let [entity (:entity node-map)]
-    (make-function-node-model (:namespace/name entity) (:var/name entity))))
+    (make-function-node-model (:namespace/name entity)
+                              (:var/name entity)
+                              (zp/zprint-file-str (:function/source entity) {}))))
 
 (defmethod build-node :namespace
   [node-map]

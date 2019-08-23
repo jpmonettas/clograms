@@ -22,7 +22,7 @@
        (defn ~node-factory-builder-name []
          (js/Reflect.construct ~(:node-factory-base fns-map) (cljs.core/clj->js [~node-type-name]) ~node-factory-builder-name))
 
-       (set! (-> ~node-factory-builder-name .-prototype .-generateModel) (fn [] (~node-model-builder-name nil nil)))
+       (set! (-> ~node-factory-builder-name .-prototype .-generateModel) (fn [] (~node-model-builder-name ~@(repeat (count node-model-builder-args) nil))))
        (set! (-> ~node-factory-builder-name .-prototype .-generateReactWidget) (fn [~event-symb]
                                                                                  (reagent.core/create-element
                                                                                   (reagent.core/reactify-component ~(:render fns-map))

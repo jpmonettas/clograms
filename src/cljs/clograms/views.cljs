@@ -102,7 +102,7 @@
                               (str (:namespace/name e) "/" (:var/name e)))
       :on-change (fn [e]
                    (when (map? e)
-                     (re-frame/dispatch [::events/add-entity-to-diagram e])))]]))
+                     (re-frame/dispatch [::events/add-entity-to-diagram (assoc e :type :function)])))]]))
 
 (defn fn-ref-node [r]
   [:li {:draggable true
