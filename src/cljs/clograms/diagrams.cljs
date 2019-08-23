@@ -6,34 +6,23 @@
             [re-frame.core :as re-frame]
             [reagent.core :as r]
             [clograms.events :as events]
-            [goog.object :as gobj]))
+            [goog.object :as gobj])
+  (:require-macros [clograms.diagrams :refer [def-storm-custom-node]]))
 
 (defonce storm-atom (atom {}))
 
-(defn custom-node-cmp [props]
-  [:div (str "Tha real thing" props)])
+(def abstract-react-factory storm-canvas/AbstractReactFactory)
+(def node-model storm/NodeModel)
 
-(do
-  (defn CustomModel [m]
-    (let [obj (js/Reflect.construct storm/NodeModel  #js [#js {:type "custom-node"}] CustomModel)]
-      (set! (.-bla obj) (:bla m))
-      obj))
-
-  (js/Reflect.setPrototypeOf CustomModel.prototype storm/NodeModel.prototype)
-  (js/Reflect.setPrototypeOf CustomModel storm/NodeModel))
-
-(do (defn CustomFactory []
-      (js/Reflect.construct storm-canvas/AbstractReactFactory  #js ["custom-node"] CustomFactory))
-
-    (set! (-> CustomFactory .-prototype .-generateModel) (fn [event] (CustomModel {})))
-    (set! (-> CustomFactory .-prototype .-generateReactWidget) (fn [event]
-                                                                 (js/console.log "EVENT" event)
-                                                                 (r/create-element (r/reactify-component custom-node-cmp)
-                                                                                   #js {:name (-> event .-model .-bla)})))
-
-    (js/Reflect.setPrototypeOf CustomFactory.prototype storm-canvas/AbstractReactFactory.prototype)
-    (js/Reflect.setPrototypeOf CustomFactory storm-canvas/AbstractReactFactory))
-
+(def-storm-custom-node "custom-node"
+  :node-factory-base abstract-react-factory
+  :node-model-base node-model
+  :node-factory-builder (make-custom-node-factory [])
+  :node-model-builder   (make-custom-node-model [title body])
+  :render (fn [{:keys [title body]}]
+            [:div
+             [:div (str "Node title " title)]
+             [:div (str "Node body " body)]]))
 
 (defn build-node [{:keys [entity x y] :as node-map}]
   (doto (storm/DefaultNodeModel. #js {:name (str (:namespace/name entity)
@@ -51,9 +40,9 @@
 
    (-> engine
         .getNodeFactories
-        (.registerFactory (CustomFactory)))
+        (.registerFactory (make-custom-node-factory)))
 
-   (.addAll model (CustomModel {:bla "The good name"}))
+   #_(.addAll model (make-custom-node-model "THA TITLE" "THA BODY"))
 
 
     (reset! storm-atom
