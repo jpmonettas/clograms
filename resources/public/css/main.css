@@ -1,0 +1,73 @@
+.diagram-layer {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  background: rgb(60,60,60);
+}
+
+.diagram-layer > * {
+  height: 100%;
+}
+
+.diagram-layer .namespace-node {
+  background-color: orange;
+}
+
+.diagram-layer .function-node {
+  background-color: red;
+}
+
+body {
+  font-size: 11px;
+  color: #EEE !important;
+}
+
+body ul {
+  list-style: none;
+  padding: 0;
+}
+
+body .project-name {
+  opacity: 0.5;
+  margin-left: 5px;
+}
+
+body .namespace-name {
+
+}
+
+.entity-selector {
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  top: 3%;
+  margin-left: -300px;
+}
+
+.entity-selector input {
+  background-color: #2f2f2f;
+  color: #EEE;
+}
+
+.entity-selector .rc-typeahead-suggestion {
+  background-color: #2f2f2f;
+  color: #EEE;
+}
+
+.entity-selector .rc-typeahead-suggestion.active {
+  background-color: green;
+}
+
+.entity-selector .rc-typeahead-suggestion .namespace-name {
+  color: orange;
+}
+
+.side-bar {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  height: 100%;
+  width: 300px;
+  background-color: #2f2f2f;
+  z-index: 10;
+}

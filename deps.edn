@@ -1,4 +1,4 @@
-{:paths ["resources" "src/clj"]
+{:paths ["resources" "src/clj" "src/clj-styles"]
  :deps {org.clojure/clojure            {:mvn/version "RELEASE"}
         org.clojure/clojurescript      {:mvn/version "1.10.516"}
         compojure                      {:mvn/version "1.6.1"}
@@ -6,5 +6,6 @@
         ring                           {:mvn/version "1.7.1"}
         ring-cors                      {:mvn/version "0.1.13"}
         datascript                     {:mvn/version "0.17.1"}
+        lambdaisland/garden-watcher    {:mvn/version "0.3.3"}
         clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
         }}
