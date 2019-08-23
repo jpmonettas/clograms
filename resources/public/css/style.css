@@ -20,6 +20,16 @@ body {
     margin-left: -300px;
 }
 
+.function-node{
+    padding: 5px;
+    background: red;
+}
+
+.namespace-node{
+    padding: 5px;
+    background: orange;
+}
+
 .namespace-name {
     font-weight: bold;
 }

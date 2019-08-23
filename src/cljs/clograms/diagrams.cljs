@@ -14,22 +14,51 @@
 (def abstract-react-factory storm-canvas/AbstractReactFactory)
 (def node-model storm/NodeModel)
 
-(def-storm-custom-node "custom-node"
+(defn namespace-node-component [{:keys [nsname vars]}]
+  [:div.namespace-node
+   [:div nsname]
+   [:ul
+    [:li "var 1"]
+    [:li "var 2"]
+    [:li "var 3"]]])
+
+(def-storm-custom-node "namespace-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
-  :node-factory-builder (make-custom-node-factory [])
-  :node-model-builder   (make-custom-node-model [title body])
-  :render (fn [{:keys [title body]}]
-            [:div
-             [:div (str "Node title " title)]
-             [:div (str "Node body " body)]]))
+  :node-factory-builder (make-namespace-node-factory [])
+  :node-model-builder   (make-namespace-node-model [nsname vars])
+  :render namespace-node-component)
 
-(defn build-node [{:keys [entity x y] :as node-map}]
-  (doto (storm/DefaultNodeModel. #js {:name (str (:namespace/name entity)
-                                                 "/"
-                                                 (:var/name entity))
+(defn function-node-component [{:keys [nsname var-name]}]
+  [:div.function-node
+   [:div [:span.namespace-name (str nsname "/")] [:span var-name]]])
+
+(def-storm-custom-node "function-node"
+  :node-factory-base abstract-react-factory
+  :node-model-base node-model
+  :node-factory-builder (make-function-node-factory [])
+  :node-model-builder   (make-function-node-model [nsname var-name])
+  :render function-node-component)
+
+
+(defmulti build-node (fn [node-map] (-> node-map :entity :type)))
+
+(defmethod build-node :function
+  [node-map]
+  (let [entity (:entity node-map)]
+    (make-function-node-model (:namespace/name entity) (:var/name entity))))
+
+(defmethod build-node :namespace
+  [node-map]
+  (let [entity (:entity node-map)]
+    (make-namespace-node-model (:namespace/name entity)
+                               (into (:namespace/public-vars entity)
+                                     (:namespace/private-vars entity)))))
+
+(defmethod build-node :default
+  [{:keys [entity x y] :as node-map}]
+  (doto (storm/DefaultNodeModel. #js {:name (str entity)
                                       :color "rgb(0,192,255)"})
-    (.setPosition x y)
     (.addInPort "In")
     (.addOutPort "Out")))
 
@@ -38,12 +67,9 @@
         engine (doto (storm/default)
                  (.setModel model))]
 
-   (-> engine
-        .getNodeFactories
-        (.registerFactory (make-custom-node-factory)))
-
-   #_(.addAll model (make-custom-node-model "THA TITLE" "THA BODY"))
-
+    ;; register factories
+    (-> engine .getNodeFactories (.registerFactory (make-namespace-node-factory)))
+    (-> engine .getNodeFactories (.registerFactory (make-function-node-factory)))
 
     (reset! storm-atom
             {:storm/model model
@@ -64,12 +90,11 @@
  ::add-node
  (fn [node-map]
    (let [{:keys [link-to x y on-node-selected on-node-unselected]} node-map
-         new-node (build-node node-map)
+         new-node (doto (build-node node-map)
+                    (.setPosition x y))
          dia-model (-> @storm-atom :storm/model)]
 
      (.addAll dia-model new-node)
-
-
 
      (when link-to
        (let [link-to-node-model (get-node dia-model (:id link-to))

@@ -75,4 +75,11 @@
                        :namespace/name "cljs.core"
                        :var/name "map2"}
                       {}])
+
+  (re-frame/dispatch [::add-entity-to-diagram
+                      {:type :namespace
+                       :namespace/name "cljs.core"
+                       :namespace/public-vars []
+                       :namespace/private-vars []}
+                      {}])
   )
