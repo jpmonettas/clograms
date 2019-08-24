@@ -2,7 +2,11 @@
 
 (def color {:super-light-grey "#EEE"
             :light-grey "rgb(60,60,60)"
-            :dark-grey "#2f2f2f"})
+            :dark-grey "#2f2f2f"
+
+            :project-node :green
+            :namespace-node :orange
+            :var-node :blue})
 
 (def diagram
   [:.diagram-layer {:width "100%"
@@ -12,8 +16,9 @@
    ["> *" {:height "100%"}]
    [:.custom-node {:padding "5px"
                    :border-radius "5px"}]
-   [:.namespace-node {:background-color :orange}]
-   [:.function-node {:background-color :red}
+   [:.project-node {:background-color (color :project-node)}]
+   [:.namespace-node {:background-color (color :namespace-node)}]
+   [:.var-node {:background-color (color :var-node)}
     [:.source {:max-width "500px"
                :font-size "10px"
                :max-height "200px"}]]])
@@ -48,7 +53,33 @@
                :height "100%"
                :width "300px"
                :background-color (color :dark-grey)
-               :z-index 10}])
+               :z-index 10}
+   [:.side-bar-tabs
+    [:li {}
+     [:a {:padding "5px"}]
+     [:&.active {}
+      [:a {:color (color :light-grey)
+           :background-color (color :super-light-grey)}]]
+     [:a {:color (color :super-light-grey)
+          :background-color (color :light-grey)}]]]
+
+   [:.projects-browser {:overflow-y :scroll
+                        :height "95%"}
+    [:.head-bar {}
+     [:.back {:background-color (color :light-grey)
+              :margin "5px"}]
+     [:.browser-selection {:font-size "11px"
+                           :padding "3px"
+                           :border-radius "5px"}
+      [:&.namespaces {:background-color (color :project-node)}]
+      [:&.vars {:background-color (color :namespace-node)}]]]
+    [:.draggable-entity
+     {:padding "5px"
+      :border-radius "5px"
+      :margin "5px"}]
+    [:.draggable-project {:background-color (color :project-node)}]
+    [:.draggable-namespace {:background-color (color :namespace-node)}]
+    [:.draggable-var {:background-color (color :var-node)}]]])
 
 ;; This creates resources/public/css/main.css
 (def ^:garden main

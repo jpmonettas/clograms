@@ -115,10 +115,66 @@
     [:div.var-name (name (:var/name r) )]]
    [:div.project-name (str "(" (:project/name r) ")")]])
 
-(defn side-bar []
-  (let [refs @(re-frame/subscribe [::subs/selected-entity-refs])]
-    [:div.side-bar
-     [:div
+
+(defn draggable-project [project]
+  [:div.draggable-project.draggable-entity
+   {:draggable true
+    :on-drag-start (fn [event]
+                     (-> event
+                         .-dataTransfer
+                         (.setData "entity-data" (assoc project :type :project))))
+    :on-click (fn [_]
+                (re-frame/dispatch [::events/side-bar-browser-select-project project]))}
+   [:ul
+    [:li (:project/name project)]]])
+
+(defn draggable-namespace [namespace]
+  [:div.draggable-namespace.draggable-entity
+   {:draggable true
+    :on-drag-start (fn [event]
+                     (-> event
+                         .-dataTransfer
+                         (.setData "entity-data" (assoc namespace :type :namespace))))
+    :on-click (fn [_]
+                (re-frame/dispatch [::events/side-bar-browser-select-namespace namespace]))}
+   [:ul
+    [:li (:namespace/name namespace)]]])
+
+(defn draggable-var [var]
+  [:div.draggable-var.draggable-entity
+   {:draggable true
+    :on-drag-start (fn [event]
+                     (-> event
+                         .-dataTransfer
+                         (.setData "entity-data" (assoc var :type :var))))}
+   [:ul
+    [:li (:var/name var)]]])
+
+(defn projects-browser []
+  (let [browser-level @(re-frame/subscribe [::subs/side-bar-browser-level])
+        items @(re-frame/subscribe [::subs/side-bar-browser-items])
+        item-component (case browser-level
+                         :projects draggable-project
+                         :namespaces draggable-namespace
+                         :vars draggable-var)]
+    [:div.projects-browser
+     [:div.head-bar
+      [:button.back {:on-click #(re-frame/dispatch [::events/side-bar-browser-back])} "<"]
+      [:span.browser-selection {:class (name browser-level)}
+       (case browser-level
+         :projects ""
+         :namespaces (-> @(re-frame/subscribe [::subs/side-bar-browser-selected-project])
+                         :project/name)
+         :vars (-> @(re-frame/subscribe [::subs/side-bar-browser-selected-namespace])
+                   :namespace/name))]]
+     [:div.items
+      (for [i items]
+        ^{:key (str (:id i))}
+        [item-component i])]]))
+
+
+(defn selected-browser []
+  #_[:div
       [:div.calls-to "Calls to"]
       (when-let [cbr (:calls-to refs)]
         [:ul
@@ -127,14 +183,33 @@
             (let [s (str (:project/name r) ">" (:namespace/name r) "/" (:var/name r))]
               ^{:key s}
               [fn-ref-node r])))])]
-     [:ul
+     #_[:ul
       [:div.calls-to "Called by"]
       (when-let [cbr (:called-by refs)]
         (doall
          (for [r cbr]
            (let [s (str (:project/name r) ">" (:namespace/name r) "/" (:var/name r))]
              ^{:key s}
-             [fn-ref-node r]))))]]))
+             [fn-ref-node r]))))]
+
+  [:div "Selected Browser"])
+
+(defn side-bar []
+  (let [refs @(re-frame/subscribe [::subs/selected-entity-refs])
+        tab @(re-frame/subscribe [::subs/selected-side-bar-tab])]
+    [:div.side-bar
+     [re-com/horizontal-tabs
+      :model tab
+      :class "side-bar-tabs"
+      :tabs [{:id :projects-browser
+              :label "Browser"}
+             {:id :selected-browser
+              :label "Selection"}]
+      :on-change #(re-frame/dispatch [::events/select-side-bar-tab %])]
+     (case tab
+       :projects-browser [projects-browser]
+       :selected-browser [selected-browser])]
+    ))
 
 (defn main-panel []
   [:div

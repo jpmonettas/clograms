@@ -14,15 +14,19 @@
   border-radius: 5px;
 }
 
+.diagram-layer .project-node {
+  background-color: green;
+}
+
 .diagram-layer .namespace-node {
   background-color: orange;
 }
 
-.diagram-layer .function-node {
-  background-color: red;
+.diagram-layer .var-node {
+  background-color: blue;
 }
 
-.diagram-layer .function-node .source {
+.diagram-layer .var-node .source {
   max-width: 500px;
   font-size: 10px;
   max-height: 200px;
@@ -81,4 +85,72 @@ body .namespace-name {
   width: 300px;
   background-color: #2f2f2f;
   z-index: 10;
+}
+
+.side-bar .side-bar-tabs li {
+
+}
+
+.side-bar .side-bar-tabs li a {
+  padding: 5px;
+}
+
+.side-bar .side-bar-tabs li.active {
+
+}
+
+.side-bar .side-bar-tabs li.active a {
+  color: rgb(60,60,60);
+  background-color: #EEE;
+}
+
+.side-bar .side-bar-tabs li a {
+  color: #EEE;
+  background-color: rgb(60,60,60);
+}
+
+.side-bar .projects-browser {
+  overflow-y: scroll;
+  height: 95%;
+}
+
+.side-bar .projects-browser .head-bar {
+
+}
+
+.side-bar .projects-browser .head-bar .back {
+  background-color: rgb(60,60,60);
+  margin: 5px;
+}
+
+.side-bar .projects-browser .head-bar .browser-selection {
+  font-size: 11px;
+  padding: 3px;
+  border-radius: 5px;
+}
+
+.side-bar .projects-browser .head-bar .browser-selection.namespaces {
+  background-color: green;
+}
+
+.side-bar .projects-browser .head-bar .browser-selection.vars {
+  background-color: orange;
+}
+
+.side-bar .projects-browser .draggable-entity {
+  padding: 5px;
+  border-radius: 5px;
+  margin: 5px;
+}
+
+.side-bar .projects-browser .draggable-project {
+  background-color: green;
+}
+
+.side-bar .projects-browser .draggable-namespace {
+  background-color: orange;
+}
+
+.side-bar .projects-browser .draggable-var {
+  background-color: blue;
 }

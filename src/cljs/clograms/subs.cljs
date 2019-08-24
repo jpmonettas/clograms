@@ -1,11 +1,12 @@
 (ns clograms.subs
   (:require [re-frame.core :as re-frame]
-            [datascript.core :as d]))
+            [datascript.core :as d]
+            [clograms.db :refer [project-browser-transitions]]))
 
-(defn dependency-tree [db main-project-id]
+#_(defn dependency-tree [db main-project-id]
   (d/pull db '[:project/name {:project/depends 6}] main-project-id))
 
-(re-frame/reg-sub
+#_(re-frame/reg-sub
  ::projecs-dependencies-edges
  (fn [{:keys [:datascript/db :main-project/id]} _]
    (when (and db id)
@@ -17,7 +18,7 @@
                         depends)))
          (into #{})))))
 
-(re-frame/reg-sub
+#_(re-frame/reg-sub
  ::diagram
  (fn [{:keys [diagram]} _]
    diagram))
@@ -43,6 +44,87 @@
  ::selected-entity
  (fn [{:keys [selected-entity]} _]
    selected-entity))
+
+(re-frame/reg-sub
+ ::selected-side-bar-tab
+ (fn [{:keys [side-bar]} _]
+   (:selected-side-bar-tab side-bar)))
+
+(re-frame/reg-sub
+ ::side-bar-browser-level
+ (fn [db _]
+   (->> db
+        :projects-browser
+        :level
+        (nth project-browser-transitions))))
+
+(re-frame/reg-sub
+ ::side-bar-browser-selected-project
+ (fn [{:keys [projects-browser]}]
+   (:selected-project projects-browser)))
+
+(re-frame/reg-sub
+ ::side-bar-browser-selected-namespace
+ (fn [{:keys [projects-browser]}]
+   (:selected-namespace projects-browser)))
+
+(defn project-items [datascript-db]
+  (->> (d/q '[:find ?pid ?pname
+              :in $
+              :where
+              [?pid :project/name ?pname]]
+            datascript-db)
+       (map #(zipmap [:id :project/name] %))
+       (map #(-> %
+                 (assoc :type :project)
+                 (update :project/name str)))
+       (sort-by :project/name)))
+
+(defn namespaces-items [datascript-db pid]
+  (->> (d/q '[:find ?nsid ?nsname
+              :in $ ?pid
+              :where
+              [?nsid :namespace/project ?pid]
+              [?nsid :namespace/name ?nsname]]
+            datascript-db
+            pid)
+       (map #(zipmap [:id :namespace/name] %))
+       (map #(-> %
+                 (assoc :type :namespace)
+                 (update :namespace/name str)))
+       (sort-by :namespace/name)))
+
+(defn vars-items [datascript-db nsid]
+  (->> (d/q '[:find ?vid ?vname ?vline ?fid ?fsrc
+              :in $ ?nsid
+              :where
+              [?vid :var/namespace ?nsid]
+              [?vid :var/name ?vname]
+              [?vid :var/line ?vline]
+              [?fid :function/var ?vid]
+              [?fid :function/source ?fsrc]
+              #_[?vid :function/_var ?fid]
+              #_[(get-else $ ?fid :function/var nil) ?x]
+              #_[(get-else $ ?fid :file/name "N/A") ?fname]]
+            datascript-db
+            nsid)
+       (map #(zipmap [:id :var/name :var/line :function/id :function/source] %))
+       (map #(-> %
+                 (assoc :type :var)
+                 (update :var/name str)))
+       (sort-by :var/line)))
+
+(re-frame/reg-sub
+ ::side-bar-browser-items
+ (fn [db _]
+   (let [{:keys [level selected-project selected-namespace]} (:projects-browser db)
+         level-key (nth project-browser-transitions level)]
+     (case level-key
+       :projects (project-items (:datascript/db db))
+       :namespaces (->> (namespaces-items (:datascript/db db) (:id selected-project))
+                        (map #(assoc % :project/name (:project/name selected-project))))
+       :vars (->> (vars-items (:datascript/db db) (:id selected-namespace))
+                  (map #(assoc % :namespace/name (:namespace/name selected-namespace))))))))
 
 (def callers-refs
   (memoize

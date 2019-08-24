@@ -19,16 +19,17 @@
 ;; Custom nodes components ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn namespace-node-component [{:keys [nsname vars]}]
-  [:div.namespace-node.custom-node
-   [:div nsname]
-   [:ul
-    [:li "var 1"]
-    [:li "var 2"]
-    [:li "var 3"]]])
+(defn project-node-component [{:keys [project-name]}]
+  [:div.project-node.custom-node
+   [:div project-name]])
 
-(defn function-node-component [{:keys [nsname var-name source]}]
-  [:div.function-node.custom-node
+(defn namespace-node-component [{:keys [project-name nsname]}]
+  [:div.namespace-node.custom-node
+   [:span.namespace-name nsname]
+   [:span.project-name (str "(" project-name ")")]])
+
+(defn var-node-component [{:keys [nsname var-name source]}]
+  [:div.var-node.custom-node
    [:div [:span.namespace-name (str nsname "/")] [:span var-name]]
    [:pre.source source]])
 
@@ -36,38 +37,48 @@
 ;; Custom node types ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
+(def-storm-custom-node "project-node"
+  :node-factory-base abstract-react-factory
+  :node-model-base node-model
+  :node-factory-builder (make-project-node-factory [])
+  :node-model-builder   (make-project-node-model [project-name])
+  :render project-node-component)
+
 (def-storm-custom-node "namespace-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
   :node-factory-builder (make-namespace-node-factory [])
-  :node-model-builder   (make-namespace-node-model [nsname vars])
+  :node-model-builder   (make-namespace-node-model [project-name nsname])
   :render namespace-node-component)
 
 
-
-(def-storm-custom-node "function-node"
+(def-storm-custom-node "var-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
-  :node-factory-builder (make-function-node-factory [])
-  :node-model-builder   (make-function-node-model [nsname var-name source])
-  :render function-node-component)
+  :node-factory-builder (make-var-node-factory [])
+  :node-model-builder   (make-var-node-model [nsname var-name source])
+  :render var-node-component)
 
 
 (defmulti build-node (fn [node-map] (-> node-map :entity :type)))
 
-(defmethod build-node :function
+(defmethod build-node :project
   [node-map]
   (let [entity (:entity node-map)]
-    (make-function-node-model (:namespace/name entity)
-                              (:var/name entity)
-                              (zp/zprint-file-str (:function/source entity) {}))))
+    (make-project-node-model (:project/name entity))))
 
 (defmethod build-node :namespace
   [node-map]
   (let [entity (:entity node-map)]
-    (make-namespace-node-model (:namespace/name entity)
-                               (into (:namespace/public-vars entity)
-                                     (:namespace/private-vars entity)))))
+    (make-namespace-node-model (:project/name entity)
+                               (:namespace/name entity))))
+
+(defmethod build-node :var
+  [node-map]
+  (let [entity (:entity node-map)]
+    (make-var-node-model (:namespace/name entity)
+                         (:var/name entity)
+                         (zp/zprint-file-str (:function/source entity) {}))))
 
 (defmethod build-node :default
   [{:keys [entity x y] :as node-map}]
@@ -82,8 +93,9 @@
                  (.setModel model))]
 
     ;; register factories
+    (-> engine .getNodeFactories (.registerFactory (make-project-node-factory)))
     (-> engine .getNodeFactories (.registerFactory (make-namespace-node-factory)))
-    (-> engine .getNodeFactories (.registerFactory (make-function-node-factory)))
+    (-> engine .getNodeFactories (.registerFactory (make-var-node-factory)))
 
     (reset! storm-atom
             {:storm/model model

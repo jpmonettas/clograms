@@ -5,6 +5,7 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [datascript.core :as d]
+            [clograms.db :refer [project-browser-transitions]]
             ["@projectstorm/react-diagrams" :as storm]
             ["@projectstorm/react-diagrams-defaults" :as storm-defaults]
             ))
@@ -52,7 +53,8 @@
                                          :on-node-selected [::select-node]
                                          :on-node-unselected [::unselect-node]
                                          }
-                                  link-to-selected? (assoc :link-to {:id (get-in db [:diagram :selected-node :storm.entity/id])
+
+                                  #_link-to-selected? #_(assoc :link-to {:id (get-in db [:diagram :selected-node :storm.entity/id])
                                                                      :port  (case (:type e)
                                                                               :call-to :out
                                                                               :called-by :in)}))}))
@@ -61,6 +63,30 @@
  ::select-node
  (fn [db [_ e]]
    (assoc-in db [:diagram :selected-node] e)))
+
+(re-frame/reg-event-db
+ ::select-side-bar-tab
+ (fn [db [_ tab]]
+   (assoc-in db [:side-bar :selected-side-bar-tab] tab)))
+
+(re-frame/reg-event-db
+ ::side-bar-browser-back
+ (fn [db _]
+   (update-in db [:projects-browser :level] #(max (dec %) 0))))
+
+(re-frame/reg-event-db
+ ::side-bar-browser-select-project
+ (fn [db [_ p]]
+   (-> db
+       (assoc-in [:projects-browser :selected-project] p)
+       (update-in [:projects-browser :level] inc))))
+
+(re-frame/reg-event-db
+ ::side-bar-browser-select-namespace
+ (fn [db [_ ns]]
+   (-> db
+       (assoc-in [:projects-browser :selected-namespace] ns)
+       (update-in [:projects-browser :level] inc))))
 
 (re-frame/reg-event-db
  ::unselect-node
