@@ -30,7 +30,7 @@
 
 (defn var-node-component [{:keys [nsname var-name source]}]
   [:div.var-node.custom-node
-   [:div [:span.namespace-name (str nsname "/")] [:span var-name]]
+   [:div [:span.namespace-name (str nsname "/")] [:span.var-name var-name]]
    [:pre.source source]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;

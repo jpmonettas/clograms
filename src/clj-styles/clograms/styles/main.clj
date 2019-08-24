@@ -4,21 +4,25 @@
             :light-grey "rgb(60,60,60)"
             :dark-grey "#2f2f2f"
 
-            :project-node :green
-            :namespace-node :orange
-            :var-node :blue})
+            :selection "#665c54"
+            :side-bar "#3c3836"
+            :background "#504945"
+            :project-node "#689d6a"
+            :namespace-node "#b16286"
+            :var-node "#458588"})
 
 (def diagram
   [:.diagram-layer {:width "100%"
                     :height "100%"
                     :position :absolute
-                    :background (color :light-grey)}
+                    :background (color :background)}
    ["> *" {:height "100%"}]
    [:.custom-node {:padding "5px"
                    :border-radius "5px"}]
    [:.project-node {:background-color (color :project-node)}]
    [:.namespace-node {:background-color (color :namespace-node)}]
    [:.var-node {:background-color (color :var-node)}
+    [:.var-name {:font-weight :bold}]
     [:.source {:max-width "500px"
                :font-size "10px"
                :max-height "200px"}]]])
@@ -38,13 +42,12 @@
                       :left "50%"
                       :top "3%"
                       :margin-left "-300px"}
-   [:input {:background-color (color :dark-grey)
+   [:input {:background-color (color :side-bar)
             :color (color :super-light-grey)}]
    [:.rc-typeahead-suggestion
-    {:background-color (color :dark-grey)
-     :color (color :super-light-grey)}
-    [:&.active {:background-color :green}]
-    [:.namespace-name {:color :orange}]]])
+    {:background-color (color :side-bar)}
+    [:&.active {:background-color (color :selection)}]
+    [:.namespace-name {:color "#d3869b"}]]])
 
 (def side-bar
   [:.side-bar {:position :absolute
@@ -52,16 +55,16 @@
                :right "0px"
                :height "100%"
                :width "300px"
-               :background-color (color :dark-grey)
+               :background-color (color :side-bar)
                :z-index 10}
-   [:.side-bar-tabs
+   [:.side-bar-tabs {}
     [:li {}
      [:a {:padding "5px"}]
      [:&.active {}
-      [:a {:color (color :light-grey)
-           :background-color (color :super-light-grey)}]]
+      [:a {:color (color :super-light-grey)
+           :background-color (color :side-bar)}]]
      [:a {:color (color :super-light-grey)
-          :background-color (color :light-grey)}]]]
+          }]]]
 
    [:.projects-browser {:overflow-y :scroll
                         :height "95%"}
