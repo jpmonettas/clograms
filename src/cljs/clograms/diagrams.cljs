@@ -41,7 +41,8 @@
    [port-widget {:engine engine :port (.getPort node "in")} ]
    [:div.node-body
     [:div [:span.namespace-name (str nsname "/")] [:span.var-name var-name]]
-    [:pre.source source]]
+    [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
+     source]]
    [port-widget {:engine engine :port (.getPort node "out")}]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;

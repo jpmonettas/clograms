@@ -1,7 +1,7 @@
 (ns clograms.subs
   (:require [re-frame.core :as re-frame]
             [datascript.core :as d]
-            [clograms.db :refer [project-browser-transitions]]))
+            [clograms.db :refer [project-browser-level-idx->key]]))
 
 #_(defn dependency-tree [db main-project-id]
   (d/pull db '[:project/name {:project/depends 6}] main-project-id))
@@ -56,7 +56,7 @@
    (->> db
         :projects-browser
         :level
-        (nth project-browser-transitions))))
+        (project-browser-level-idx->key))))
 
 (re-frame/reg-sub
  ::side-bar-browser-selected-project
@@ -74,30 +74,31 @@
               :where
               [?pid :project/name ?pname]]
             datascript-db)
-       (map #(zipmap [:id :project/name] %))
+       (map #(zipmap [:project/id :project/name] %))
        (map #(-> %
                  (assoc :type :project)
                  (update :project/name str)))
        (sort-by :project/name)))
 
 (defn namespaces-items [datascript-db pid]
-  (->> (d/q '[:find ?nsid ?nsname
+  (->> (d/q '[:find ?pid ?nsid ?nsname
               :in $ ?pid
               :where
               [?nsid :namespace/project ?pid]
               [?nsid :namespace/name ?nsname]]
             datascript-db
             pid)
-       (map #(zipmap [:id :namespace/name] %))
+       (map #(zipmap [:project/id :namespace/id :namespace/name] %))
        (map #(-> %
                  (assoc :type :namespace)
                  (update :namespace/name str)))
        (sort-by :namespace/name)))
 
 (defn vars-items [datascript-db nsid]
-  (->> (d/q '[:find ?vid ?vname ?vline ?fid ?fsrc
+  (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vline ?fid ?fsrc
               :in $ ?nsid
               :where
+              [?nsid :namespace/project ?pid]
               [?vid :var/namespace ?nsid]
               [?vid :var/name ?vname]
               [?vid :var/line ?vline]
@@ -108,7 +109,7 @@
               #_[(get-else $ ?fid :file/name "N/A") ?fname]]
             datascript-db
             nsid)
-       (map #(zipmap [:id :var/name :var/line :function/id :function/source] %))
+       (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/line :function/id :function/source] %))
        (map #(-> %
                  (assoc :type :var)
                  (update :var/name str)))
@@ -118,12 +119,12 @@
  ::side-bar-browser-items
  (fn [db _]
    (let [{:keys [level selected-project selected-namespace]} (:projects-browser db)
-         level-key (nth project-browser-transitions level)]
+         level-key (project-browser-level-idx->key level)]
      (case level-key
        :projects (project-items (:datascript/db db))
-       :namespaces (->> (namespaces-items (:datascript/db db) (:id selected-project))
+       :namespaces (->> (namespaces-items (:datascript/db db) (:project/id selected-project))
                         (map #(assoc % :project/name (:project/name selected-project))))
-       :vars (->> (vars-items (:datascript/db db) (:id selected-namespace))
+       :vars (->> (vars-items (:datascript/db db) (:namespace/id selected-namespace))
                   (map #(assoc % :namespace/name (:namespace/name selected-namespace))))))))
 
 (def callers-refs

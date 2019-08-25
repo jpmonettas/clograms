@@ -168,7 +168,10 @@
                    :namespace/name))]]
      [:div.items
       (for [i items]
-        ^{:key (str (:id i))}
+        ^{:key (str (case browser-level
+                      :projects (:project/id i)
+                      :namespaces (:namespace/id i)
+                      :vars (:var/id i)))}
         [item-component i])]]))
 
 

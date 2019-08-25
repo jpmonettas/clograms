@@ -5,7 +5,7 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [datascript.core :as d]
-            [clograms.db :refer [project-browser-transitions]]
+            [clograms.db :refer [project-browser-level-key->idx]]
             ["@projectstorm/react-diagrams" :as storm]
             ["@projectstorm/react-diagrams-defaults" :as storm-defaults]
             ))
@@ -59,11 +59,24 @@
                                                                               :call-to :out
                                                                               :called-by :in)}))}))
 
+(defn select-project [db p]
+  (assoc-in db [:projects-browser :selected-project] p))
+
+(defn select-namespace [db ns]
+  (assoc-in db [:projects-browser :selected-namespace] ns))
+
 (re-frame/reg-event-fx
  ::select-node
  (fn [{:keys [db]} [_ e]]
-   {:db (assoc-in db [:diagram :selected-node] e)
-    :dispatch [::select-side-bar-tab :selected-browser]}))
+   (case (:type e)
+     :var {:db (assoc-in db [:diagram :selected-node] e)
+           :dispatch [::select-side-bar-tab :selected-browser]}
+     :project { :dispatch-n [[::select-side-bar-tab :projects-browser]
+                             [::side-bar-browser-select-project e]]}
+     :namespace {:db (select-project db e)
+                 :dispatch-n [[::select-side-bar-tab :projects-browser]
+                              [::side-bar-browser-select-namespace e]]}
+     {})))
 
 (re-frame/reg-event-db
  ::select-side-bar-tab
@@ -79,15 +92,15 @@
  ::side-bar-browser-select-project
  (fn [db [_ p]]
    (-> db
-       (assoc-in [:projects-browser :selected-project] p)
-       (update-in [:projects-browser :level] inc))))
+       (select-project p)
+       (assoc-in [:projects-browser :level] (project-browser-level-key->idx :namespaces)))))
 
 (re-frame/reg-event-db
  ::side-bar-browser-select-namespace
  (fn [db [_ ns]]
    (-> db
-       (assoc-in [:projects-browser :selected-namespace] ns)
-       (update-in [:projects-browser :level] inc))))
+       (select-namespace ns)
+       (assoc-in [:projects-browser :level] (project-browser-level-key->idx :vars)))))
 
 (re-frame/reg-event-db
  ::unselect-node
