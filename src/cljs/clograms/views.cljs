@@ -181,7 +181,7 @@
                    [:ul
                     (doall
                      (for [r vars]
-                       ^{:key (:var-id r)}
+                       ^{:key (str (:namespace/name r) (:var/name r))}
                        [draggable-ref-node r]))])]
     (fn []
       [:div.selected-browser

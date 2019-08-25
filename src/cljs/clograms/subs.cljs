@@ -147,8 +147,8 @@
                            [?vrnid :namespace/project ?pid]
                            [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
                          db
-                         ns
-                         vname)]
+                         (symbol ns)
+                         (symbol vname))]
        (->> q-result
             (map #(zipmap [:project/name :namespace/name :var/name :function/source :id] %)))))))
 
@@ -173,8 +173,8 @@
                            [?fvid :var/namespace ?fvnsid]
                            [?fvnsid :namespace/name ?nsn]]
                          db
-                         ns
-                         vname)]
+                         (symbol ns)
+                         (symbol vname))]
        (->> q-result
             (map #(zipmap [:project/name :namespace/name :var/name :function/source :id] %)))))))
 
@@ -187,8 +187,8 @@
          non-interesting (fn [v]
                            (#{'cljs.core 'clojure.core} (:namespace/name v)))
          same-as-selected (fn [v]
-                            (and (= (:namespace/name v) (:namespace/name selected-entity))
-                                    (= (:var/name v) (:var/name selected-entity))))]
+                            (and (= (symbol (:namespace/name v)) (symbol (:namespace/name selected-entity)))
+                                 (= (symbol (:var/name v)) (symbol (:var/name selected-entity)))))]
      (when (and selected-entity
                 (= (:type selected-entity) :var))
        (let [all-calls-refs (calls-refs db (:namespace/name selected-entity) (:var/name selected-entity))
