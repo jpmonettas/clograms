@@ -4,12 +4,16 @@
             :light-grey "rgb(60,60,60)"
             :dark-grey "#2f2f2f"
 
+            :code-background "#a89984"
             :selection "#665c54"
             :side-bar "#3c3836"
             :background "#504945"
             :project-node "#689d6a"
             :namespace-node "#b16286"
-            :var-node "#458588"})
+            :var-node "#458588"
+            :main-font "#eee"})
+
+(def border-radius "3px")
 
 (def diagram
   [:.diagram-layer {:width "100%"
@@ -18,23 +22,32 @@
                     :background (color :background)}
    ["> *" {:height "100%"}]
    [:.custom-node {:padding "5px"
-                   :border-radius "5px"}]
-   [:.project-node {:background-color (color :project-node)}]
-   [:.namespace-node {:background-color (color :namespace-node)}]
-   [:.var-node {:background-color (color :var-node)}
+                   :border-radius border-radius}]
+   [:.project-node {:border  (str "2px solid " (color :project-node))}]
+   [:.namespace-node {:border  (str "2px solid " (color :namespace-node))}]
+   [:.var-node {:border (str "2px solid " (color :var-node))}
     [:.var-name {:font-weight :bold}]
     [:.source {:max-width "500px"
                :font-size "10px"
-               :max-height "200px"}]]])
+               :max-height "200px"
+               :background-color (color :main-font)}]]])
 
 (def general
   [:body {:font-size "11px"
-          :color (str (color :super-light-grey) " !important")}
+          :color (str (color :main-font) " !important")}
    [:ul {:list-style :none
          :padding 0}]
    [:.project-name {:opacity 0.5
                     :margin-left "5px"}]
-   [:.namespace-name {}]])
+   [:.namespace-name {}]
+   [:.draggable-entity
+    {:padding "5px"
+     :border-radius border-radius
+     :margin "5px"
+     :font-size "11px"}]
+   [:.draggable-project {:border  (str "1px solid " (color :project-node))}]
+   [:.draggable-namespace {:border  (str "1px solid " (color :namespace-node))}]
+   [:.draggable-var {:border  (str "1px solid " (color :var-node))}]])
 
 (def entity-selector
   [:.entity-selector {:position :absolute
@@ -73,16 +86,14 @@
               :margin "5px"}]
      [:.browser-selection {:font-size "11px"
                            :padding "3px"
-                           :border-radius "5px"}
+                           :border-radius border-radius}
       [:&.namespaces {:background-color (color :project-node)}]
-      [:&.vars {:background-color (color :namespace-node)}]]]
-    [:.draggable-entity
-     {:padding "5px"
-      :border-radius "5px"
-      :margin "5px"}]
-    [:.draggable-project {:background-color (color :project-node)}]
-    [:.draggable-namespace {:background-color (color :namespace-node)}]
-    [:.draggable-var {:background-color (color :var-node)}]]])
+      [:&.vars {:background-color (color :namespace-node)}]]]]
+
+   [:.selected-browser {:overflow-y :scroll
+                        :height "95%"}
+    [:.header {:font-weight :bold
+               :margin-left "5px"}]]])
 
 ;; This creates resources/public/css/main.css
 (def ^:garden main

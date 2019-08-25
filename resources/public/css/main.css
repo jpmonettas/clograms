@@ -11,19 +11,19 @@
 
 .diagram-layer .custom-node {
   padding: 5px;
-  border-radius: 5px;
+  border-radius: 3px;
 }
 
 .diagram-layer .project-node {
-  background-color: #689d6a;
+  border: 2px solid #689d6a;
 }
 
 .diagram-layer .namespace-node {
-  background-color: #b16286;
+  border: 2px solid #b16286;
 }
 
 .diagram-layer .var-node {
-  background-color: #458588;
+  border: 2px solid #458588;
 }
 
 .diagram-layer .var-node .var-name {
@@ -34,11 +34,12 @@
   max-width: 500px;
   font-size: 10px;
   max-height: 200px;
+  background-color: #eee;
 }
 
 body {
   font-size: 11px;
-  color: #EEE !important;
+  color: #eee !important;
 }
 
 body ul {
@@ -53,6 +54,25 @@ body .project-name {
 
 body .namespace-name {
 
+}
+
+body .draggable-entity {
+  padding: 5px;
+  border-radius: 3px;
+  margin: 5px;
+  font-size: 11px;
+}
+
+body .draggable-project {
+  border: 1px solid #689d6a;
+}
+
+body .draggable-namespace {
+  border: 1px solid #b16286;
+}
+
+body .draggable-var {
+  border: 1px solid #458588;
 }
 
 .entity-selector {
@@ -132,7 +152,7 @@ body .namespace-name {
 .side-bar .projects-browser .head-bar .browser-selection {
   font-size: 11px;
   padding: 3px;
-  border-radius: 5px;
+  border-radius: 3px;
 }
 
 .side-bar .projects-browser .head-bar .browser-selection.namespaces {
@@ -143,20 +163,12 @@ body .namespace-name {
   background-color: #b16286;
 }
 
-.side-bar .projects-browser .draggable-entity {
-  padding: 5px;
-  border-radius: 5px;
-  margin: 5px;
+.side-bar .selected-browser {
+  overflow-y: scroll;
+  height: 95%;
 }
 
-.side-bar .projects-browser .draggable-project {
-  background-color: #689d6a;
-}
-
-.side-bar .projects-browser .draggable-namespace {
-  background-color: #b16286;
-}
-
-.side-bar .projects-browser .draggable-var {
-  background-color: #458588;
+.side-bar .selected-browser .header {
+  font-weight: bold;
+  margin-left: 5px;
 }

@@ -59,10 +59,11 @@
                                                                               :call-to :out
                                                                               :called-by :in)}))}))
 
-(re-frame/reg-event-db
+(re-frame/reg-event-fx
  ::select-node
- (fn [db [_ e]]
-   (assoc-in db [:diagram :selected-node] e)))
+ (fn [{:keys [db]} [_ e]]
+   {:db (assoc-in db [:diagram :selected-node] e)
+    :dispatch [::select-side-bar-tab :selected-browser]}))
 
 (re-frame/reg-event-db
  ::select-side-bar-tab

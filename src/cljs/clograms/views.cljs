@@ -33,7 +33,7 @@
         [ui/menu-item {:value id
                        :primary-text name}])]]))
 
-(defn dependency-explorer []
+#_(defn dependency-explorer []
   (let [edges (re-frame/subscribe [::subs/projecs-dependencies-edges])
         graphviz (atom nil)
         redraw-graph (fn []
@@ -70,7 +70,7 @@
                           [:div#dependency-graph]]])})))
 
 
-(defn link [full-name path line]
+#_(defn link [full-name path line]
   (let [full-name (str full-name)
         name-style {:font-weight :bold
                     :color :blue}]
@@ -99,17 +99,19 @@
                             [:span.var-name (:var/name e)]
                             [:span.project-name (str "(" (:project/name e) ")")]])
       :suggestion-to-string (fn [e]
-                              (str (:namespace/name e) "/" (:var/name e)))
+                              (when (:namespace/name e)
+                                (str (:namespace/name e) "/" (:var/name e))))
       :on-change (fn [e]
                    (when (map? e)
-                     (re-frame/dispatch [::events/add-entity-to-diagram (assoc e :type :function)])))]]))
+                     (re-frame/dispatch [::events/add-entity-to-diagram (assoc e :type :var)])))]]))
 
-(defn fn-ref-node [r]
-  [:li {:draggable true
-        :on-drag-start (fn [event]
-                         (-> event
-                             .-dataTransfer
-                             (.setData "entity-data" (pr-str r))))}
+(defn draggable-ref-node [r]
+  [:li.draggable-var.draggable-entity
+   {:draggable true
+    :on-drag-start (fn [event]
+                     (-> event
+                         .-dataTransfer
+                         (.setData "entity-data" (assoc r :type :var))))}
    [:div
     [:div.namespace-name (:namespace/name r)]
     [:div.var-name (name (:var/name r) )]]
@@ -125,8 +127,7 @@
                          (.setData "entity-data" (assoc project :type :project))))
     :on-click (fn [_]
                 (re-frame/dispatch [::events/side-bar-browser-select-project project]))}
-   [:ul
-    [:li (:project/name project)]]])
+   [:div (:project/name project)]])
 
 (defn draggable-namespace [namespace]
   [:div.draggable-namespace.draggable-entity
@@ -137,8 +138,7 @@
                          (.setData "entity-data" (assoc namespace :type :namespace))))
     :on-click (fn [_]
                 (re-frame/dispatch [::events/side-bar-browser-select-namespace namespace]))}
-   [:ul
-    [:li (:namespace/name namespace)]]])
+   [:div (:namespace/name namespace)]])
 
 (defn draggable-var [var]
   [:div.draggable-var.draggable-entity
@@ -147,8 +147,7 @@
                      (-> event
                          .-dataTransfer
                          (.setData "entity-data" (assoc var :type :var))))}
-   [:ul
-    [:li (:var/name var)]]])
+   [:div (:var/name var)]])
 
 (defn projects-browser []
   (let [browser-level @(re-frame/subscribe [::subs/side-bar-browser-level])
@@ -174,28 +173,27 @@
 
 
 (defn selected-browser []
-  #_[:div
-      [:div.calls-to "Calls to"]
-      (when-let [cbr (:calls-to refs)]
-        [:ul
-         (doall
-          (for [r cbr]
-            (let [s (str (:project/name r) ">" (:namespace/name r) "/" (:var/name r))]
-              ^{:key s}
-              [fn-ref-node r])))])]
-     #_[:ul
-      [:div.calls-to "Called by"]
-      (when-let [cbr (:called-by refs)]
-        (doall
-         (for [r cbr]
-           (let [s (str (:project/name r) ">" (:namespace/name r) "/" (:var/name r))]
-             ^{:key s}
-             [fn-ref-node r]))))]
+  (let [refs (re-frame/subscribe [::subs/selected-var-refs])
+        var-list (fn [vars]
+                   [:ul
+                    (doall
+                     (for [r vars]
+                       ^{:key (:var-id r)}
+                       [draggable-ref-node r]))])]
+    (fn []
+      [:div.selected-browser
+       [:div
+        [:div.header "Calls to"]
+        (when-let [vars (:calls-to @refs)]
+          [var-list vars])]
 
-  [:div "Selected Browser"])
+       [:div
+        [:div.header "Called by"]
+        (when-let [vars (:called-by @refs)]
+          [var-list vars])]])))
 
 (defn side-bar []
-  (let [refs @(re-frame/subscribe [::subs/selected-entity-refs])
+  (let [refs @(re-frame/subscribe [::subs/selected-var-refs])
         tab @(re-frame/subscribe [::subs/selected-side-bar-tab])]
     [:div.side-bar
      [re-com/horizontal-tabs

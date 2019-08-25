@@ -7,7 +7,8 @@
             [reagent.core :as r]
             [clograms.events :as events]
             [goog.object :as gobj]
-            [zprint.core :as zp])
+            [zprint.core :as zp]
+            [clojure.string :as str])
   (:require-macros [clograms.diagrams :refer [def-storm-custom-node]]))
 
 (defonce storm-atom (atom {}))
@@ -78,7 +79,10 @@
   (let [entity (:entity node-map)]
     (make-var-node-model (:namespace/name entity)
                          (:var/name entity)
-                         (zp/zprint-file-str (:function/source entity) {}))))
+                         (-> (:function/source entity)
+                             (str/replace "clojure.core/" "")
+                             (str/replace "cljs.core/" "")
+                             (zp/zprint-file-str {})))))
 
 (defmethod build-node :default
   [{:keys [entity x y] :as node-map}]
