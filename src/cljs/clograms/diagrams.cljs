@@ -16,23 +16,33 @@
 (def abstract-react-factory storm-canvas/AbstractReactFactory)
 (def node-model storm/NodeModel)
 
+(def port-widget (r/adapt-react-class storm/PortWidget))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom nodes components ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn project-node-component [{:keys [project-name]}]
+(defn project-node-component [{:keys [project-name node engine] :as all}]
   [:div.project-node.custom-node
-   [:div project-name]])
+   [port-widget {:engine engine :port (.getPort node "in")} ]
+   [:div.node-body.project-name project-name]
+   [port-widget {:engine engine :port (.getPort node "out")}]])
 
-(defn namespace-node-component [{:keys [project-name nsname]}]
+(defn namespace-node-component [{:keys [project-name nsname node engine]}]
   [:div.namespace-node.custom-node
-   [:span.namespace-name nsname]
-   [:span.project-name (str "(" project-name ")")]])
+   [port-widget {:engine engine :port (.getPort node "in")} ]
+   [:div.node-body
+    [:span.namespace-name nsname]
+    [:span.project-name (str "(" project-name ")")]]
+   [port-widget {:engine engine :port (.getPort node "out")}]])
 
-(defn var-node-component [{:keys [nsname var-name source]}]
+(defn var-node-component [{:keys [nsname var-name source node engine]}]
   [:div.var-node.custom-node
-   [:div [:span.namespace-name (str nsname "/")] [:span.var-name var-name]]
-   [:pre.source source]])
+   [port-widget {:engine engine :port (.getPort node "in")} ]
+   [:div.node-body
+    [:div [:span.namespace-name (str nsname "/")] [:span.var-name var-name]]
+    [:pre.source source]]
+   [port-widget {:engine engine :port (.getPort node "out")}]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom node types ;;
@@ -87,9 +97,7 @@
 (defmethod build-node :default
   [{:keys [entity x y] :as node-map}]
   (doto (storm/DefaultNodeModel. #js {:name (str entity)
-                                      :color "rgb(0,192,255)"})
-    (.addInPort "In")
-    (.addOutPort "Out")))
+                                      :color "rgb(0,192,255)"})))
 
 (defn create-engine-and-model! []
   (let [model (storm/DiagramModel.)
@@ -116,12 +124,20 @@
     :in (-> node-model .-portsIn first)
     :out (-> node-model .-portsOut first)))
 
+;; this.addPort(
+;;          new DefaultPortModel({
+;;              in: false,
+;;              name: 'out'
+;;          })
+;;      );
 (re-frame/reg-fx
  ::add-node
  (fn [node-map]
    (let [{:keys [link-to x y on-node-selected on-node-unselected]} node-map
          new-node (doto (build-node node-map)
-                    (.setPosition x y))
+                    (.setPosition x y)
+                    (.addPort (storm/DefaultPortModel. #js {:in true :name "in"}))
+                    (.addPort (storm/DefaultPortModel. #js {:in false :name "out"})))
          dia-model (-> @storm-atom :storm/model)]
 
      (.addAll dia-model new-node)

@@ -159,7 +159,7 @@
     [:div.projects-browser
      [:div.head-bar
       [:button.back {:on-click #(re-frame/dispatch [::events/side-bar-browser-back])} "<"]
-      [:span.browser-selection {:class (name browser-level)}
+      [:span.browser-selection {:class (str "draggable-" ({:vars "namespace" :namespaces "project"} browser-level))}
        (case browser-level
          :projects ""
          :namespaces (-> @(re-frame/subscribe [::subs/side-bar-browser-selected-project])

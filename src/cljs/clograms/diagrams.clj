@@ -29,7 +29,8 @@
                                                                                   (cljs.core/clj->js ~(->> node-model-builder-args
                                                                                                            (map (fn [arg]
                                                                                                                   [(keyword arg) `(~(symbol (str ".-" arg)) (.-model ~event-symb))]))
-                                                                                                           (into {}))))))
+                                                                                                           (into {:node `(.-model ~event-symb)
+                                                                                                                  :engine `(:storm/engine @clograms.diagrams/storm-atom)}))))))
 
        (js/Reflect.setPrototypeOf (.-prototype ~node-factory-builder-name)  (.-prototype ~(:node-factory-base fns-map)))
        (js/Reflect.setPrototypeOf ~node-factory-builder-name ~(:node-factory-base fns-map)))))

@@ -12,18 +12,46 @@
 .diagram-layer .custom-node {
   padding: 5px;
   border-radius: 3px;
+  display: flex;
+  align-items: center;
+}
+
+.diagram-layer .port {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 5px;
+  border-radius: 3px;
+  background-color: red;
+  color: transparent;
+}
+
+.diagram-layer .node-body {
+  display: inline-block;
 }
 
 .diagram-layer .project-node {
-  border: 2px solid #689d6a;
+  border: 2px solid #458588;
+}
+
+.diagram-layer .project-node .port {
+  background-color: #458588;
 }
 
 .diagram-layer .namespace-node {
   border: 2px solid #b16286;
 }
 
+.diagram-layer .namespace-node .port {
+  background-color: #b16286;
+}
+
 .diagram-layer .var-node {
-  border: 2px solid #458588;
+  border: 2px solid #689d6a;
+}
+
+.diagram-layer .var-node .port {
+  background-color: #689d6a;
 }
 
 .diagram-layer .var-node .var-name {
@@ -48,23 +76,27 @@ body ul {
 }
 
 body .project-name {
-  opacity: 0.5;
-  margin-left: 5px;
+
 }
 
 body .namespace-name {
 
 }
 
+body .var-name {
+  font-weight: bold;
+}
+
 body .draggable-entity {
   padding: 5px;
   border-radius: 3px;
   margin: 5px;
+  background-color: #504945;
   font-size: 11px;
 }
 
 body .draggable-project {
-  border: 1px solid #689d6a;
+  border: 1px solid #458588;
 }
 
 body .draggable-namespace {
@@ -72,7 +104,7 @@ body .draggable-namespace {
 }
 
 body .draggable-var {
-  border: 1px solid #458588;
+  border: 1px solid #689d6a;
 }
 
 .entity-selector {
@@ -81,6 +113,11 @@ body .draggable-var {
   left: 50%;
   top: 3%;
   margin-left: -300px;
+}
+
+.entity-selector .project-name {
+  margin-left: 3px;
+  opacity: 0.5;
 }
 
 .entity-selector input {
@@ -94,10 +131,6 @@ body .draggable-var {
 
 .entity-selector .rc-typeahead-suggestion.active {
   background-color: #665c54;
-}
-
-.entity-selector .rc-typeahead-suggestion .namespace-name {
-  color: #d3869b;
 }
 
 .side-bar {
@@ -153,14 +186,6 @@ body .draggable-var {
   font-size: 11px;
   padding: 3px;
   border-radius: 3px;
-}
-
-.side-bar .projects-browser .head-bar .browser-selection.namespaces {
-  background-color: #689d6a;
-}
-
-.side-bar .projects-browser .head-bar .browser-selection.vars {
-  background-color: #b16286;
 }
 
 .side-bar .selected-browser {

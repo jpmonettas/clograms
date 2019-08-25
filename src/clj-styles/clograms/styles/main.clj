@@ -8,9 +8,11 @@
             :selection "#665c54"
             :side-bar "#3c3836"
             :background "#504945"
-            :project-node "#689d6a"
+
+            :project-node "#458588"
             :namespace-node "#b16286"
-            :var-node "#458588"
+            :var-node "#689d6a"
+
             :main-font "#eee"})
 
 (def border-radius "3px")
@@ -22,10 +24,23 @@
                     :background (color :background)}
    ["> *" {:height "100%"}]
    [:.custom-node {:padding "5px"
-                   :border-radius border-radius}]
-   [:.project-node {:border  (str "2px solid " (color :project-node))}]
-   [:.namespace-node {:border  (str "2px solid " (color :namespace-node))}]
+                   :border-radius border-radius
+                   :display :flex
+                   :align-items :center}]
+   [:.port {:display :inline-block
+            :width "8px"
+            :height "8px"
+            :margin "5px"
+            :border-radius border-radius
+            :background-color :red
+            :color :transparent}]
+   [:.node-body {:display :inline-block}]
+   [:.project-node {:border (str "2px solid " (color :project-node))}
+    [:.port {:background-color (color :project-node)}]]
+   [:.namespace-node {:border  (str "2px solid " (color :namespace-node))}
+    [:.port {:background-color (color :namespace-node)}]]
    [:.var-node {:border (str "2px solid " (color :var-node))}
+    [:.port {:background-color (color :var-node)}]
     [:.var-name {:font-weight :bold}]
     [:.source {:max-width "500px"
                :font-size "10px"
@@ -37,13 +52,14 @@
           :color (str (color :main-font) " !important")}
    [:ul {:list-style :none
          :padding 0}]
-   [:.project-name {:opacity 0.5
-                    :margin-left "5px"}]
+   [:.project-name {}]
    [:.namespace-name {}]
+   [:.var-name {:font-weight :bold}]
    [:.draggable-entity
     {:padding "5px"
      :border-radius border-radius
      :margin "5px"
+     :background-color (color :background)
      :font-size "11px"}]
    [:.draggable-project {:border  (str "1px solid " (color :project-node))}]
    [:.draggable-namespace {:border  (str "1px solid " (color :namespace-node))}]
@@ -55,12 +71,13 @@
                       :left "50%"
                       :top "3%"
                       :margin-left "-300px"}
+   [:.project-name {:margin-left "3px"
+                    :opacity 0.5}]
    [:input {:background-color (color :side-bar)
             :color (color :super-light-grey)}]
    [:.rc-typeahead-suggestion
     {:background-color (color :side-bar)}
-    [:&.active {:background-color (color :selection)}]
-    [:.namespace-name {:color "#d3869b"}]]])
+    [:&.active {:background-color (color :selection)}]]])
 
 (def side-bar
   [:.side-bar {:position :absolute
@@ -87,8 +104,8 @@
      [:.browser-selection {:font-size "11px"
                            :padding "3px"
                            :border-radius border-radius}
-      [:&.namespaces {:background-color (color :project-node)}]
-      [:&.vars {:background-color (color :namespace-node)}]]]]
+      #_[:&.namespaces {:background-color (color :project-node)}]
+      #_[:&.vars {:background-color (color :namespace-node)}]]]]
 
    [:.selected-browser {:overflow-y :scroll
                         :height "95%"}
