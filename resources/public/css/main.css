@@ -99,6 +99,10 @@ body .draggable-project {
   border: 1px solid #458588;
 }
 
+body .draggable-project.main-project {
+  border-width: 2px;
+}
+
 body .draggable-namespace {
   border: 1px solid #b16286;
 }

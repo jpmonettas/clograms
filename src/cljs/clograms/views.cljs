@@ -121,6 +121,7 @@
 (defn draggable-project [project]
   [:div.draggable-project.draggable-entity
    {:draggable true
+    :class (when (= (:project/name project) "clindex/main-project") "main-project")
     :on-drag-start (fn [event]
                      (-> event
                          .-dataTransfer

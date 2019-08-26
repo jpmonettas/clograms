@@ -61,7 +61,8 @@
      :margin "5px"
      :background-color (color :background)
      :font-size "11px"}]
-   [:.draggable-project {:border  (str "1px solid " (color :project-node))}]
+   [:.draggable-project {:border  (str "1px solid " (color :project-node))}
+    [:&.main-project {:border-width "2px"}]]
    [:.draggable-namespace {:border  (str "1px solid " (color :namespace-node))}]
    [:.draggable-var {:border  (str "1px solid " (color :var-node))}]])
 

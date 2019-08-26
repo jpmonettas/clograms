@@ -121,7 +121,10 @@
    (let [{:keys [level selected-project selected-namespace]} (:projects-browser db)
          level-key (project-browser-level-idx->key level)]
      (case level-key
-       :projects (project-items (:datascript/db db))
+       :projects (let [all-projects (project-items (:datascript/db db))
+                       is-main-project #(when (= (:project/name %) "clindex/main-project") %)
+                       main-project (some is-main-project all-projects)]
+                   (into [main-project] (remove is-main-project all-projects)))
        :namespaces (->> (namespaces-items (:datascript/db db) (:project/id selected-project))
                         (map #(assoc % :project/name (:project/name selected-project))))
        :vars (->> (vars-items (:datascript/db db) (:namespace/id selected-namespace))
