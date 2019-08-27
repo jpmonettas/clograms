@@ -95,12 +95,13 @@
        (sort-by :namespace/name)))
 
 (defn vars-items [datascript-db nsid]
-  (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vline ?fid ?fsrc
+  (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrc
               :in $ ?nsid
               :where
               [?nsid :namespace/project ?pid]
               [?vid :var/namespace ?nsid]
               [?vid :var/name ?vname]
+              [?vid :var/public? ?vpub]
               [?vid :var/line ?vline]
               [?fid :function/var ?vid]
               [?fid :function/source ?fsrc]
@@ -109,7 +110,7 @@
               #_[(get-else $ ?fid :file/name "N/A") ?fname]]
             datascript-db
             nsid)
-       (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/line :function/id :function/source] %))
+       (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/public? :var/line :function/id :function/source] %))
        (map #(-> %
                  (assoc :type :var)
                  (update :var/name str)))

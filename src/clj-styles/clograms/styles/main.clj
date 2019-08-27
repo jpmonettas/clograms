@@ -3,6 +3,8 @@
 (def color {:super-light-grey "#EEE"
             :light-grey "rgb(60,60,60)"
             :dark-grey "#2f2f2f"
+            :green "#98971a"
+            :red "#cc241d"
 
             :code-background "#a89984"
             :selection "#665c54"
@@ -13,7 +15,8 @@
             :namespace-node "#b16286"
             :var-node "#689d6a"
 
-            :main-font "#eee"})
+            :main-font "#eee"
+            })
 
 (def border-radius "3px")
 
@@ -63,8 +66,15 @@
      :font-size "11px"}]
    [:.draggable-project {:border  (str "1px solid " (color :project-node))}
     [:&.main-project {:border-width "2px"}]]
-   [:.draggable-namespace {:border  (str "1px solid " (color :namespace-node))}]
-   [:.draggable-var {:border  (str "1px solid " (color :var-node))}]])
+   [:.draggable-namespace {:border (str "1px solid " (color :namespace-node))}]
+   [:.draggable-var {:border (str "1px solid " (color :var-node))}
+    [:.var {:display :inline-block
+            :margin-right "4px"
+            :width "7px"
+            :height "7px"
+            :border-radius border-radius}
+     [:&.private {:background-color (color :red)}]
+     [:&.public {:background-color (color :green)}]]]])
 
 (def entity-selector
   [:.entity-selector {:position :absolute

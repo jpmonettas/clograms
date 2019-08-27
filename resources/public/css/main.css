@@ -111,6 +111,22 @@ body .draggable-var {
   border: 1px solid #689d6a;
 }
 
+body .draggable-var .var {
+  display: inline-block;
+  margin-right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 3px;
+}
+
+body .draggable-var .var.private {
+  background-color: #cc241d;
+}
+
+body .draggable-var .var.public {
+  background-color: #98971a;
+}
+
 .entity-selector {
   position: absolute;
   z-index: 10;

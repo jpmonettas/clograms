@@ -148,7 +148,9 @@
                      (-> event
                          .-dataTransfer
                          (.setData "entity-data" (assoc var :type :var))))}
-   [:div (:var/name var)]])
+   [:div
+    [:div {:class (str "var " (if (:var/public? var) "public" "private"))}]
+    [:span.var-name (:var/name var)]]])
 
 (defn projects-browser []
   (let [browser-level @(re-frame/subscribe [::subs/side-bar-browser-level])
