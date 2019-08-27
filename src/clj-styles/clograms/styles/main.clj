@@ -31,12 +31,14 @@
                    :display :flex
                    :align-items :center}]
    [:.port {:display :inline-block
-            :width "8px"
-            :height "8px"
+            :width "10px"
+            :height "10px"
             :margin "5px"
             :border-radius border-radius
             :background-color :red
-            :color :transparent}]
+            :color :transparent}
+    [:&:hover {:background-color (str "yellow !important")
+               :cursor :crosshair}]]
    [:.node-body {:display :inline-block}]
    [:.project-node {:border (str "2px solid " (color :project-node))}
     [:.port {:background-color (color :project-node)}]]

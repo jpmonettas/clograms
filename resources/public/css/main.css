@@ -18,12 +18,17 @@
 
 .diagram-layer .port {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   margin: 5px;
   border-radius: 3px;
   background-color: red;
   color: transparent;
+}
+
+.diagram-layer .port:hover {
+  background-color: yellow !important;
+  cursor: crosshair;
 }
 
 .diagram-layer .node-body {
