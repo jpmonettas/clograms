@@ -1,7 +1,7 @@
 (ns clograms.subs
   (:require [re-frame.core :as re-frame]
             [datascript.core :as d]
-            [clograms.db :refer [project-browser-level-idx->key]]))
+            [clograms.db :refer [project-browser-level-idx->key] :as db]))
 
 #_(defn dependency-tree [db main-project-id]
   (d/pull db '[:project/name {:project/depends 6}] main-project-id))
@@ -186,17 +186,24 @@
 
 (re-frame/reg-sub
  ::selected-var-refs
- (fn [{:keys [:datascript/db :diagram]} _]
-   (let [selected-entity (:selected-node diagram)
+ (fn [{:keys [:diagram] :as db} _]
+   (let [selected-entity (->> (db/selected-node db)
+                              (db/node db)
+                              :clograms/entity)
          non-interesting (fn [v]
                            (#{'cljs.core 'clojure.core} (:namespace/name v)))
          same-as-selected (fn [v]
                             (and (= (symbol (:namespace/name v)) (symbol (:namespace/name selected-entity)))
                                  (= (symbol (:var/name v)) (symbol (:var/name selected-entity)))))]
+
      (when (and selected-entity
                 (= (:type selected-entity) :var))
-       (let [all-calls-refs (calls-refs db (:namespace/name selected-entity) (:var/name selected-entity))
-             all-callers-refs (callers-refs db (:namespace/name selected-entity) (:var/name selected-entity))]
+       (let [all-calls-refs (calls-refs (:datascript/db db)
+                                        (:namespace/name selected-entity)
+                                        (:var/name selected-entity))
+             all-callers-refs (callers-refs (:datascript/db db)
+                                            (:namespace/name selected-entity)
+                                            (:var/name selected-entity))]
          {:calls-to (->> all-calls-refs
                          (remove non-interesting)
                          (remove same-as-selected)

@@ -22,27 +22,27 @@
 ;; Custom nodes components ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn project-node-component [{:keys [project-name node engine] :as all}]
+(defn project-node-component [{:keys [entity node engine] :as all}]
   [:div.project-node.custom-node
    [port-widget {:engine engine :port (.getPort node "in")} ]
-   [:div.node-body.project-name project-name]
+   [:div.node-body.project-name (:project/name entity)]
    [port-widget {:engine engine :port (.getPort node "out")}]])
 
-(defn namespace-node-component [{:keys [project-name nsname node engine]}]
+(defn namespace-node-component [{:keys [entity node engine]}]
   [:div.namespace-node.custom-node
    [port-widget {:engine engine :port (.getPort node "in")} ]
    [:div.node-body
-    [:span.namespace-name nsname]
-    [:span.project-name (str "(" project-name ")")]]
+    [:span.namespace-name (:namespace/name entity)]
+    [:span.project-name (str "(" (:project/name entity) ")")]]
    [port-widget {:engine engine :port (.getPort node "out")}]])
 
-(defn var-node-component [{:keys [nsname var-name source node engine]}]
+(defn var-node-component [{:keys [entity node engine]}]
   [:div.var-node.custom-node
    [port-widget {:engine engine :port (.getPort node "in")} ]
    [:div.node-body
-    [:div [:span.namespace-name (str nsname "/")] [:span.var-name var-name]]
+    [:div [:span.namespace-name (str (:namespace/name entity) "/")] [:span.var-name (:var/name entity)]]
     [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
-     source]]
+     (:function/source entity)]]
    [port-widget {:engine engine :port (.getPort node "out")}]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -52,23 +52,23 @@
 (def-storm-custom-node "project-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
-  :node-factory-builder (make-project-node-factory [])
-  :node-model-builder   (make-project-node-model [project-name])
+  :node-factory-builder make-project-node-factory
+  :node-model-builder   make-project-node-model
   :render project-node-component)
 
 (def-storm-custom-node "namespace-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
-  :node-factory-builder (make-namespace-node-factory [])
-  :node-model-builder   (make-namespace-node-model [project-name nsname])
+  :node-factory-builder make-namespace-node-factory
+  :node-model-builder   make-namespace-node-model
   :render namespace-node-component)
 
 
 (def-storm-custom-node "var-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
-  :node-factory-builder (make-var-node-factory [])
-  :node-model-builder   (make-var-node-model [nsname var-name source])
+  :node-factory-builder make-var-node-factory
+  :node-model-builder   make-var-node-model
   :render var-node-component)
 
 
@@ -77,31 +77,63 @@
 (defmethod build-node :project
   [node-map]
   (let [entity (:entity node-map)]
-    (make-project-node-model (:project/name entity))))
+    (make-project-node-model entity)))
 
 (defmethod build-node :namespace
   [node-map]
   (let [entity (:entity node-map)]
-    (make-namespace-node-model (:project/name entity)
-                               (:namespace/name entity))))
+    (make-namespace-node-model entity)))
 
 (defmethod build-node :var
   [node-map]
   (let [entity (:entity node-map)]
-    (make-var-node-model (:namespace/name entity)
-                         (:var/name entity)
-                         (-> (:function/source entity)
-                             (str/replace "clojure.core/" "")
-                             (str/replace "cljs.core/" "")
-                             (zp/zprint-file-str {})))))
+    (make-var-node-model (update entity :function/source
+                                 (fn [src]
+                                   (-> src
+                                       (str/replace "clojure.core/" "")
+                                       (str/replace "cljs.core/" "")
+                                       (zp/zprint-file-str {})))))))
 
 (defmethod build-node :default
   [{:keys [entity x y] :as node-map}]
   (doto (storm/DefaultNodeModel. #js {:name (str entity)
                                       :color "rgb(0,192,255)"})))
 
+;;;;;;;;;;;;;;;
+;; Listeners ;;
+;;;;;;;;;;;;;;;
+
+(defn nodes-updated-listener [node-model]
+  (when (.-isCreated node-model)
+    (re-frame/dispatch
+     [::events/add-node {:storm.node/id (.. node-model -node -options -id)
+                         :storm.node/type (.. node-model -node -options -type)
+                         :x (.. node-model -node -position -x)
+                         :y (.. node-model -node -position -y)
+                         :clograms/entity (.. node-model -node -entity)}])))
+
+(defn links-updated-listener [node-model])
+
+(defn selection-changed-listener [{:keys [on-node-selected on-node-unselected] :as node-map} obj]
+       (re-frame/dispatch
+        (conj (if (.-isSelected obj)
+                on-node-selected
+                on-node-unselected)
+              {:storm.node/id (-> obj .-entity .-options .-id)})))
+
+(defn position-changed-listener  [obj]
+       (re-frame/dispatch
+        [::events/update-node-position (.. obj -entity -options -id)
+         (.. obj -entity -position -x)
+         (.. obj -entity -position -y)]))
+(defn entity-removed-listener [obj]
+       (re-frame/dispatch
+        [::events/remove-node (.. obj -entity -options -id)]))
+
 (defn create-engine-and-model! []
-  (let [model (storm/DiagramModel.)
+  (let [model (doto (storm/DiagramModel.)
+                (.registerListener #js {:nodesUpdated #(nodes-updated-listener %)
+                                        :linksUpdated #(links-updated-listener %)}))
         engine (doto (storm/default)
                  (.setModel model))]
 
@@ -125,12 +157,6 @@
     :in (-> node-model .-portsIn first)
     :out (-> node-model .-portsOut first)))
 
-;; this.addPort(
-;;          new DefaultPortModel({
-;;              in: false,
-;;              name: 'out'
-;;          })
-;;      );
 (re-frame/reg-fx
  ::add-node
  (fn [node-map]
@@ -155,13 +181,9 @@
        )
      (.repaintCanvas (-> @storm-atom :storm/engine))
 
-     (.registerListener new-node #js {:selectionChanged (fn [obj]
-                                                          (re-frame/dispatch
-                                                           (conj (if (.-isSelected obj)
-                                                                   on-node-selected
-                                                                   on-node-unselected)
-                                                                 (assoc (:entity node-map)
-                                                                        :storm.entity/id (-> obj .-entity .-options .-id)))))}))))
+     (.registerListener new-node #js {:selectionChanged #(selection-changed-listener node-map %)})
+     (.registerListener new-node #js {:positionChanged #(position-changed-listener %)})
+     (.registerListener new-node #js {:entityRemoved #(entity-removed-listener %)}))))
 
 (defn create-component []
   (let [engine (-> @storm-atom :storm/engine)]

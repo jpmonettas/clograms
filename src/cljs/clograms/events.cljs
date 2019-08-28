@@ -57,26 +57,43 @@
                                   #_link-to-selected? #_(assoc :link-to {:id (get-in db [:diagram :selected-node :storm.entity/id])
                                                                      :port  (case (:type e)
                                                                               :call-to :out
-                                                                              :called-by :in)}))}))
+                                                                              :called-by :in)}))
+    }))
 
-(defn select-project [db p]
-  (assoc-in db [:projects-browser :selected-project] p))
+;; All this should be only called from the diagram to keep our
+;; internal model in sync
 
-(defn select-namespace [db ns]
-  (assoc-in db [:projects-browser :selected-namespace] ns))
+(re-frame/reg-event-db
+ ::add-node
+ (fn [db [_ node]]
+   (db/add-node db node)))
+
+(re-frame/reg-event-db
+ ::remove-node
+ (fn [db [_ node-id]]
+   (db/remove-node db node-id)))
+
+(re-frame/reg-event-db
+ ::update-node-position
+ (fn [db [_ node-id x y]]
+   (db/update-node-position db node-id x y)))
 
 (re-frame/reg-event-fx
  ::select-node
- (fn [{:keys [db]} [_ e]]
-   (case (:type e)
-     :var {:db (assoc-in db [:diagram :selected-node] e)
-           :dispatch [::select-side-bar-tab :selected-browser]}
-     :project { :dispatch-n [[::select-side-bar-tab :projects-browser]
-                             [::side-bar-browser-select-project e]]}
-     :namespace {:db (select-project db e)
+ (fn [{:keys [db]} [_ node]]
+   (let [db' (db/select-node db (:storm.node/id node))
+         entity (:clograms/entity (db/node db (:storm.node/id node)))]
+     (case (:type entity)
+       :var {:db db'
+             :dispatch [::select-side-bar-tab :selected-browser]}
+       :project {:db db'
                  :dispatch-n [[::select-side-bar-tab :projects-browser]
-                              [::side-bar-browser-select-namespace e]]}
-     {})))
+                              [::side-bar-browser-select-project entity]]}
+       :namespace {:db (db/select-project db' entity)
+                   :dispatch-n [[::select-side-bar-tab :projects-browser]
+                                [::side-bar-browser-select-namespace entity]]}
+       {}))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (re-frame/reg-event-db
  ::select-side-bar-tab
@@ -92,14 +109,14 @@
  ::side-bar-browser-select-project
  (fn [db [_ p]]
    (-> db
-       (select-project p)
+       (db/select-project p)
        (assoc-in [:projects-browser :level] (project-browser-level-key->idx :namespaces)))))
 
 (re-frame/reg-event-db
  ::side-bar-browser-select-namespace
  (fn [db [_ ns]]
    (-> db
-       (select-namespace ns)
+       (db/select-namespace ns)
        (assoc-in [:projects-browser :level] (project-browser-level-key->idx :vars)))))
 
 (re-frame/reg-event-db
