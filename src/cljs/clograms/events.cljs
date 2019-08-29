@@ -60,6 +60,11 @@
                                                                               :called-by :in)}))
     }))
 
+(re-frame/reg-event-fx
+ ::remove-entity-from-diagram
+ (fn [{:keys [db]} [_ id]]
+   {:clograms.diagrams/remove-node id}))
+
 ;; All this should be only called from the diagram to keep our
 ;; internal model in sync
 
@@ -94,6 +99,16 @@
                                 [::side-bar-browser-select-namespace entity]]}
        {}))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(re-frame/reg-event-db
+ ::show-context-menu
+ (fn [db [_ ctx-menu]]
+   (db/set-ctx-menu db ctx-menu)))
+
+(re-frame/reg-event-db
+ ::hide-context-menu
+ (fn [db [_]]
+   (db/set-ctx-menu db nil)))
 
 (re-frame/reg-event-db
  ::select-side-bar-tab

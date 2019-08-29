@@ -55,11 +55,18 @@
 (def general
   [:body {:font-size "11px"
           :color (str (color :main-font) " !important")}
+   [:.context-menu {:background (color :side-bar)
+                    :min-width "200px"
+                    :border-radius border-radius}
+    [:ul
+     [:li {:padding-left "10px"
+           :padding-top "10px"
+           :cursor :pointer}]]]
    [:ul {:list-style :none
          :padding 0}]
    [:.project-name {}]
    [:.namespace-name {}]
-   [:.var-name {:font-weight :bold}]
+   [:.var-name {}]
    [:.draggable-entity
     {:padding "5px"
      :border-radius border-radius

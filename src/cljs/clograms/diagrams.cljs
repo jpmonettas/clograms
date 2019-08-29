@@ -22,28 +22,46 @@
 ;; Custom nodes components ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn node-context-menu-wrapper [{:keys [menu]} child]
+  [:div {:on-context-menu (fn [evt]
+                            (let [x (.. evt -nativeEvent -pageX)
+                                  y (.. evt -nativeEvent -pageY)]
+                              (re-frame/dispatch
+                               [::events/show-context-menu
+                                {:x x
+                                 :y y
+                                 :menu menu}])))}
+   child])
+
+(defn remove-ctx-menu-option [node-model]
+  {:label "Remove"
+   :dispatch [::events/remove-entity-from-diagram (.. node-model -options -id)]})
+
 (defn project-node-component [{:keys [entity node engine] :as all}]
-  [:div.project-node.custom-node
-   [port-widget {:engine engine :port (.getPort node "in")} ]
-   [:div.node-body.project-name (:project/name entity)]
-   [port-widget {:engine engine :port (.getPort node "out")}]])
+  [node-context-menu-wrapper {:menu [(remove-ctx-menu-option node)]}
+   [:div.project-node.custom-node {}
+    [port-widget {:engine engine :port (.getPort node "in")} ]
+    [:div.node-body.project-name (:project/name entity)]
+    [port-widget {:engine engine :port (.getPort node "out")}]]])
 
 (defn namespace-node-component [{:keys [entity node engine]}]
-  [:div.namespace-node.custom-node
-   [port-widget {:engine engine :port (.getPort node "in")} ]
-   [:div.node-body
-    [:span.namespace-name (:namespace/name entity)]
-    [:span.project-name (str "(" (:project/name entity) ")")]]
-   [port-widget {:engine engine :port (.getPort node "out")}]])
+  [node-context-menu-wrapper {:menu [(remove-ctx-menu-option node)]}
+   [:div.namespace-node.custom-node
+    [port-widget {:engine engine :port (.getPort node "in")} ]
+    [:div.node-body
+     [:span.namespace-name (:namespace/name entity)]
+     [:span.project-name (str "(" (:project/name entity) ")")]]
+    [port-widget {:engine engine :port (.getPort node "out")}]]])
 
 (defn var-node-component [{:keys [entity node engine]}]
-  [:div.var-node.custom-node
-   [port-widget {:engine engine :port (.getPort node "in")} ]
-   [:div.node-body
-    [:div [:span.namespace-name (str (:namespace/name entity) "/")] [:span.var-name (:var/name entity)]]
-    [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
-     (:function/source entity)]]
-   [port-widget {:engine engine :port (.getPort node "out")}]])
+  [node-context-menu-wrapper {:menu [(remove-ctx-menu-option node)]}
+   [:div.var-node.custom-node
+    [port-widget {:engine engine :port (.getPort node "in")} ]
+    [:div.node-body
+     [:div [:span.namespace-name (str (:namespace/name entity) "/")] [:span.var-name (:var/name entity)]]
+     [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
+      (:function/source entity)]]
+    [port-widget {:engine engine :port (.getPort node "out")}]]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom node types ;;
@@ -185,6 +203,14 @@
      (.registerListener new-node #js {:positionChanged #(position-changed-listener %)})
      (.registerListener new-node #js {:entityRemoved #(entity-removed-listener %)}))))
 
+(re-frame/reg-fx
+ ::remove-node
+ (fn [node-id]
+   (let [dia-model (-> @storm-atom :storm/model)
+         node (get-node dia-model node-id)]
+     (.removeNode dia-model node)
+     (.repaintCanvas (-> @storm-atom :storm/engine)))))
+
 (defn create-component []
   (let [engine (-> @storm-atom :storm/engine)]
     (react/createElement "div"
@@ -196,5 +222,7 @@
                                                               {:link-to-selected? true
                                                                :x (.-x points)
                                                                :y (.-y points)}])))
-                              :onDragOver (fn [e] (.preventDefault e))}
+                              :onDragOver (fn [e] (.preventDefault e))
+                              :onClick (fn [e]
+                                         (re-frame/dispatch [::events/hide-context-menu]))}
                          (react/createElement storm-canvas/CanvasWidget #js {:engine engine} nil))))

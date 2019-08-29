@@ -75,6 +75,18 @@ body {
   color: #eee !important;
 }
 
+body .context-menu {
+  background: #3c3836;
+  min-width: 200px;
+  border-radius: 3px;
+}
+
+body .context-menu ul li {
+  padding-left: 10px;
+  padding-top: 10px;
+  cursor: pointer;
+}
+
 body ul {
   list-style: none;
   padding: 0;
@@ -89,7 +101,7 @@ body .namespace-name {
 }
 
 body .var-name {
-  font-weight: bold;
+
 }
 
 body .draggable-entity {

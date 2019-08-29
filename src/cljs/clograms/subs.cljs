@@ -213,3 +213,7 @@
                           (remove same-as-selected)
                           (map #(assoc % :type :var))
                           (into #{}))})))))
+(re-frame/reg-sub
+ ::ctx-menu
+ (fn [{:keys [ctx-menu]}]
+   ctx-menu))

@@ -215,7 +215,24 @@
        :selected-browser [selected-browser])]
     ))
 
+(defn context-menu [{:keys [x y menu]}]
+  [:div.context-menu {:style {:position :absolute
+                              :top y
+                              :left x
+                              :z-index 100}}
+   [:ul
+    (for [{:keys [label dispatch]} menu]
+      ^{:key label}
+      [:li {:on-click (fn []
+                        (re-frame/dispatch dispatch)
+                        (re-frame/dispatch [::events/hide-context-menu]))}
+       label])]]
+  )
+
 (defn main-panel []
-  [:div
-   [entity-selector]
-   [side-bar]])
+  (let [ctx-menu @(re-frame/subscribe [::subs/ctx-menu])]
+    [:div
+     (when ctx-menu
+       [context-menu ctx-menu])
+     [entity-selector]
+     [side-bar]]))

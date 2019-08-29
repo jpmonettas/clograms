@@ -38,6 +38,9 @@
 (defn select-namespace [db ns]
   (assoc-in db [:projects-browser :selected-namespace] ns))
 
+(defn set-ctx-menu [db ctx-menu]
+  (assoc db :ctx-menu ctx-menu))
+
 ;; Node
 ;; {:storm.node/id "7338a7d8-0827-4186-9da9-94015b110565"
 ;;  :storm.node/type "project-node"
@@ -52,4 +55,5 @@
                       :selected-namspace nil}
    :diagram {:selected-node nil ;; node id
              :nodes {}
-             :links {}}})
+             :links {}}
+   :ctx-menu nil})
