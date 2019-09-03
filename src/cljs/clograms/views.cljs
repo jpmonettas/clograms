@@ -8,7 +8,7 @@
             [dorothy.core :as dorothy]
             [goog.string :as gstring]
             [re-com.core :as re-com]
-            [clograms.reagent-diagrams :as rd]))
+            [clograms.re-grams :as rg]))
 
 (defn all-projects [& {:keys [on-change selected-id]}]
   [:div "All projects"]
@@ -231,8 +231,9 @@
   )
 
 (defn main-panel []
-  (let [ctx-menu @(re-frame/subscribe [::subs/ctx-menu])]
-    [rd/diagram]
+  (let [ctx-menu @(re-frame/subscribe [::subs/ctx-menu])
+        dia @(re-frame/subscribe [::rg/diagram])]
+    [rg/diagram dia]
     #_[:div
      (when ctx-menu
        [context-menu ctx-menu])

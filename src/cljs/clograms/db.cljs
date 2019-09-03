@@ -1,4 +1,5 @@
-(ns clograms.db)
+(ns clograms.db
+  (:require [clograms.re-grams :as rg]))
 
 (def project-browser-transitions
   [:projects :namespaces :vars])
@@ -49,11 +50,10 @@
 ;;  :clograms/entity {}}
 
 (def default-db
-  {:side-bar {:selected-side-bar-tab :projects-browser}
-   :projects-browser {:level 0
-                      :selected-project nil
-                      :selected-namspace nil}
-   :diagram {:selected-node nil ;; node id
-             :nodes {}
-             :links {}}
-   :ctx-menu nil})
+  (merge
+   {:side-bar {:selected-side-bar-tab :projects-browser}
+    :projects-browser {:level 0
+                       :selected-project nil
+                       :selected-namspace nil}
+    :ctx-menu nil}
+   (rg/initial-db)))

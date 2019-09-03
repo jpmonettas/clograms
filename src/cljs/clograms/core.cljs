@@ -5,7 +5,6 @@
             [clograms.views :as views]
             [clograms.config :as config]
             [clograms.diagrams :as diagrams]
-            [clograms.reagent-diagrams :as rd]
             ["react-dom" :as react-dom]))
 
 (defn dev-setup []
