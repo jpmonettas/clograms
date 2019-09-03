@@ -11,7 +11,7 @@
 
     `(do
        (defn ~node-model-builder-name [~entity-symb]
-         (let [~node-model-obj (js/Reflect.construct ~(:node-model-base fns-map)  (cljs.core/clj->js [{:type ~node-type-name}]) ~node-model-builder-name)]
+         (let [~node-model-obj (js/Reflect.construct ~(:node-model-base fns-map)  (cljs.core/clj->js [{:type ~node-type-name :color "blue"}]) ~node-model-builder-name)]
            (set! (.-entity ~node-model-obj) ~entity-symb)
            ~node-model-obj))
 
@@ -28,8 +28,7 @@
                                                                                   (reagent.core/reactify-component ~(:render fns-map))
                                                                                   (cljs.core/js-obj
                                                                                    "node" (.-model ~event-symb)
-                                                                                   "engine" (:storm/engine @clograms.diagrams/storm-atom)
-                                                                                   "entity" (.. ~event-symb -model -entity)))))
+                                                                                   "engine" (:storm/engine @clograms.diagrams/storm-atom)))))
 
        (js/Reflect.setPrototypeOf (.-prototype ~node-factory-builder-name)  (.-prototype ~(:node-factory-base fns-map)))
        (js/Reflect.setPrototypeOf ~node-factory-builder-name ~(:node-factory-base fns-map)))

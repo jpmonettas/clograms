@@ -18,7 +18,8 @@
  ::initialize-db
  (fn [_ _]
    {:db db/default-db
-    :dispatch [::reload-db]}))
+    ;;:dispatch [::reload-db]
+    }))
 
 (re-frame/reg-event-fx
  ::reload-db
@@ -64,6 +65,15 @@
  ::remove-entity-from-diagram
  (fn [{:keys [db]} [_ id]]
    {:clograms.diagrams/remove-node id}))
+
+(re-frame/reg-event-fx
+ ::set-node-properties
+ (fn [{:keys [db]} [_ id pm]]
+   {:clograms.diagrams/set-node-properties [id pm]}))
+
+(comment
+  (re-frame/dispatch [::set-node-properties (first (keys (:nodes (:diagram @re-frame.db/app-db)))) "red"])
+  )
 
 ;; All this should be only called from the diagram to keep our
 ;; internal model in sync

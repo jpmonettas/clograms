@@ -7,7 +7,8 @@
 ;;            cljsjs.d3
             [dorothy.core :as dorothy]
             [goog.string :as gstring]
-            [re-com.core :as re-com]))
+            [re-com.core :as re-com]
+            [clograms.reagent-diagrams :as rd]))
 
 (defn all-projects [& {:keys [on-change selected-id]}]
   [:div "All projects"]
@@ -231,7 +232,8 @@
 
 (defn main-panel []
   (let [ctx-menu @(re-frame/subscribe [::subs/ctx-menu])]
-    [:div
+    [rd/diagram]
+    #_[:div
      (when ctx-menu
        [context-menu ctx-menu])
      [entity-selector]

@@ -22,46 +22,55 @@
 ;; Custom nodes components ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn node-context-menu-wrapper [{:keys [menu]} child]
-  [:div {:on-context-menu (fn [evt]
-                            (let [x (.. evt -nativeEvent -pageX)
-                                  y (.. evt -nativeEvent -pageY)]
-                              (re-frame/dispatch
-                               [::events/show-context-menu
-                                {:x x
-                                 :y y
-                                 :menu menu}])))}
-   child])
+(defn node-wrapper [{:keys [properties ctx-menu]} child]
+  (let []
+    [:div {:on-context-menu (fn [evt]
+                             (let [x (.. evt -nativeEvent -pageX)
+                                   y (.. evt -nativeEvent -pageY)]
+                               (re-frame/dispatch
+                                [::events/show-context-menu
+                                 {:x x
+                                  :y y
+                                  :menu ctx-menu}])))}
+     child]))
 
 (defn remove-ctx-menu-option [node-model]
   {:label "Remove"
    :dispatch [::events/remove-entity-from-diagram (.. node-model -options -id)]})
 
-(defn project-node-component [{:keys [entity node engine] :as all}]
-  [node-context-menu-wrapper {:menu [(remove-ctx-menu-option node)]}
-   [:div.project-node.custom-node {}
-    [port-widget {:engine engine :port (.getPort node "in")} ]
-    [:div.node-body.project-name (:project/name entity)]
-    [port-widget {:engine engine :port (.getPort node "out")}]]])
+(defn project-node-component [{:keys [node engine] :as all}]
+  (r/create-class {:render
+                   (fn [this]
+                     (let [project (.-entity node)]
+                       (js/console.log "REPAINTING " this #_(.. this props node -options -color))
+                       [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]}
+                        [:div.project-node.custom-node {:style {:background-color (.. node -options -color)}}
+                         [port-widget {:engine engine :port (.getPort node "in")} ]
+                         [:div.node-body.project-name (:project/name project)]
+                         [port-widget {:engine engine :port (.getPort node "out")}]]]))}))
 
-(defn namespace-node-component [{:keys [entity node engine]}]
-  [node-context-menu-wrapper {:menu [(remove-ctx-menu-option node)]}
-   [:div.namespace-node.custom-node
-    [port-widget {:engine engine :port (.getPort node "in")} ]
-    [:div.node-body
-     [:span.namespace-name (:namespace/name entity)]
-     [:span.project-name (str "(" (:project/name entity) ")")]]
-    [port-widget {:engine engine :port (.getPort node "out")}]]])
+(defn namespace-node-component [{:keys [node engine]}]
+  (let [ns (.-entity node)]
+    [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]
+                  :node-model node}
+    [:div.namespace-node.custom-node
+     [port-widget {:engine engine :port (.getPort node "in")} ]
+     [:div.node-body
+      [:span.namespace-name (:namespace/name ns)]
+      [:span.project-name (str "(" (:project/name ns) ")")]]
+     [port-widget {:engine engine :port (.getPort node "out")}]]]))
 
-(defn var-node-component [{:keys [entity node engine]}]
-  [node-context-menu-wrapper {:menu [(remove-ctx-menu-option node)]}
-   [:div.var-node.custom-node
-    [port-widget {:engine engine :port (.getPort node "in")} ]
-    [:div.node-body
-     [:div [:span.namespace-name (str (:namespace/name entity) "/")] [:span.var-name (:var/name entity)]]
-     [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
-      (:function/source entity)]]
-    [port-widget {:engine engine :port (.getPort node "out")}]]])
+(defn var-node-component [{:keys [node engine]}]
+  (let [var (.-entity node)]
+   [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]
+                  :node-model node}
+    [:div.var-node.custom-node
+     [port-widget {:engine engine :port (.getPort node "in")} ]
+     [:div.node-body
+      [:div [:span.namespace-name (str (:namespace/name var) "/")] [:span.var-name (:var/name var)]]
+      [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
+       (:function/source var)]]
+     [port-widget {:engine engine :port (.getPort node "out")}]]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom node types ;;
@@ -148,6 +157,10 @@
        (re-frame/dispatch
         [::events/remove-node (.. obj -entity -options -id)]))
 
+;;;;;;;;;;;
+;; Utils ;;
+;;;;;;;;;;;
+
 (defn create-engine-and-model! []
   (let [model (doto (storm/DiagramModel.)
                 (.registerListener #js {:nodesUpdated #(nodes-updated-listener %)
@@ -164,6 +177,21 @@
             {:storm/model model
              :storm/engine engine})))
 
+(defn create-component []
+  (let [engine (-> @storm-atom :storm/engine)]
+    (react/createElement "div"
+                         #js {:className "diagram-layer"
+                              :onDrop (fn [event]
+                                        (let [entity (cljs.reader/read-string (-> event .-dataTransfer (.getData "entity-data")))
+                                              points (.getRelativeMousePoint engine event)]
+                                          (re-frame/dispatch [::events/add-entity-to-diagram entity
+                                                              {:link-to-selected? true
+                                                               :x (.-x points)
+                                                               :y (.-y points)}])))
+                              :onDragOver (fn [e] (.preventDefault e))
+                              :onClick (fn [e]
+                                         (re-frame/dispatch [::events/hide-context-menu]))}
+                         (react/createElement storm-canvas/CanvasWidget #js {:engine engine} nil))))
 
 (defn get-node [dia-model node-id]
   (some #(when (= (-> % .-options .-id) node-id)
@@ -174,6 +202,10 @@
   (case ptype
     :in (-> node-model .-portsIn first)
     :out (-> node-model .-portsOut first)))
+
+;;;;;;;;;
+;; FXs ;;
+;;;;;;;;;
 
 (re-frame/reg-fx
  ::add-node
@@ -211,18 +243,16 @@
      (.removeNode dia-model node)
      (.repaintCanvas (-> @storm-atom :storm/engine)))))
 
-(defn create-component []
-  (let [engine (-> @storm-atom :storm/engine)]
-    (react/createElement "div"
-                         #js {:className "diagram-layer"
-                              :onDrop (fn [event]
-                                        (let [entity (cljs.reader/read-string (-> event .-dataTransfer (.getData "entity-data")))
-                                              points (.getRelativeMousePoint engine event)]
-                                          (re-frame/dispatch [::events/add-entity-to-diagram entity
-                                                              {:link-to-selected? true
-                                                               :x (.-x points)
-                                                               :y (.-y points)}])))
-                              :onDragOver (fn [e] (.preventDefault e))
-                              :onClick (fn [e]
-                                         (re-frame/dispatch [::events/hide-context-menu]))}
-                         (react/createElement storm-canvas/CanvasWidget #js {:engine engine} nil))))
+(re-frame/reg-fx
+ ::set-node-properties
+ (fn [[node-id props-map]]
+   (let [dia-model (-> @storm-atom :storm/model)
+         node (get-node dia-model node-id)]
+     (set! (.. node -options -color) props-map)
+     #_(set! (.. node -position -x)500)
+     ;; (.setPosition node 500 500)
+     (js/console.log "New properties set " node)
+     (.repaintCanvas (-> @storm-atom :storm/engine))
+     (js/console.log "canvas repainted ")
+
+     )))
