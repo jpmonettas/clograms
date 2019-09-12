@@ -8,6 +8,7 @@
 
             :code-background "#a89984"
             :selection "#665c54"
+            :node-selection "#fb4934"
             :side-bar "#3c3836"
             :background "#504945"
 
@@ -21,36 +22,42 @@
 (def border-radius "3px")
 
 (def diagram
-  [:.diagram-layer {:width "100%"
-                    :height "100%"
-                    :position :absolute
-                    :background (color :background)}
-   ["> *" {:height "100%"}]
-   [:.custom-node {:padding "5px"
-                   :border-radius border-radius
-                   :display :flex
-                   :align-items :center}]
-   [:.port {:display :inline-block
-            :width "10px"
-            :height "10px"
-            :margin "5px"
-            :border-radius border-radius
-            :background-color :red
-            :color :transparent}
-    [:&:hover {:background-color (str "yellow !important")
-               :cursor :crosshair}]]
-   [:.node-body {:display :inline-block}]
-   [:.project-node {:border (str "2px solid " (color :project-node))}
-    [:.port {:background-color (color :project-node)}]]
-   [:.namespace-node {:border  (str "2px solid " (color :namespace-node))}
-    [:.port {:background-color (color :namespace-node)}]]
-   [:.var-node {:border (str "2px solid " (color :var-node))}
-    [:.port {:background-color (color :var-node)}]
-    [:.var-name {:font-weight :bold}]
-    [:.source {:max-width "500px"
-               :font-size "10px"
-               :max-height "200px"
-               :background-color (color :main-font)}]]])
+  [:.diagram-wrapper {:width "100%"
+                      :height "100%"
+                      :position :absolute
+                      :background (color :background)}
+   [:.diagram-layer {:width "100%"
+                     :height "100%"
+                     :position :absolute}
+    ["> *" {:height "100%"}]
+    [:.custom-node {:padding "5px"
+                    :border-radius border-radius
+                    :display :flex
+                    :align-items :center}]
+    [:.port {:display :inline-block
+             :width "10px"
+             :height "10px"
+             :margin "5px"
+             :border-radius border-radius
+             :background-color :red
+             :color :transparent}
+     [:&:hover {:background-color (str "yellow !important")
+                :cursor :crosshair}]]
+    [:.node [:&.selected {:border "2px solid"
+                          :border-color (color :node-selection)
+                          :border-radius border-radius}]]
+    [:.node-body {:display :inline-block}]
+    [:.project-node {:border (str "2px solid " (color :project-node))}
+     [:.port {:background-color (color :project-node)}]]
+    [:.namespace-node {:border  (str "2px solid " (color :namespace-node))}
+     [:.port {:background-color (color :namespace-node)}]]
+    [:.var-node {:border (str "2px solid " (color :var-node))}
+     [:.port {:background-color (color :var-node)}]
+     [:.var-name {:font-weight :bold}]
+     [:.source {:max-width "500px"
+                :font-size "10px"
+                :max-height "200px"
+                :background-color (color :main-font)}]]]])
 
 (def general
   [:body {:font-size "11px"
@@ -72,7 +79,8 @@
      :border-radius border-radius
      :margin "5px"
      :background-color (color :background)
-     :font-size "11px"}]
+     :font-size "11px"
+     :cursor :no-drop}]
    [:.draggable-project {:border  (str "1px solid " (color :project-node))}
     [:&.main-project {:border-width "2px"}]]
    [:.draggable-namespace {:border (str "1px solid " (color :namespace-node))}]

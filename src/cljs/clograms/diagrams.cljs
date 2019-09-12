@@ -22,7 +22,7 @@
 ;; Custom nodes components ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn node-wrapper [{:keys [properties ctx-menu]} child]
+#_(defn node-wrapper [{:keys [properties ctx-menu]} child]
   (let []
     [:div {:on-context-menu (fn [evt]
                              (let [x (.. evt -nativeEvent -pageX)
@@ -34,11 +34,11 @@
                                   :menu ctx-menu}])))}
      child]))
 
-(defn remove-ctx-menu-option [node-model]
+#_(defn remove-ctx-menu-option [node-model]
   {:label "Remove"
    :dispatch [::events/remove-entity-from-diagram (.. node-model -options -id)]})
 
-(defn project-node-component [{:keys [node engine] :as all}]
+#_(defn project-node-component [{:keys [node engine] :as all}]
   (r/create-class {:render
                    (fn [this]
                      (let [project (.-entity node)]
@@ -49,7 +49,7 @@
                          [:div.node-body.project-name (:project/name project)]
                          [port-widget {:engine engine :port (.getPort node "out")}]]]))}))
 
-(defn namespace-node-component [{:keys [node engine]}]
+#_(defn namespace-node-component [{:keys [node engine]}]
   (let [ns (.-entity node)]
     [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]
                   :node-model node}
@@ -60,7 +60,7 @@
       [:span.project-name (str "(" (:project/name ns) ")")]]
      [port-widget {:engine engine :port (.getPort node "out")}]]]))
 
-(defn var-node-component [{:keys [node engine]}]
+#_(defn var-node-component [{:keys [node engine]}]
   (let [var (.-entity node)]
    [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]
                   :node-model node}
@@ -76,14 +76,14 @@
 ;; Custom node types ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-storm-custom-node "project-node"
+#_(def-storm-custom-node "project-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
   :node-factory-builder make-project-node-factory
   :node-model-builder   make-project-node-model
   :render project-node-component)
 
-(def-storm-custom-node "namespace-node"
+#_(def-storm-custom-node "namespace-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
   :node-factory-builder make-namespace-node-factory
@@ -91,7 +91,7 @@
   :render namespace-node-component)
 
 
-(def-storm-custom-node "var-node"
+#_(def-storm-custom-node "var-node"
   :node-factory-base abstract-react-factory
   :node-model-base node-model
   :node-factory-builder make-var-node-factory
@@ -99,19 +99,19 @@
   :render var-node-component)
 
 
-(defmulti build-node (fn [node-map] (-> node-map :entity :type)))
+#_(defmulti build-node (fn [node-map] (-> node-map :entity :type)))
 
-(defmethod build-node :project
+#_(defmethod build-node :project
   [node-map]
   (let [entity (:entity node-map)]
     (make-project-node-model entity)))
 
-(defmethod build-node :namespace
+#_(defmethod build-node :namespace
   [node-map]
   (let [entity (:entity node-map)]
     (make-namespace-node-model entity)))
 
-(defmethod build-node :var
+#_(defmethod build-node :var
   [node-map]
   (let [entity (:entity node-map)]
     (make-var-node-model (update entity :function/source
@@ -121,7 +121,7 @@
                                        (str/replace "cljs.core/" "")
                                        (zp/zprint-file-str {})))))))
 
-(defmethod build-node :default
+#_(defmethod build-node :default
   [{:keys [entity x y] :as node-map}]
   (doto (storm/DefaultNodeModel. #js {:name (str entity)
                                       :color "rgb(0,192,255)"})))
@@ -169,9 +169,9 @@
                  (.setModel model))]
 
     ;; register factories
-    (-> engine .getNodeFactories (.registerFactory (make-project-node-factory)))
-    (-> engine .getNodeFactories (.registerFactory (make-namespace-node-factory)))
-    (-> engine .getNodeFactories (.registerFactory (make-var-node-factory)))
+    ;; (-> engine .getNodeFactories (.registerFactory (make-project-node-factory)))
+    ;; (-> engine .getNodeFactories (.registerFactory (make-namespace-node-factory)))
+    ;; (-> engine .getNodeFactories (.registerFactory (make-var-node-factory)))
 
     (reset! storm-atom
             {:storm/model model
@@ -211,7 +211,7 @@
  ::add-node
  (fn [node-map]
    (let [{:keys [link-to x y on-node-selected on-node-unselected]} node-map
-         new-node (doto (build-node node-map)
+         new-node nil #_(doto (build-node node-map)
                     (.setPosition x y)
                     (.addPort (storm/DefaultPortModel. #js {:in true :name "in"}))
                     (.addPort (storm/DefaultPortModel. #js {:in false :name "out"})))

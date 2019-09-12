@@ -1,7 +1,8 @@
 (ns clograms.subs
   (:require [re-frame.core :as re-frame]
             [datascript.core :as d]
-            [clograms.db :refer [project-browser-level-idx->key] :as db]))
+            [clograms.db :refer [project-browser-level-idx->key] :as db]
+            [clograms.re-grams :as rg]))
 
 #_(defn dependency-tree [db main-project-id]
   (d/pull db '[:project/name {:project/depends 6}] main-project-id))
@@ -186,10 +187,8 @@
 
 (re-frame/reg-sub
  ::selected-var-refs
- (fn [{:keys [:diagram] :as db} _]
-   (let [selected-entity (->> (db/selected-node db)
-                              (db/node db)
-                              :clograms/entity)
+ (fn [db _]
+   (let [selected-entity (:entity (rg/selected-node db))
          non-interesting (fn [v]
                            (#{'cljs.core 'clojure.core} (:namespace/name v)))
          same-as-selected (fn [v]

@@ -85,6 +85,51 @@
       [:div
        [:span.name {:style name-style} full-name]])]))
 
+;;;;;;;;;;;;;;;;;;
+;; Custom nodes ;;
+;;;;;;;;;;;;;;;;;;
+
+(defn node-wrapper [{:keys [properties ctx-menu]} child]
+  [:div {:on-context-menu (fn [evt]
+                            (let [x (.. evt -nativeEvent -pageX)
+                                  y (.. evt -nativeEvent -pageY)]
+                              (re-frame/dispatch
+                               [::events/show-context-menu
+                                {:x x
+                                 :y y
+                                 :menu ctx-menu}])))}
+   child])
+
+(defn remove-ctx-menu-option [node]
+  {:label "Remove"
+   :dispatch [::events/remove-entity-from-diagram (::rg/id node)]})
+
+(defn project-node-component [{:keys [entity] :as node}]
+  (let [project entity]
+    [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]}
+     [:div.project-node.custom-node #_{:style {:background-color (.. node -options -color)}}
+      [:div.node-body.project-name (:project/name project)]]]))
+
+(defn namespace-node-component [{:keys [entity] :as node}]
+  (let [ns entity]
+    [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]
+                  :node-model node}
+    [:div.namespace-node.custom-node
+     [:div.node-body
+      [:span.namespace-name (:namespace/name ns)]
+      [:span.project-name (str "(" (:project/name ns) ")")]]]]))
+
+(defn var-node-component [{:keys [entity] :as node}]
+  (let [var entity]
+   [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]
+                  :node-model node}
+    [:div.var-node.custom-node
+     [:div.node-body
+      [:div [:span.namespace-name (str (:namespace/name var) "/")] [:span.var-name (:var/name var)]]
+      [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
+       (:function/source var)]]]]))
+
+;; --------------------------------------------------------------------
 (defn entity-selector []
   (let [all-entities (re-frame/subscribe [::subs/all-entities])]
     [:div.entity-selector
@@ -213,8 +258,7 @@
       :on-change #(re-frame/dispatch [::events/select-side-bar-tab %])]
      (case tab
        :projects-browser [projects-browser]
-       :selected-browser [selected-browser])]
-    ))
+       :selected-browser [selected-browser])]))
 
 (defn context-menu [{:keys [x y menu]}]
   [:div.context-menu {:style {:position :absolute
@@ -224,18 +268,31 @@
    [:ul
     (for [{:keys [label dispatch]} menu]
       ^{:key label}
-      [:li {:on-click (fn []
+      [:li {:on-click (fn [evt]
+                        (.stopPropagation evt)
                         (re-frame/dispatch dispatch)
                         (re-frame/dispatch [::events/hide-context-menu]))}
-       label])]]
-  )
+       label])]])
+
+(defn diagram []
+  (let [dia @(re-frame/subscribe [::rg/diagram])]
+    [:div.diagram-wrapper
+     {:on-drop (fn [evt]
+                 (let [entity (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data")))]
+                   (re-frame/dispatch [::events/add-entity-to-diagram entity
+                                       {:link-to-selected? true
+                                        :client-x (.-clientX evt)
+                                        :client-y (.-clientY evt)}])))
+      :on-drag-over (fn [evt ] (.preventDefault evt))
+      :on-click (fn [evt]
+                  (re-frame/dispatch [::events/hide-context-menu]))}
+     [rg/diagram dia]]))
 
 (defn main-panel []
-  (let [ctx-menu @(re-frame/subscribe [::subs/ctx-menu])
-        dia @(re-frame/subscribe [::rg/diagram])]
-    [rg/diagram dia]
-    #_[:div
+  (let [ctx-menu @(re-frame/subscribe [::subs/ctx-menu])]
+    [:div
      (when ctx-menu
        [context-menu ctx-menu])
      [entity-selector]
-     [side-bar]]))
+     [side-bar]
+     [diagram]]))

@@ -4,68 +4,41 @@
             [goog.string :as gstring]
             [clojure.string :as str]
             [clojure.core.matrix :as matrix]
-            [re-frame.core :refer [dispatch reg-event-db reg-sub subscribe]]))
+            [re-frame.core :refer [dispatch reg-event-db reg-event-fx reg-sub subscribe]]))
 
-#_(defonce diagram-atom
-  (r/atom {:nodes {"nid1" {::id "nid1"
-                            :diagram.node/type :custom-node-1
-                            :selected true
-                            :x 20
-                            :y 20
-                            :ports {"pid1" {::id "pid1"
-                                            :diagram.port/type :custom-port1}
-                                    "pid2" {::id "pid2"
-                                            :diagram.port/type :custom-port1}}}
-                    "nid2" {::id "nid2"
-                            :diagram.node/type :custom-node-2
-                            :selected false
-                            :x 510
-                            :y 510
-                            :ports {"pid3" {::id "pid3"
-                                            :diagram.port/type :custom-port1}}}
-                   }
-           ;; :links {"lid1" {::id "lid1"
-           ;;                 :from-port ["nid1" "pid2"]
-           ;;                 :to-port ["nid2" "pid3"]}}
+;; Schema
+#_{:nodes {"nid1" {::id "nid1"
+                   :diagram.node/type :custom-node-1
+                   :selected true
+                   :x 20
+                   :y 20
+                   :ports {"pid1" {::id "pid1"
+                                   :diagram.port/type :custom-port1}
+                           "pid2" {::id "pid2"
+                                   :diagram.port/type :custom-port1}}}
+           "nid2" {::id "nid2"
+                   :diagram.node/type :custom-node-2
+                   :selected false
+                   :x 510
+                   :y 510
+                   :ports {"pid3" {::id "pid3"
+                                   :diagram.port/type :custom-port1}}}
+           }
+   ;; :links {"lid1" {::id "lid1"
+   ;;                 :from-port ["nid1" "pid2"]
+   ;;                 :to-port ["nid2" "pid3"]}}
 
-           :scale 1
-           :scale-origin [0 0]
-           :translate [0 0]
-           :grab {:cli-origin [0 0]
-                  :cli-current [10 10]
-                  :grab-object {:diagram.object/type :node
-                                ::id "nid1"
-                                :start-pos [100 100]}}
-           }))
+   :scale 1
+   :translate [0 0]
+   :grab {:cli-origin [0 0]
+          :cli-current [10 10]
+          :grab-object {:diagram.object/type :node
+                        ::id "nid1"
+                        :start-pos [100 100]}}}
 
 (defn initial-db []
-  {::diagram {:nodes {
-                      "nid1" {::id "nid1"
-                              :diagram.node/type :custom-node-1
-                              :selected true
-                              :x 20
-                              :y 20
-                              :ports {"pid1" {::id "pid1"
-                                              :diagram.port/type :custom-port1}
-                                      "pid2" {::id "pid2"
-                                              :diagram.port/type :custom-port1}}}
-                      "nid2" {::id "nid2"
-                              :diagram.node/type :custom-node-2
-                              :selected false
-                              :x 510
-                              :y 510
-                              :ports {"pid3" {::id "pid3"
-                                              :diagram.port/type :custom-port1}}}
-                      "nid3" {::id "nid3"
-                              :diagram.node/type :custom-node-1
-                              :selected false
-                              :x 710
-                              :y 710
-                              :ports {"pid4" {::id "pid4"
-                                              :diagram.port/type :custom-port1}}}
-                      }
+  {::diagram {:nodes {}
               :scale 1
-              :scale-origin [0 0]
               :translate [0 0]}})
 
 (defonce node-components (atom {}))
@@ -87,19 +60,45 @@
 (defn grab-release [db]
   (assoc-in db [::diagram :grab] nil))
 
-(defn add-node [db node-type {:keys [x y] :or {x 500 y 500} :as data}]
-  (let [node-id (str (random-uuid))]
-    (update-in db [::diagram :nodes] assoc node-id (merge {::id node-id
-                                                           :diagram.node/type node-type}
-                                                          data))))
+(defn gen-random-id [] (str (random-uuid)))
 
-(defn add-node-port [db node-id port-type]
-  (let [port-id (str (random-uuid))]
-    (update-in db [::diagram :nodes node-id :ports] assoc port-id {::id port-id
-                                                                   :diagram.port/type port-type})))
+(defn add-node-port [db node-id {:keys [::id]:as port}]
+  (let [port-id (or id (gen-random-id))]
+    (update-in db [::diagram :nodes node-id :ports] assoc port-id (merge {::id port-id}
+                                                                         port))))
+
+(defn add-node [db {:keys [:client-x :client-y ::id] :as data} & [ports]]
+  (let [node-id (or id (gen-random-id))
+        [dia-x dia-y] (client-coord->dia-coord (::diagram db) [(or client-x 500) (or client-y 500)])
+        db' (update-in db [::diagram :nodes] assoc node-id (merge {::id node-id
+                                                                   :x dia-x
+                                                                   :y dia-y}
+                                                                  data))]
+
+    (if (seq ports)
+      (reduce #(add-node-port %1 node-id %2) db' ports)
+      db')))
+
+(defn remove-node [db node-id]
+  (-> db
+      (update-in [::diagram :nodes] dissoc node-id)
+      (update-in [::diagram :links]
+                 (fn [links]
+                   (->> links
+                        (remove (fn [[lid {:keys [from-port to-port]}]]
+                                  (or (= (first from-port) node-id)
+                                      (= (first to-port) node-id))))
+                        (into {}))))))
+
+(defn selected-node [db]
+  (let [selected-node-id (get-in db [::diagram :selected-node-id])]
+    (get-in db [::diagram :nodes selected-node-id])))
+
+(defn select-node [db node-id]
+  (assoc-in db [::diagram :selected-node-id] node-id))
 
 (defn add-link [db [from-node from-port :as from] [to-node to-port :as to]]
-  (let [link-id (str (random-uuid))]
+  (let [link-id (gen-random-id)]
     (update-in db [::diagram :links] assoc link-id {::id link-id
                                                    :from-port from
                                                     :to-port to})))
@@ -131,7 +130,6 @@
         update-after-render (fn [p-cmp]
                               (let [dn (r/dom-node p-cmp)
                                     brect (.getBoundingClientRect dn)]
-                                (println "PORT UPDATED")
                                 (dispatch [::set-port-dimensions node-id (::id p) {:w (.-width brect)
                                                                                    :h (.-height brect)
                                                                                    :client-x (.-x brect)
@@ -141,7 +139,6 @@
       :component-did-update (fn [this] (update-after-render this))
       :reagent-render
       (fn [node p]
-        (println "Re painting port")
         [:div.port {:on-mouse-down (fn [evt]
                                      (.stopPropagation evt)
                                      (.preventDefault evt)
@@ -170,8 +167,12 @@
                         :w (/ w scale)
                         :h (/ h scale))))))
 
+(def left-button 1)
+(def right-button 2)
+
 (defn node [n]
   (let [node-component (get @node-components (:diagram.node/type n) default-node)
+        selected-node-id (subscribe [::selected-node-id])
         update-after-render (fn [n-cmp]
                               (let [dn (r/dom-node n-cmp)
                                     brect (.getBoundingClientRect dn)]
@@ -182,14 +183,16 @@
       :component-did-update (fn [this] (update-after-render this))
       :reagent-render
       (fn [n]
-        (println "Re painting node")
-        [:div.node {:on-mouse-down (fn [evt]
+        [:div.node {:class (when (= @selected-node-id (::id n)) "selected")
+                    :on-click (fn [evt] (dispatch [::select-node (::id n)]))
+                    :on-mouse-down (fn [evt]
                                      (.stopPropagation evt)
                                      (.preventDefault evt)
-                                     (dispatch [::grab {:diagram.object/type :node
-                                                        ::id (::id n)
-                                                        :start-pos [(:x n) (:y n)]}
-                                                [(.-clientX evt) (.-clientY evt)]]))
+                                     (when (= left-button (.-buttons evt))
+                                       (dispatch [::grab {:diagram.object/type :node
+                                                          ::id (::id n)
+                                                          :start-pos [(:x n) (:y n)]}
+                                                  [(.-clientX evt) (.-clientY evt)]])))
                     :style {:position :absolute
                             :top (:y n)
                             :left (:x n)}}
@@ -240,7 +243,7 @@
                     y-scale-diff (- scaled-dia-y new-scaled-dia-y)
                     [tx ty] translate
                     new-translate-x (+ tx x-scale-diff)
-                    new-translate-y (+ ty x-scale-diff)]
+                    new-translate-y (+ ty y-scale-diff)]
                 (assoc dia
                        :translate [new-translate-x new-translate-y]
                        :scale new-scale))))))
@@ -248,7 +251,7 @@
 (defn link-curve-string [[[fpx fpy] & points]]
   (gstring/format "M%f %f C%s" fpx fpy (str/join "," (map #(str/join " " %) points))))
 
-(defn translate [db to]
+(defn translate-diagram [db to]
   (assoc-in db [::diagram :translate] to))
 
 (defn link [nodes {:keys [from-port to-port]  :as l}]
@@ -275,53 +278,108 @@
                       (let [{:keys [nodes links grab translate scale scale-origin]} dia
                             [tx ty] translate]
                         [:div.diagram-layer {:style {:overflow :hidden}
-                                             :on-mouse-down (fn [evt]
-                                                              (.stopPropagation evt)
-                                                              (.preventDefault evt)
-                                                              (dispatch [::grab {:diagram.object/type :diagram :start-pos [tx ty]} [(.-clientX evt) (.-clientY evt)]]))
-                                             :on-wheel (fn [evt]
-                                                         (dispatch [::zoom (.-deltaY evt) [(.-clientX evt) (.-clientY evt)]]))
-                                             :on-mouse-move (fn [evt]
-                                                              (when grab
-                                                                (dispatch [::drag [(.-clientX evt) (.-clientY evt)]])))
-                                             :on-mouse-up (fn [evt]
-                                                            (dispatch [::grab-release]))}
-                         [:div.translate-div {:style {:transform (gstring/format "translate(%dpx,%dpx) scale(%f)" tx ty scale)
+                                               :on-mouse-down (fn [evt]
+                                                                (.stopPropagation evt)
+                                                                (.preventDefault evt)
+                                                                (dispatch [::grab {:diagram.object/type :diagram :start-pos [tx ty]} [(.-clientX evt) (.-clientY evt)]]))
+                                               :on-wheel (fn [evt]
+                                                           (dispatch [::zoom (.-deltaY evt) [(.-clientX evt) (.-clientY evt)]]))
+                                               :on-mouse-move (fn [evt]
+                                                                (when grab
+                                                                  (dispatch [::drag [(.-clientX evt) (.-clientY evt)]])))
+                                               :on-mouse-up (fn [evt]
+                                                              (dispatch [::grab-release]))}
+                         [:div.transform-div {:style {:transform (gstring/format "translate(%dpx,%dpx) scale(%f)" tx ty scale)
                                                       :transform-origin "0px 0px"
                                                       :height "100%"
                                                       ;; For debugging
                                                       ;; :background "#e2acac"
                                                       }}
-                          [:div.nodes-and-links-wrapper
-                           [:svg.links {:style {:overflow :visible}}
-                            (for [l (vals links)]
-                              ^{:key (::id l)}
-                              [link nodes l])
+                          [:svg.links {:style {:overflow :visible}}
+                           (for [l (vals links)]
+                             ^{:key (::id l)}
+                             [link nodes l])
 
-                            (when-let [lf (get-in grab [:grab-object :tmp-link-from])]
-                              [link nodes (let [[current-x current-y] (client-coord->dia-coord {:translate translate
-                                                                                                :scale scale}
-                                                                                               (:cli-current grab))]
-                                            {:from-port lf :to-x current-x :to-y current-y})])]
-                           [:div.nodes
-                            (doall (for [n (vals nodes)]
-                                     ^{:key (::id n)}
-                                     [node n]))]]]]))}))
+                           (when-let [lf (get-in grab [:grab-object :tmp-link-from])]
+                             [link nodes (let [[current-x current-y] (client-coord->dia-coord {:translate translate
+                                                                                               :scale scale}
+                                                                                              (:cli-current grab))]
+                                           {:from-port lf :to-x current-x :to-y current-y})])]
+                          [:div.nodes
+                           (doall (for [n (vals nodes)]
+                                    ^{:key (::id n)}
+                                    [node n]))]]]))}))
 
 (defn register-node-component! [node-type component-fn]
   (swap! node-components assoc node-type component-fn))
 
-(reg-event-db ::grab (fn [db [_ & args]] (apply grab (into [db] args))))
-(reg-event-db ::zoom (fn [db [_ & args]] (apply zoom (into [db] args))))
-(reg-event-db ::drag (fn [db [_ & args :as e]] (apply drag (into [db] args))))
-(reg-event-db ::add-link (fn [db [_ & args]] (apply add-link (into [db] args))))
-(reg-event-db ::grab-release (fn [db [_ & args]] (apply grab-release (into [db] args))))
-(reg-event-db ::set-port-dimensions (fn [db [_ & args]] (apply set-port-dimensions (into [db] args))))
-(reg-event-db ::set-node-dimensions (fn [db [_ & args]] (apply set-node-dimensions (into [db] args))))
-(reg-event-db ::translate (fn [db [_ & args]] (apply translate (into [db] args))))
+;;;;;;;;;;;;;;;;;;;
+;; Subscriptions ;;
+;;;;;;;;;;;;;;;;;;;
+
+;; Internals
+;; ---------
+
+(reg-sub ::grab (fn [db _] (get-in db [::diagram :grab])))
+
+;; Intended for users
+;; ------------------
 
 (reg-sub ::diagram (fn [db _] (::diagram db)))
 (reg-sub ::translate (fn [db _] (get-in db [::diagram :translate])))
 (reg-sub ::scale (fn [db _] (get-in db [::diagram :scale])))
+(reg-sub ::selected-node-id (fn [db _] (get-in db [::diagram :selected-node-id])))
 
-(reg-sub ::grab (fn [db _] (get-in db [::diagram :grab])))
+;;;;;;;;;;;;;
+;; Events  ;;
+;;;;;;;;;;;;;
+
+;; Internals
+;; ---------
+
+(reg-event-db ::grab (fn [db [_ grab-obj client-grab-origin]] (grab db grab-obj client-grab-origin)))
+(reg-event-db ::grab-release (fn [db _] (grab-release db)))
+(reg-event-db ::drag (fn [db [_ current-cli-coord]] (drag db current-cli-coord)))
+(reg-event-db ::set-port-dimensions (fn [db [_ node-id port-id dims]] (set-port-dimensions db node-id port-id dims)))
+(reg-event-db ::set-node-dimensions (fn [db [_ node-id dims]] (set-node-dimensions db node-id dims)))
+
+;; Intended for users to call
+;; --------------------------
+
+(reg-event-db ::zoom (fn [db [_ delta cli-coords]] (zoom db delta cli-coords)))
+(reg-event-db ::translate-diagram (fn [db to] (translate-diagram db to)))
+(reg-event-db ::add-link (fn [db [_ from-port to-port]] (add-link db from-port to-port)))
+(reg-event-db ::add-node (fn [db [_ node ports]] (add-node db node ports)))
+(reg-event-db ::remove-node (fn [db [_ node-id]] (remove-node db node-id)))
+(reg-event-db ::add-node-port (fn [db [_ node-id port]] (add-node-port db node-id port)))
+(reg-event-fx ::select-node (fn [{:keys [db]} [_ node-id]]
+                              (let [db' (select-node db node-id)]
+                                {:db db'
+                                 :dispatch [::node-selected (selected-node db')]})))
+
+;; Intended for users to override and listen
+;; -----------------------------------------
+
+(reg-event-db ::node-selected identity)
+
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; For repl testing ;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+(comment
+  (dispatch [::add-node  {:title "NODE 1"
+                          ::id "nid1"
+                          :diagram.node/type :custom-node-1}
+             [{::id "pid1" :diagram.port/type :custom-port-1}
+              {::id "pid2" :diagram.port/type :custom-port-1}]])
+
+  (dispatch [::add-node {:title "NODE 2"
+                         ::id "nid2"
+                         :client-x 10
+                         :client-y 10}
+             [{::id "pid1" :diagram.port/type :custom-port-1}
+              {::id "pid2" :diagram.port/type :custom-port-1}]])
+
+  (dispatch [::add-link ["nid1" "pid1"] ["nid2" "pid2"]])
+  )

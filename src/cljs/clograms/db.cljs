@@ -11,28 +11,6 @@
                                          (map-indexed #(vector %2 %1))
                                          (into {})))
 
-(defn node [db node-id]
-  (get-in db [:diagram :nodes node-id]))
-
-(defn add-node [db node]
-  (assoc-in db [:diagram :nodes (:storm.node/id node)] node))
-
-(defn update-node-position [db node-id x y]
-  (-> db
-      (assoc-in [:diagram :nodes node-id :x] x)
-      (assoc-in [:diagram :nodes node-id :y] y)))
-
-(defn remove-node [db node-id]
-  (update db :diagram
-          (fn [dia]
-            (update dia :nodes dissoc node-id))))
-
-(defn select-node [db node-id]
-  (assoc-in db [:diagram :selected-node] node-id))
-
-(defn selected-node [db]
-  (get-in db [:diagram :selected-node]))
-
 (defn select-project [db p]
   (assoc-in db [:projects-browser :selected-project] p))
 
