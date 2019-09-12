@@ -102,10 +102,7 @@
   (let [link-id (str (random-uuid))]
     (update-in db [::diagram :links] assoc link-id {::id link-id
                                                    :from-port from
-                                                   :to-port to})))
-
-
-
+                                                    :to-port to})))
 
 ;;;;;;;;;;
 ;; Port ;;
@@ -144,14 +141,14 @@
       :component-did-update (fn [this] (update-after-render this))
       :reagent-render
       (fn [node p]
+        (println "Re painting port")
         [:div.port {:on-mouse-down (fn [evt]
                                      (.stopPropagation evt)
-                                     (dispatch [::add-link [node-id (::id p)] nil])
+                                     (.preventDefault evt)
                                      (dispatch [::grab {:diagram.object/type :link
-                                                        :link-origin-port [node-id (::id p)]}
-                                                [(.-clientX evt) (.-clientY evt)]]))
+                                                        :tmp-link-from [node-id (::id p)]} [(.-clientX evt) (.-clientY evt)]]))
                     :on-mouse-up (fn [evt]
-                                   (dispatch [::add-link [node-id (::id p)] (get-in @grab-sub [:grab-object :link-origin-port])]))}
+                                   (dispatch [::add-link [node-id (::id p)] (get-in @grab-sub [:grab-object :tmp-link-from])]))}
 
          [port-component p]])})))
 
@@ -185,8 +182,10 @@
       :component-did-update (fn [this] (update-after-render this))
       :reagent-render
       (fn [n]
+        (println "Re painting node")
         [:div.node {:on-mouse-down (fn [evt]
                                      (.stopPropagation evt)
+                                     (.preventDefault evt)
                                      (dispatch [::grab {:diagram.object/type :node
                                                         ::id (::id n)
                                                         :start-pos [(:x n) (:y n)]}
@@ -221,7 +220,6 @@
                        drag-y (- cli-y grab-start-y)
                        obj-end-x (+ obj-start-x drag-x)
                        obj-end-y (+ obj-start-y drag-y)]
-                   (println "Dragging diagram " [obj-end-x obj-end-y])
                    (-> db'
                        (assoc-in [::diagram :translate] [obj-end-x obj-end-y])))
         :link db'))
@@ -253,39 +251,22 @@
 (defn translate [db to]
   (assoc-in db [::diagram :translate] to))
 
-(defn link [nodes {:keys [from-port to-port]}]
-  (println "Link updated")
-  (let [grab @(subscribe [::grab])
-        translate @(subscribe [::translate])
-        scale @(subscribe [::scale])
-        [from-n from-p] from-port
+(defn link [nodes {:keys [from-port to-port]  :as l}]
+  (let [[from-n from-p] from-port
         [to-n to-p] to-port
-        _ (println "Client coord" (:cli-current grab))
-        [current-x current-y] (client-coord->dia-coord {:translate translate
-                                                        :scale scale}
-                                                       (:cli-current grab))
-        _ (println "End of link at dia " [current-x current-y])
-        _ (println "End of link at cli " (dia-coord->client-coord {:translate translate
-                                                                   :scale scale}
-                                                                  [current-x current-y]))
+
         x1 (:x (get-in nodes [from-n :ports from-p]))
         y1 (:y (get-in nodes [from-n :ports from-p]))
         x2 (or (:x (get-in nodes [to-n :ports to-p]))
-               current-x)
+               (:to-x l))
         y2 (or (:y (get-in nodes [to-n :ports to-p]))
-               current-y)]
-    (when (and x1 x2) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
+               (:to-y l))]
+    (when (and (pos? x1) (pos? x2)) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
       [:g
-      [:path {:stroke :gray
-              :fill :none
-              :stroke-width 3
-              :d (link-curve-string [[x1 y1] [(+ 50 x1) y1] [(- x2 50) y2] [x2 y2]])}]])))
-
-(defn clean-unfinished-links [d]
-  (update-in d [::diagram :links] #(->> %
-                                        (remove (fn [[id {:keys [from-port to-port]}]]
-                                                  (nil? to-port)))
-                                        (into {}))))
+       [:path {:stroke :gray
+               :fill :none
+               :stroke-width 3
+               :d (link-curve-string [[x1 y1] [(+ 50 x1) y1] [(- x2 50) y2] [x2 y2]])}]])))
 
 (defn diagram [dia]
   (r/create-class
@@ -295,6 +276,8 @@
                             [tx ty] translate]
                         [:div.diagram-layer {:style {:overflow :hidden}
                                              :on-mouse-down (fn [evt]
+                                                              (.stopPropagation evt)
+                                                              (.preventDefault evt)
                                                               (dispatch [::grab {:diagram.object/type :diagram :start-pos [tx ty]} [(.-clientX evt) (.-clientY evt)]]))
                                              :on-wheel (fn [evt]
                                                          (dispatch [::zoom (.-deltaY evt) [(.-clientX evt) (.-clientY evt)]]))
@@ -302,8 +285,7 @@
                                                               (when grab
                                                                 (dispatch [::drag [(.-clientX evt) (.-clientY evt)]])))
                                              :on-mouse-up (fn [evt]
-                                                            (dispatch [::grab-release])
-                                                            (dispatch [::clean-unfinished-links]))}
+                                                            (dispatch [::grab-release]))}
                          [:div.translate-div {:style {:transform (gstring/format "translate(%dpx,%dpx) scale(%f)" tx ty scale)
                                                       :transform-origin "0px 0px"
                                                       :height "100%"
@@ -312,9 +294,15 @@
                                                       }}
                           [:div.nodes-and-links-wrapper
                            [:svg.links {:style {:overflow :visible}}
-                            (doall (for [l (vals links)]
-                                     ^{:key (::id l)}
-                                     [link nodes l]))]
+                            (for [l (vals links)]
+                              ^{:key (::id l)}
+                              [link nodes l])
+
+                            (when-let [lf (get-in grab [:grab-object :tmp-link-from])]
+                              [link nodes (let [[current-x current-y] (client-coord->dia-coord {:translate translate
+                                                                                                :scale scale}
+                                                                                               (:cli-current grab))]
+                                            {:from-port lf :to-x current-x :to-y current-y})])]
                            [:div.nodes
                             (doall (for [n (vals nodes)]
                                      ^{:key (::id n)}
@@ -328,12 +316,12 @@
 (reg-event-db ::drag (fn [db [_ & args :as e]] (apply drag (into [db] args))))
 (reg-event-db ::add-link (fn [db [_ & args]] (apply add-link (into [db] args))))
 (reg-event-db ::grab-release (fn [db [_ & args]] (apply grab-release (into [db] args))))
-(reg-event-db ::clean-unfinished-links (fn [db [_ & args]] (apply clean-unfinished-links (into [db] args))))
 (reg-event-db ::set-port-dimensions (fn [db [_ & args]] (apply set-port-dimensions (into [db] args))))
 (reg-event-db ::set-node-dimensions (fn [db [_ & args]] (apply set-node-dimensions (into [db] args))))
 (reg-event-db ::translate (fn [db [_ & args]] (apply translate (into [db] args))))
 
 (reg-sub ::diagram (fn [db _] (::diagram db)))
-(reg-sub ::grab (fn [db _] (get-in db [::diagram :grab])))
 (reg-sub ::translate (fn [db _] (get-in db [::diagram :translate])))
 (reg-sub ::scale (fn [db _] (get-in db [::diagram :scale])))
+
+(reg-sub ::grab (fn [db _] (get-in db [::diagram :grab])))
