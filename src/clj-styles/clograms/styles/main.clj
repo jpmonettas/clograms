@@ -64,11 +64,12 @@
           :color (str (color :main-font) " !important")}
    [:.context-menu {:background (color :side-bar)
                     :min-width "200px"
-                    :border-radius border-radius}
+                    :border-radius border-radius
+                    :overflow :hidden}
     [:ul
-     [:li {:padding-left "10px"
-           :padding-top "10px"
-           :cursor :pointer}]]]
+     [:li {:padding "10px"
+           :cursor :pointer}
+      [:&:hover {:background-color (color :selection)}]]]]
    [:ul {:list-style :none
          :padding 0}]
    [:.project-name {}]

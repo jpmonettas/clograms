@@ -221,3 +221,13 @@
  ::selected-color
  (fn [{:keys [selected-color]}]
    selected-color))
+
+(re-frame/reg-sub
+ ::namespace-color
+ (fn [db [_ ns]]
+   (db/namespace-color db ns)))
+
+(re-frame/reg-sub
+ ::project-color
+ (fn [db [_ project]]
+   (db/project-color db project)))

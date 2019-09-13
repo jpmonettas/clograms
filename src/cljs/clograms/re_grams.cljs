@@ -55,7 +55,8 @@
 
 (defn grab [db grab-obj client-grab-origin]
   (assoc-in db [::diagram :grab] {:cli-origin client-grab-origin
-                                  :grab-object grab-obj}))
+                                  :grab-object grab-obj
+                                  :cli-current client-grab-origin}))
 
 (defn grab-release [db]
   (assoc-in db [::diagram :grab] nil))
@@ -230,7 +231,7 @@
 
 
 (defn zoom [db delta [client-center-x client-center-y :as cli-coords]]
-  (let [zoom-dir (if (pos? delta) 1 -1)
+  (let [zoom-dir (if (pos? delta) -1 1)
         [dia-x dia-y] (client-coord->dia-coord (::diagram db) cli-coords)]
     (update db ::diagram
             (fn [{:keys [translate scale] :as dia}]
@@ -264,7 +265,8 @@
                (:to-x l))
         y2 (or (:y (get-in nodes [to-n :ports to-p]))
                (:to-y l))]
-    (when (and (pos? x1) (pos? x2)) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
+    (when (and (pos? x1) (pos? y1) (pos? x2) (pos? y2)) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
+      (println "!!!!!!!!!" x1 y1 x2 y2)
       [:g
        [:path {:stroke :gray
                :fill :none

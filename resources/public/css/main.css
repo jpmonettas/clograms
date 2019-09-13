@@ -91,12 +91,16 @@ body .context-menu {
   background: #3c3836;
   min-width: 200px;
   border-radius: 3px;
+  overflow: hidden;
 }
 
 body .context-menu ul li {
-  padding-left: 10px;
-  padding-top: 10px;
+  padding: 10px;
   cursor: pointer;
+}
+
+body .context-menu ul li:hover {
+  background-color: #665c54;
 }
 
 body ul {

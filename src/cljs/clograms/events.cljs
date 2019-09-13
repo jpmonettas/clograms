@@ -122,6 +122,20 @@
    (db/select-color db color)))
 
 (re-frame/reg-event-db
+ ::set-namespace-color
+ (fn [db [_ ns-name]]
+   (db/set-namespace-color db
+                    ns-name
+                    (db/selected-color db))))
+
+(re-frame/reg-event-db
+ ::set-project-color
+ (fn [db [_ project-name]]
+   (db/set-project-color db
+                         project-name
+                         (db/selected-color db))))
+
+(re-frame/reg-event-db
  ::hide-context-menu
  (fn [db [_]]
    (db/set-ctx-menu db nil)))

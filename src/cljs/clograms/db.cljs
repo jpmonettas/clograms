@@ -23,6 +23,21 @@
 (defn select-color [db color]
   (assoc db :selected-color color))
 
+(defn selected-color [db]
+  (get db :selected-color))
+
+(defn set-namespace-color [db ns color]
+  (assoc-in db [:namespace/colors ns] color))
+
+(defn namespace-color [db ns]
+  (get-in db [:namespace/colors ns]))
+
+(defn set-project-color [db project color]
+  (assoc-in db [:project/colors project] color))
+
+(defn project-color [db project]
+  (get-in db [:project/colors project]))
+
 (def selectable-colors #{"red" "green" "blue" "yellow"})
 
 (def default-db

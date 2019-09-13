@@ -90,31 +90,48 @@
 ;; Custom nodes ;;
 ;;;;;;;;;;;;;;;;;;
 
-(defn node-wrapper [{:keys [properties ctx-menu]} child]
-  [:div {:on-context-menu (fn [evt]
-                            (let [x (.. evt -nativeEvent -pageX)
-                                  y (.. evt -nativeEvent -pageY)]
-                              (re-frame/dispatch
-                               [::events/show-context-menu
-                                {:x x
-                                 :y y
-                                 :menu ctx-menu}])))}
-   child])
+(defn node-wrapper [{:keys [ctx-menu node]} child]
+  (let [project-color @(re-frame/subscribe [::subs/project-color (get-in node [:entity :project/name])])
+        ns-color @(re-frame/subscribe [::subs/namespace-color (get-in node [:entity :namespace/name])])]
+    (println "NS Color for " node " is " ns-color)
+    (println "PR Color for " node " is " project-color)
+    [:div {:on-context-menu (fn [evt]
+                             (let [x (.. evt -nativeEvent -pageX)
+                                   y (.. evt -nativeEvent -pageY)]
+                               (re-frame/dispatch
+                                [::events/show-context-menu
+                                 {:x x
+                                  :y y
+                                  :menu ctx-menu}])))
+           :style {:background-color (or ns-color project-color)}}
+    child]))
 
 (defn remove-ctx-menu-option [node]
   {:label "Remove"
    :dispatch [::events/remove-entity-from-diagram (::rg/id node)]})
 
+(defn set-ns-color-ctx-menu-option [ns-name]
+  {:label (str "Set " ns-name " namespace color to selected")
+   :dispatch [::events/set-namespace-color ns-name]})
+
+(defn set-project-color-ctx-menu-option [project-name]
+  {:label (str "Set " project-name " project color to selected")
+   :dispatch [::events/set-project-color project-name]})
+
 (defn project-node-component [{:keys [entity] :as node}]
   (let [project entity]
-    [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]}
-     [:div.project-node.custom-node #_{:style {:background-color (.. node -options -color)}}
+    [node-wrapper {:node node
+                   :ctx-menu [(set-project-color-ctx-menu-option (:project/name project))
+                              (remove-ctx-menu-option node)]}
+     [:div.project-node.custom-node
       [:div.node-body.project-name (:project/name project)]]]))
 
 (defn namespace-node-component [{:keys [entity] :as node}]
   (let [ns entity]
-    [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]
-                  :node-model node}
+    [node-wrapper {:node node
+                   :ctx-menu [(set-project-color-ctx-menu-option (:project/name entity))
+                              (set-ns-color-ctx-menu-option (:namespace/name entity))
+                              (remove-ctx-menu-option node)]}
     [:div.namespace-node.custom-node
      [:div.node-body
       [:span.namespace-name (:namespace/name ns)]
@@ -122,13 +139,15 @@
 
 (defn var-node-component [{:keys [entity] :as node}]
   (let [var entity]
-   [node-wrapper {:ctx-menu [(remove-ctx-menu-option node)]
-                  :node-model node}
-    [:div.var-node.custom-node
-     [:div.node-body
-      [:div [:span.namespace-name (str (:namespace/name var) "/")] [:span.var-name (:var/name var)]]
-      [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
-       (:function/source var)]]]]))
+    [node-wrapper {:node node
+                   :ctx-menu [(set-project-color-ctx-menu-option (:project/name entity))
+                              (set-ns-color-ctx-menu-option (:namespace/name entity))
+                              (remove-ctx-menu-option node)]}
+     [:div.var-node.custom-node
+      [:div.node-body
+       [:div [:span.namespace-name (str (:namespace/name var) "/")] [:span.var-name (:var/name var)]]
+       [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
+        (:function/source var)]]]]))
 
 ;; --------------------------------------------------------------------
 
