@@ -122,7 +122,7 @@
                    :ctx-menu [(set-project-color-ctx-menu-option (:project/name project))
                               (remove-ctx-menu-option node)]}
      [:div.project-node.custom-node
-      [:div.node-body.project-name (:project/name project)]]]))
+      [:div.node-body.project-name (str (:project/name project))]]]))
 
 (defn namespace-node-component [{:keys [entity] :as node}]
   (let [ns entity]
@@ -132,7 +132,7 @@
                               (remove-ctx-menu-option node)]}
     [:div.namespace-node.custom-node
      [:div.node-body
-      [:span.namespace-name (:namespace/name ns)]
+      [:span.namespace-name (str (:namespace/name ns))]
       [:span.project-name (str "(" (:project/name ns) ")")]]]]))
 
 (defn var-node-component [{:keys [entity] :as node}]
@@ -188,14 +188,14 @@
 (defn draggable-project [project]
   [:div.draggable-project.draggable-entity
    {:draggable true
-    :class (when (= (:project/name project) "clindex/main-project") "main-project")
+    :class (when (= (:project/name project) 'clindex/main-project) "main-project")
     :on-drag-start (fn [event]
                      (-> event
                          .-dataTransfer
                          (.setData "entity-data" (assoc project :type :project))))
     :on-click (fn [_]
                 (re-frame/dispatch [::events/side-bar-browser-select-project project]))}
-   [:div (:project/name project)]])
+   [:div (str (:project/name project))]])
 
 (defn draggable-namespace [namespace]
   [:div.draggable-namespace.draggable-entity

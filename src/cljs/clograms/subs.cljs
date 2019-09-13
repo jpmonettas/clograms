@@ -118,7 +118,7 @@
          level-key (project-browser-level-idx->key level)]
      (case level-key
        :projects (let [all-projects (project-items (:datascript/db db))
-                       is-main-project #(when (= (:project/name %) "clindex/main-project") %)
+                       is-main-project #(when (= (:project/name %) 'clindex/main-project) %)
                        main-project (some is-main-project all-projects)]
                    (into [main-project] (remove is-main-project all-projects)))
        :namespaces (->> (namespaces-items (:datascript/db db) (:project/id selected-project))

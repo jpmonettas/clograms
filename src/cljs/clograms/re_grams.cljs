@@ -228,7 +228,8 @@
         :link db'))
     db))
 
-
+(def max-scale 2)
+(def min-scale 0.1)
 (defn zoom [db delta [client-center-x client-center-y :as cli-coords]]
   (let [zoom-dir (if (pos? delta) -1 1)
         [dia-x dia-y] (client-coord->dia-coord (::diagram db) cli-coords)]
@@ -244,9 +245,11 @@
                     [tx ty] translate
                     new-translate-x (+ tx x-scale-diff)
                     new-translate-y (+ ty y-scale-diff)]
-                (assoc dia
-                       :translate [new-translate-x new-translate-y]
-                       :scale new-scale))))))
+                (if (< min-scale new-scale max-scale)
+                  (assoc dia
+                         :translate [new-translate-x new-translate-y]
+                         :scale new-scale)
+                  dia))))))
 
 (defn link-curve-string [[[fpx fpy] & points]]
   (gstring/format "M%f %f C%s" fpx fpy (str/join "," (map #(str/join " " %) points))))
