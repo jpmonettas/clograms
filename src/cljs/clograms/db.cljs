@@ -20,13 +20,6 @@
 (defn set-ctx-menu [db ctx-menu]
   (assoc db :ctx-menu ctx-menu))
 
-;; Node
-;; {:storm.node/id "7338a7d8-0827-4186-9da9-94015b110565"
-;;  :storm.node/type "project-node"
-;;  :x 505
-;;  :y 400
-;;  :clograms/entity {}}
-
 (def default-db
   (merge
    {:side-bar {:selected-side-bar-tab :projects-browser}

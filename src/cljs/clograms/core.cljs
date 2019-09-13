@@ -4,7 +4,6 @@
             [clograms.events :as events]
             [clograms.views :as views]
             [clograms.config :as config]
-            [clograms.diagrams :as diagrams]
             [clograms.re-grams :as re]))
 
 (defn dev-setup []
@@ -18,7 +17,6 @@
                   (.getElementById js/document "app")))
 
 (defn ^:export init []
-  (diagrams/create-engine-and-model!)
   (re/register-node-component! :clograms/project-node views/project-node-component)
   (re/register-node-component! :clograms/namespace-node views/namespace-node-component)
   (re/register-node-component! :clograms/var-node views/var-node-component)
