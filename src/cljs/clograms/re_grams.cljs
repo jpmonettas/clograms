@@ -9,7 +9,6 @@
 ;; Schema
 #_{:nodes {"nid1" {::id "nid1"
                    :diagram.node/type :custom-node-1
-                   :selected true
                    :x 20
                    :y 20
                    :ports {"pid1" {::id "pid1"
@@ -18,7 +17,6 @@
                                    :diagram.port/type :custom-port1}}}
            "nid2" {::id "nid2"
                    :diagram.node/type :custom-node-2
-                   :selected false
                    :x 510
                    :y 510
                    :ports {"pid3" {::id "pid3"
@@ -38,6 +36,7 @@
 
 (defn initial-db []
   {::diagram {:nodes {}
+              :links {}
               :scale 1
               :translate [0 0]}})
 

@@ -76,10 +76,8 @@
               [?pid :project/name ?pname]]
             datascript-db)
        (map #(zipmap [:project/id :project/name] %))
-       (map #(-> %
-                 (assoc :type :project)
-                 (update :project/name str)))
-       (sort-by :project/name)))
+       (map #(assoc % :type :project))
+       (sort-by (comp str :project/name))))
 
 (defn namespaces-items [datascript-db pid]
   (->> (d/q '[:find ?pid ?nsid ?nsname
@@ -90,10 +88,8 @@
             datascript-db
             pid)
        (map #(zipmap [:project/id :namespace/id :namespace/name] %))
-       (map #(-> %
-                 (assoc :type :namespace)
-                 (update :namespace/name str)))
-       (sort-by :namespace/name)))
+       (map #(assoc % :type :namespace))
+       (sort-by (comp str :namespace/name))))
 
 (defn vars-items [datascript-db nsid]
   (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrc
@@ -112,9 +108,7 @@
             datascript-db
             nsid)
        (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/public? :var/line :function/id :function/source] %))
-       (map #(-> %
-                 (assoc :type :var)
-                 (update :var/name str)))
+       (map #(assoc % :type :var))
        (sort-by :var/line)))
 
 (re-frame/reg-sub

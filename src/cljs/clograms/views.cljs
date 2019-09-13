@@ -286,6 +286,7 @@
   (let [selected-color @(re-frame/subscribe [::subs/selected-color])]
     [:div.color-selector
      (for [c db/selectable-colors]
+       ^{:key c}
        [:div.selectable-color {:style {:background-color c}
                                :class (when (= c selected-color) "selected")
                                :on-click #(re-frame/dispatch [::events/select-color c])}])]))
@@ -309,11 +310,19 @@
                         (re-frame/dispatch [::events/hide-context-menu]))}
        label])]])
 
+(defn to-symbol-if-exists [m k]
+  (if (contains? m k)
+    (update m k symbol)
+    m))
+
 (defn diagram []
   (let [dia @(re-frame/subscribe [::rg/diagram])]
     [:div.diagram-wrapper
      {:on-drop (fn [evt]
-                 (let [entity (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data")))]
+                 (let [entity (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data")))
+                                  (to-symbol-if-exists :project/name)
+                                  (to-symbol-if-exists :namespace/name)
+                                  (to-symbol-if-exists :var/name))]
                    (re-frame/dispatch [::events/add-entity-to-diagram entity
                                        {:link-to-selected? true
                                         :client-x (.-clientX evt)

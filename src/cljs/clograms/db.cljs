@@ -45,7 +45,7 @@
    {:side-bar {:selected-side-bar-tab :projects-browser}
     :projects-browser {:level 0
                        :selected-project nil
-                       :selected-namspace nil}
+                       :selected-namespace nil}
     :ctx-menu nil
     :selected-color (first selectable-colors)}
    (rg/initial-db)))
