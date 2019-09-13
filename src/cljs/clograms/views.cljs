@@ -93,8 +93,6 @@
 (defn node-wrapper [{:keys [ctx-menu node]} child]
   (let [project-color @(re-frame/subscribe [::subs/project-color (get-in node [:entity :project/name])])
         ns-color @(re-frame/subscribe [::subs/namespace-color (get-in node [:entity :namespace/name])])]
-    (println "NS Color for " node " is " ns-color)
-    (println "PR Color for " node " is " project-color)
     [:div {:on-context-menu (fn [evt]
                              (let [x (.. evt -nativeEvent -pageX)
                                    y (.. evt -nativeEvent -pageY)]

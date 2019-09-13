@@ -256,22 +256,20 @@
   (assoc-in db [::diagram :translate] to))
 
 (defn link [nodes {:keys [from-port to-port]  :as l}]
-  (let [[from-n from-p] from-port
+  (let [center (fn [{:keys [x y w h]}] (when (and x y w h)
+                                         [(+ x (/ w 2)) (+ y (/ h 2))]))
+        [from-n from-p] from-port
         [to-n to-p] to-port
-
-        x1 (:x (get-in nodes [from-n :ports from-p]))
-        y1 (:y (get-in nodes [from-n :ports from-p]))
-        x2 (or (:x (get-in nodes [to-n :ports to-p]))
-               (:to-x l))
-        y2 (or (:y (get-in nodes [to-n :ports to-p]))
-               (:to-y l))]
-    (when (and (pos? x1) (pos? y1) (pos? x2) (pos? y2)) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
-      (println "!!!!!!!!!" x1 y1 x2 y2)
+        [x1 y1] (center (get-in nodes [from-n :ports from-p]))
+        [x2 y2] (center (get-in nodes [to-n :ports to-p]))
+        x2 (or x2 (:to-x l))
+        y2 (or y2 (:to-y l))]
+    (when (and (pos? x1) (pos? y1)) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
       [:g
        [:path {:stroke :gray
                :fill :none
                :stroke-width 3
-               :d (link-curve-string [[x1 y1] [(+ 50 x1) y1] [(- x2 50) y2] [x2 y2]])}]])))
+               :d (link-curve-string [[x1 y1] [(- x1 50) y1] [(+ x2 50) y2] [x2 y2]])}]])))
 
 (defn diagram [dia]
   (r/create-class
