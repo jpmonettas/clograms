@@ -117,6 +117,11 @@
    (db/set-ctx-menu db ctx-menu)))
 
 (re-frame/reg-event-db
+ ::select-color
+ (fn [db [_ color]]
+   (db/select-color db color)))
+
+(re-frame/reg-event-db
  ::hide-context-menu
  (fn [db [_]]
    (db/set-ctx-menu db nil)))

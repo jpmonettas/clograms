@@ -157,30 +157,62 @@ body .draggable-var .var.public {
   background-color: #98971a;
 }
 
-.entity-selector {
+.top-bar {
   position: absolute;
   z-index: 10;
-  left: 50%;
-  top: 3%;
-  margin-left: -300px;
+  background-color: #3c3836;
+  padding: 5px;
+  border-radius: 3px;
+  display: inline-flex;
 }
 
-.entity-selector .project-name {
+.top-bar label {
+  margin-right: 3px;
+}
+
+.top-bar .entity-selector {
+  display: inline-block;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper {
+  display: inline-block;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .project-name {
   margin-left: 3px;
   opacity: 0.5;
 }
 
-.entity-selector input {
-  background-color: #3c3836;
+.top-bar .entity-selector .type-ahead-wrapper input {
+  background-color: #504945;
   color: #EEE;
 }
 
-.entity-selector .rc-typeahead-suggestion {
+.top-bar .entity-selector .type-ahead-wrapper .rc-typeahead-suggestion {
   background-color: #3c3836;
 }
 
-.entity-selector .rc-typeahead-suggestion.active {
+.top-bar .entity-selector .type-ahead-wrapper .rc-typeahead-suggestion.active {
   background-color: #665c54;
+}
+
+.top-bar .color-selector {
+  display: inline-block;
+  margin: 0;
+}
+
+.top-bar .color-selector .selectable-color {
+  display: inline-block;
+  border-radius: 3px;
+  width: 30px;
+  margin: 2px;
+  height: 30px;
+  opacity: 0.5;
+}
+
+.top-bar .color-selector .selectable-color.selected {
+  opacity: 1;
+  border: 1px solid orange;
 }
 
 .side-bar {

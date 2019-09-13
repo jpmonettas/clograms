@@ -216,3 +216,8 @@
  ::ctx-menu
  (fn [{:keys [ctx-menu]}]
    ctx-menu))
+
+(re-frame/reg-sub
+ ::selected-color
+ (fn [{:keys [selected-color]}]
+   selected-color))

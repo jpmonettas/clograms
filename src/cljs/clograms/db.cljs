@@ -20,11 +20,17 @@
 (defn set-ctx-menu [db ctx-menu]
   (assoc db :ctx-menu ctx-menu))
 
+(defn select-color [db color]
+  (assoc db :selected-color color))
+
+(def selectable-colors #{"red" "green" "blue" "yellow"})
+
 (def default-db
   (merge
    {:side-bar {:selected-side-bar-tab :projects-browser}
     :projects-browser {:level 0
                        :selected-project nil
                        :selected-namspace nil}
-    :ctx-menu nil}
+    :ctx-menu nil
+    :selected-color (first selectable-colors)}
    (rg/initial-db)))

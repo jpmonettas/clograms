@@ -8,7 +8,8 @@
             [dorothy.core :as dorothy]
             [goog.string :as gstring]
             [re-com.core :as re-com]
-            [clograms.re-grams :as rg]))
+            [clograms.re-grams :as rg]
+            [clograms.db :as db]))
 
 (defn all-projects [& {:keys [on-change selected-id]}]
   [:div "All projects"]
@@ -130,26 +131,29 @@
        (:function/source var)]]]]))
 
 ;; --------------------------------------------------------------------
+
 (defn entity-selector []
   (let [all-entities (re-frame/subscribe [::subs/all-entities])]
     [:div.entity-selector
-     [re-com/typeahead
-      :width "600px"
-      :change-on-blur? true
-      :data-source (fn [q]
-                     (when (> (count q) 2)
-                       (filter #(str/includes? (name (:var/name %)) q) @all-entities)))
-      :render-suggestion (fn [e q]
-                           [:span.selector-option
-                            [:span.namespace-name (str (:namespace/name e) "/")]
-                            [:span.var-name (:var/name e)]
-                            [:span.project-name (str "(" (:project/name e) ")")]])
-      :suggestion-to-string (fn [e]
-                              (when (:namespace/name e)
-                                (str (:namespace/name e) "/" (:var/name e))))
-      :on-change (fn [e]
-                   (when (map? e)
-                     (re-frame/dispatch [::events/add-entity-to-diagram (assoc e :type :var)])))]]))
+     [:label "Search:"]
+     [:div.type-ahead-wrapper
+      [re-com/typeahead
+       :width "600px"
+       :change-on-blur? true
+       :data-source (fn [q]
+                      (when (> (count q) 2)
+                        (filter #(str/includes? (name (:var/name %)) q) @all-entities)))
+       :render-suggestion (fn [e q]
+                            [:span.selector-option
+                             [:span.namespace-name (str (:namespace/name e) "/")]
+                             [:span.var-name (:var/name e)]
+                             [:span.project-name (str "(" (:project/name e) ")")]])
+       :suggestion-to-string (fn [e]
+                               (when (:namespace/name e)
+                                 (str (:namespace/name e) "/" (:var/name e))))
+       :on-change (fn [e]
+                    (when (map? e)
+                      (re-frame/dispatch [::events/add-entity-to-diagram (assoc e :type :var)])))]]]))
 
 (defn draggable-ref-node [r]
   [:li.draggable-var.draggable-entity
@@ -223,7 +227,6 @@
                       :vars (:var/id i)))}
         [item-component i])]]))
 
-
 (defn selected-browser []
   (let [refs (re-frame/subscribe [::subs/selected-var-refs])
         var-list (fn [vars]
@@ -260,6 +263,21 @@
        :projects-browser [projects-browser]
        :selected-browser [selected-browser])]))
 
+
+
+(defn color-selector []
+  (let [selected-color @(re-frame/subscribe [::subs/selected-color])]
+    [:div.color-selector
+     (for [c db/selectable-colors]
+       [:div.selectable-color {:style {:background-color c}
+                               :class (when (= c selected-color) "selected")
+                               :on-click #(re-frame/dispatch [::events/select-color c])}])]))
+
+(defn top-bar []
+  [:div.top-bar
+   [entity-selector]
+   [color-selector]])
+
 (defn context-menu [{:keys [x y menu]}]
   [:div.context-menu {:style {:position :absolute
                               :top y
@@ -293,6 +311,6 @@
     [:div
      (when ctx-menu
        [context-menu ctx-menu])
-     [entity-selector]
+     [top-bar]
      [side-bar]
      [diagram]]))

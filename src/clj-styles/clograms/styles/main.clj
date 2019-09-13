@@ -93,19 +93,34 @@
      [:&.private {:background-color (color :red)}]
      [:&.public {:background-color (color :green)}]]]])
 
-(def entity-selector
-  [:.entity-selector {:position :absolute
-                      :z-index 10
-                      :left "50%"
-                      :top "3%"
-                      :margin-left "-300px"}
-   [:.project-name {:margin-left "3px"
-                    :opacity 0.5}]
-   [:input {:background-color (color :side-bar)
-            :color (color :super-light-grey)}]
-   [:.rc-typeahead-suggestion
-    {:background-color (color :side-bar)}
-    [:&.active {:background-color (color :selection)}]]])
+(def top-bar
+  [:.top-bar {:position :absolute
+              :z-index 10
+              :background-color (color :side-bar)
+              :padding "5px"
+              :border-radius border-radius
+              :display :inline-flex}
+   [:label {:margin-right "3px"}]
+   [:.entity-selector {:display :inline-block}
+    [:.type-ahead-wrapper {:display :inline-block}
+     [:.project-name {:margin-left "3px"
+                      :opacity 0.5}]
+     [:input {:background-color (color :background)
+              :color (color :super-light-grey)}]
+     [:.rc-typeahead-suggestion
+      {:background-color (color :side-bar)}
+      [:&.active {:background-color (color :selection)}]]]]
+
+   [:.color-selector {:display :inline-block
+                      :margin 0}
+    [:.selectable-color {:display :inline-block
+                         :border-radius border-radius
+                         :width "30px"
+                         :margin "2px"
+                         :height "30px"
+                         :opacity 0.5}
+     [:&.selected {:opacity 1
+                   :border "1px solid orange"}]]]])
 
 (def side-bar
   [:.side-bar {:position :absolute
@@ -145,5 +160,5 @@
   (list
    diagram
    general
-   entity-selector
+   top-bar
    side-bar))
