@@ -7,8 +7,9 @@
 (s/def :diagram.node/type (s/nilable keyword?))
 (s/def :diagram.port/type (s/nilable keyword?))
 
-(s/def ::client-x number?)
-(s/def ::client-y number?)
+(s/def ::client-x (s/nilable number?)) ;; TODO: fix nilable
+(s/def ::client-y (s/nilable number?)) ;; TODO: fix nilable
+
 (s/def ::w number?)
 (s/def ::h number?)
 (s/def ::x number?)
