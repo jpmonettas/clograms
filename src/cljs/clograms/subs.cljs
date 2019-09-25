@@ -70,46 +70,49 @@
    (:selected-namespace projects-browser)))
 
 (defn project-items [datascript-db]
-  (->> (d/q '[:find ?pid ?pname
-              :in $
-              :where
-              [?pid :project/name ?pname]]
-            datascript-db)
-       (map #(zipmap [:project/id :project/name] %))
-       (map #(assoc % :type :project))
-       (sort-by (comp str :project/name))))
+  (when datascript-db
+    (->> (d/q '[:find ?pid ?pname
+                :in $
+                :where
+                [?pid :project/name ?pname]]
+              datascript-db)
+         (map #(zipmap [:project/id :project/name] %))
+         (map #(assoc % :type :project))
+         (sort-by (comp str :project/name)))))
 
 (defn namespaces-items [datascript-db pid]
-  (->> (d/q '[:find ?pid ?nsid ?nsname
-              :in $ ?pid
-              :where
-              [?nsid :namespace/project ?pid]
-              [?nsid :namespace/name ?nsname]]
-            datascript-db
-            pid)
-       (map #(zipmap [:project/id :namespace/id :namespace/name] %))
-       (map #(assoc % :type :namespace))
-       (sort-by (comp str :namespace/name))))
+  (when datascript-db
+    (->> (d/q '[:find ?pid ?nsid ?nsname
+               :in $ ?pid
+               :where
+               [?nsid :namespace/project ?pid]
+               [?nsid :namespace/name ?nsname]]
+             datascript-db
+             pid)
+        (map #(zipmap [:project/id :namespace/id :namespace/name] %))
+        (map #(assoc % :type :namespace))
+        (sort-by (comp str :namespace/name)))))
 
 (defn vars-items [datascript-db nsid]
-  (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrc
-              :in $ ?nsid
-              :where
-              [?nsid :namespace/project ?pid]
-              [?vid :var/namespace ?nsid]
-              [?vid :var/name ?vname]
-              [?vid :var/public? ?vpub]
-              [?vid :var/line ?vline]
-              [?fid :function/var ?vid]
-              [?fid :function/source ?fsrc]
-              #_[?vid :function/_var ?fid]
-              #_[(get-else $ ?fid :function/var nil) ?x]
-              #_[(get-else $ ?fid :file/name "N/A") ?fname]]
-            datascript-db
-            nsid)
-       (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/public? :var/line :function/id :function/source] %))
-       (map #(assoc % :type :var))
-       (sort-by :var/line)))
+  (when datascript-db
+    (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrc
+                :in $ ?nsid
+                :where
+                [?nsid :namespace/project ?pid]
+                [?vid :var/namespace ?nsid]
+                [?vid :var/name ?vname]
+                [?vid :var/public? ?vpub]
+                [?vid :var/line ?vline]
+                [?fid :function/var ?vid]
+                [?fid :function/source ?fsrc]
+                #_[?vid :function/_var ?fid]
+                #_[(get-else $ ?fid :function/var nil) ?x]
+                #_[(get-else $ ?fid :file/name "N/A") ?fname]]
+              datascript-db
+              nsid)
+         (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/public? :var/line :function/id :function/source] %))
+         (map #(assoc % :type :var))
+         (sort-by :var/line))))
 
 (re-frame/reg-sub
  ::side-bar-browser-items
@@ -129,53 +132,55 @@
 (def callers-refs
   (memoize
    (fn [db ns vname]
-     (let [q-result (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrc ?vid
-                           :in $ ?nsn ?vn
-                           :where
-                           [?nid :namespace/name ?nsn]
-                           [?vid :var/namespace ?nid]
-                           [?vid :var/name ?vn]
-                           [?vrid :var-ref/var ?vid]
-                           [?vrid :var-ref/namespace ?vrnid]
-                           [?vrid :var-ref/in-function ?fnid]
-                           [?fnid :function/var ?fnvid]
-                           [?fnid :function/source ?fsrc]
-                           [?fnvid :var/name ?in-fn]
-                           [?vrnid :namespace/name ?vrnsn]
-                           [?pid :project/name ?pname]
-                           [?vrnid :namespace/project ?pid]
-                           [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
-                         db
-                         (symbol ns)
-                         (symbol vname))]
-       (->> q-result
-            (map #(zipmap [:project/name :namespace/name :var/name :function/source :id] %)))))))
+     (when db
+       (let [q-result (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrc ?vid
+                            :in $ ?nsn ?vn
+                            :where
+                            [?nid :namespace/name ?nsn]
+                            [?vid :var/namespace ?nid]
+                            [?vid :var/name ?vn]
+                            [?vrid :var-ref/var ?vid]
+                            [?vrid :var-ref/namespace ?vrnid]
+                            [?vrid :var-ref/in-function ?fnid]
+                            [?fnid :function/var ?fnvid]
+                            [?fnid :function/source ?fsrc]
+                            [?fnvid :var/name ?in-fn]
+                            [?vrnid :namespace/name ?vrnsn]
+                            [?pid :project/name ?pname]
+                            [?vrnid :namespace/project ?pid]
+                            [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
+                          db
+                          (symbol ns)
+                          (symbol vname))]
+        (->> q-result
+             (map #(zipmap [:project/name :namespace/name :var/name :function/source :id] %))))))))
 
 (def calls-refs
   (memoize
    (fn [db ns vname]
-     (let [q-result (d/q '[:find ?pname ?destnsname ?destvname ?fsrc ?dvid
-                           :in $ ?nsn ?vn
-                           :where
-                           [?pid :project/name ?pname]
-                           [?destns :namespace/project ?pid]
-                           [?dvid :var/name ?destvname]
-                           [?dvid :var/namespace ?destns]
-                           [?dfid :function/var ?dvid]
-                           [?dfid :function/source ?fsrc]
-                           [?destns :namespace/name ?destnsname]
-                           [?vrid :var-ref/var ?dvid]
-                           [?vrid :var-ref/in-function ?fid]
-                           [?fid :function/var ?fvid]
+     (when db
+       (let [q-result (d/q '[:find ?pname ?destnsname ?destvname ?fsrc ?dvid
+                            :in $ ?nsn ?vn
+                            :where
+                            [?pid :project/name ?pname]
+                            [?destns :namespace/project ?pid]
+                            [?dvid :var/name ?destvname]
+                            [?dvid :var/namespace ?destns]
+                            [?dfid :function/var ?dvid]
+                            [?dfid :function/source ?fsrc]
+                            [?destns :namespace/name ?destnsname]
+                            [?vrid :var-ref/var ?dvid]
+                            [?vrid :var-ref/in-function ?fid]
+                            [?fid :function/var ?fvid]
 
-                           [?fvid :var/name ?vn]
-                           [?fvid :var/namespace ?fvnsid]
-                           [?fvnsid :namespace/name ?nsn]]
-                         db
-                         (symbol ns)
-                         (symbol vname))]
-       (->> q-result
-            (map #(zipmap [:project/name :namespace/name :var/name :function/source :id] %)))))))
+                            [?fvid :var/name ?vn]
+                            [?fvid :var/namespace ?fvnsid]
+                            [?fvnsid :namespace/name ?nsn]]
+                          db
+                          (symbol ns)
+                          (symbol vname))]
+        (->> q-result
+             (map #(zipmap [:project/name :namespace/name :var/name :function/source :id] %))))))))
 
 
 

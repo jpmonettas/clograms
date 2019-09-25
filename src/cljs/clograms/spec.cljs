@@ -46,9 +46,14 @@
 
 (s/def ::loading? boolean?)
 
+(s/def :namespace/colors (s/map-of :namespace/name string?))
+(s/def :project/colors (s/map-of :project/name string?))
+
 (s/def ::db (s/keys :req [::rg/diagram]
                     :opt [:datascript/db
-                          :main-project/id]
+                          :main-project/id
+                          :namespace/colors
+                          :project/colors]
                     :req-un [::side-bar
                              ::projects-browser
                              ::selected-color

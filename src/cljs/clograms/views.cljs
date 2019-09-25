@@ -293,6 +293,8 @@
 
 (defn top-bar []
   [:div.top-bar
+   [:button.save {:on-click #(re-frame/dispatch [::events/save-diagram])}
+    "Save"]
    [entity-selector]
    [color-selector]])
 

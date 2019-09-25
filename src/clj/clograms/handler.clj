@@ -1,7 +1,8 @@
 (ns clograms.handler
-  (:require [compojure.core :refer [GET defroutes]]
+  (:require [compojure.core :refer [GET POST defroutes]]
             [compojure.route :refer [resources]]
             [ring.util.response :refer [resource-response]]
+            [ring.util.request :refer [body-string]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
@@ -21,6 +22,8 @@
                   (slurp path))]
    (str "<p style=\"white-space: pre-wrap\">" content "</p>")))
 
+(def diagram-file "./diagram.edn")
+
 (defroutes routes
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/open-file" [path line :as req]
@@ -31,6 +34,16 @@
        {:status 200
         :headers {"Content-Type" "application/edn"}
         :body (db-edn)})
+  (GET "/diagram" []
+       {:status 200
+        :headers {"Content-Type" "application/edn"}
+        :body (try
+                (slurp diagram-file)
+                (catch Exception e))})
+  (POST "/diagram" req
+        (let [diagram (body-string req)]
+          (spit diagram-file diagram)
+          {:status 200}))
   (resources "/"))
 
 (def handler (-> #'routes

@@ -105,6 +105,10 @@
               :padding "5px"
               :border-radius border-radius
               :display :inline-flex}
+   [:.save {:background-color (color :background)
+            :height "32px"
+            :margin-right "3px"
+            :border-radius border-radius}]
    [:label {:margin-right "3px"}]
    [:.entity-selector {:display :inline-block}
     [:.type-ahead-wrapper {:display :inline-block}

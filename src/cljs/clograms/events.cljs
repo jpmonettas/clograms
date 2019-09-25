@@ -23,19 +23,38 @@
     (throw (js/Error. (str "spec check failed: " (expound/expound-str a-spec db))))))
 
 ;; now we create an interceptor using `after`
-(def check-spec (re-frame/after (partial check-and-throw ::clograms-spec/db)))
+(def inter-check (re-frame/after (partial check-and-throw ::clograms-spec/db)))
 
 (defn initial-db []
   {:db db/default-db
-   :dispatch [::reload-db]})
+   :dispatch-n [[::reload-db]
+                [::load-diagram]]})
 
 (defn reload-db []
   {:http-xhrio {:method          :get
                 :uri             "http://localhost:3000/db"
-                :timeout         8000 ;; optional see API docs
-                :response-format (ajax/raw-response-format) ;; IMPORTANT!: You must provide this.
+                :timeout         8000
+                :response-format (ajax/raw-response-format)
                 :on-success      [::db-loaded]
-                :on-failure      [:bad-http-result]}})
+                :on-failure      [::reload-failed]}})
+
+(defn load-diagram []
+  {:http-xhrio {:method          :get
+                :uri             "http://localhost:3000/diagram"
+                :timeout         8000
+                :response-format (ajax/raw-response-format)
+                :on-success      [::diagram-loaded]
+                :on-failure      [::diagram-load-failed]}})
+
+(defn save-diagram [diagram]
+  {:http-xhrio {:method          :post
+                :uri             "http://localhost:3000/diagram"
+                :timeout         8000
+                :params (pr-str diagram)
+                :format (ajax/text-request-format)
+                :response-format (ajax/raw-response-format)
+                :on-success      []
+                :on-failure      [:save-failed]}})
 
 (defn db-loaded [db ds-db]
   (let [datascript-db (cljs.reader/read-string ds-db)
@@ -49,6 +68,10 @@
            :datascript/db datascript-db
            :main-project/id main-project-id
            :loading? false)))
+
+(defn diagram-loaded [db diagram-str]
+  (let [diagram (cljs.reader/read-string diagram-str)]
+    (merge db diagram)))
 
 (defn build-project-node [entity]
   {:entity entity
@@ -143,23 +166,28 @@
 (defn unselect-node [db]
   (assoc-in db [:diagram :selected-node] nil))
 
-(re-frame/reg-event-fx ::initialize-db [check-spec] (fn [_ _] (initial-db)))
-(re-frame/reg-event-fx ::reload-db [check-spec] (fn [cofxs [_]] (reload-db)))
-(re-frame/reg-event-db ::db-loaded [check-spec] (fn [db [_ new-db]] (db-loaded db new-db)))
-(re-frame/reg-event-fx ::add-entity-to-diagram [check-spec] (fn [{:keys [db]} [_ e opts]] (add-entity-to-diagram db e opts)))
-(re-frame/reg-event-fx ::remove-entity-from-diagram [check-spec] (fn [{:keys [db]} [_ id]] (remove-entity-from-diagram db id)))
-(re-frame/reg-event-fx ::rg/node-selected [check-spec] (fn [{:keys [db]} [_ node]] (node-selected db node)))
-(re-frame/reg-event-db ::show-context-menu [check-spec] (fn [db [_ ctx-menu]] (show-context-menu db ctx-menu)))
-(re-frame/reg-event-db ::select-color [check-spec] (fn [db [_ color]] (select-color db color)))
-(re-frame/reg-event-db ::set-namespace-color [check-spec] (fn [db [_ ns-name]] (set-namespace-color db ns-name)))
-(re-frame/reg-event-db ::set-project-color [check-spec] (fn [db [_ project-name]] (set-project-color db project-name)))
-(re-frame/reg-event-db ::hide-context-menu [check-spec] (fn [db [_]] (hide-context-menu db)))
-(re-frame/reg-event-db ::select-side-bar-tab [check-spec] (fn [db [_ tab]] (select-side-bar-tab db tab)))
-(re-frame/reg-event-db ::side-bar-browser-back [check-spec] (fn [db _] (side-bar-browser-back db)))
-(re-frame/reg-event-db ::side-bar-browser-select-project [check-spec] (fn [db [_ p]] (side-bar-browser-select-project db p)))
-(re-frame/reg-event-db ::side-bar-browser-select-namespace [check-spec] (fn [db [_ ns]] (side-bar-browser-select-namespace db ns)))
-(re-frame/reg-event-db ::unselect-node [check-spec] (fn [db [_]] (unselect-node db)))
-
+(re-frame/reg-event-fx ::initialize-db [inter-check] (fn [_ _] (initial-db)))
+(re-frame/reg-event-fx ::reload-db [inter-check] (fn [cofxs [_]] (reload-db)))
+(re-frame/reg-event-db ::db-loaded [inter-check] (fn [db [_ new-db]] (db-loaded db new-db)))
+(re-frame/reg-event-fx ::add-entity-to-diagram [inter-check] (fn [{:keys [db]} [_ e opts]] (add-entity-to-diagram db e opts)))
+(re-frame/reg-event-fx ::remove-entity-from-diagram [inter-check] (fn [{:keys [db]} [_ id]] (remove-entity-from-diagram db id)))
+(re-frame/reg-event-fx ::rg/node-selected [inter-check] (fn [{:keys [db]} [_ node]] (node-selected db node)))
+(re-frame/reg-event-db ::show-context-menu [inter-check] (fn [db [_ ctx-menu]] (show-context-menu db ctx-menu)))
+(re-frame/reg-event-db ::select-color [inter-check] (fn [db [_ color]] (select-color db color)))
+(re-frame/reg-event-db ::set-namespace-color [inter-check] (fn [db [_ ns-name]] (set-namespace-color db ns-name)))
+(re-frame/reg-event-db ::set-project-color [inter-check] (fn [db [_ project-name]] (set-project-color db project-name)))
+(re-frame/reg-event-db ::hide-context-menu [inter-check] (fn [db [_]] (hide-context-menu db)))
+(re-frame/reg-event-db ::select-side-bar-tab [inter-check] (fn [db [_ tab]] (select-side-bar-tab db tab)))
+(re-frame/reg-event-db ::side-bar-browser-back [inter-check] (fn [db _] (side-bar-browser-back db)))
+(re-frame/reg-event-db ::side-bar-browser-select-project [inter-check] (fn [db [_ p]] (side-bar-browser-select-project db p)))
+(re-frame/reg-event-db ::side-bar-browser-select-namespace [inter-check] (fn [db [_ ns]] (side-bar-browser-select-namespace db ns)))
+(re-frame/reg-event-db ::unselect-node [inter-check] (fn [db [_]] (unselect-node db)))
+(re-frame/reg-event-fx ::load-diagram [inter-check] (fn [_ _] (load-diagram)))
+(re-frame/reg-event-db ::diagram-loaded [inter-check] (fn [db [_ diagram]] (diagram-loaded db diagram)))
+(re-frame/reg-event-fx ::save-diagram [] (fn [cofxs _] (save-diagram (select-keys (:db cofxs)
+                                                                                  [::rg/diagram
+                                                                                   :project/colors
+                                                                                   :namespace/colors]))))
 (comment
 
   (re-frame/dispatch [::add-entity-to-diagram

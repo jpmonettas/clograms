@@ -175,6 +175,13 @@ body .app-wrapper .draggable-var .var.public {
   display: inline-flex;
 }
 
+.top-bar .save {
+  background-color: #504945;
+  height: 32px;
+  margin-right: 3px;
+  border-radius: 3px;
+}
+
 .top-bar label {
   margin-right: 3px;
 }
