@@ -4,7 +4,10 @@
         org.clojure/clojurescript      {:mvn/version "1.10.516"}
         compojure                      {:mvn/version "1.6.1"}
         yogthos/config                 {:mvn/version "1.1.5"}
-        ring                           {:mvn/version "1.7.1"}
+        ring                           {:mvn/version "1.7.1"
+                                        ;; since we are using our own fork of tools.namespace
+                                        ;; called jpmonettas/tools.namespace
+                                        :exclusions [org.clojure/tools.namespace]}
         ring-cors                      {:mvn/version "0.1.13"}
         datascript                     {:mvn/version "0.17.1"}
         lambdaisland/garden-watcher    {:mvn/version "0.3.3"}
