@@ -1,4 +1,13 @@
-{:deps true
+{:dependencies [[day8.re-frame/http-fx "0.1.6"]
+                [dorothy "0.0.7"]
+                [reagent "0.8.1"]
+                [re-frame "0.10.8"]
+                [datascript "0.17.1"]
+                [re-com "2.5.0"]
+                [zprint "0.4.16"]
+                [net.mikera/core.matrix "0.62.0"]
+                [expound "0.7.2"]]
+ :source-paths ["src/cljs"]
  :dev-http {9500 "resources/public/"}
  :builds {:app {:output-dir "resources/public/js/"
                 :asset-path "/js"

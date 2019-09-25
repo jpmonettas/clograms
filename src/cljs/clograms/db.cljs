@@ -38,7 +38,10 @@
 (defn project-color [db project]
   (get-in db [:project/colors project]))
 
-(def selectable-colors #{"red" "green" "blue" "yellow"})
+(def selectable-colors #{"#984545"
+                         "#68ba41"
+                         "#c5973c"
+                         "#afbc4f"})
 
 (def default-db
   (merge

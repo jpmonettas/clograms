@@ -1,6 +1,5 @@
-{:paths ["." "resources" "src/clj" "src/clj-styles" "src/cljs"]
- :deps {;; Server (clojure) deps
-        org.clojure/clojure            {:mvn/version "RELEASE"}
+{:paths ["resources" "src/clj" "src/clj-styles"]
+ :deps {org.clojure/clojure            {:mvn/version "RELEASE"}
         org.clojure/clojurescript      {:mvn/version "1.10.516"}
         compojure                      {:mvn/version "1.6.1"}
         yogthos/config                 {:mvn/version "1.1.5"}
@@ -13,17 +12,4 @@
         lambdaisland/garden-watcher    {:mvn/version "0.3.3"}
         clindex                        {:mvn/version "0.1.0"}
         ;;clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
-
-        thheller/shadow-cljs           {:mvn/version "2.8.56"}
-
-        ;; Client (cljs) deps
-        day8.re-frame/http-fx {:mvn/version "0.1.6"}
-        dorothy {:mvn/version "0.0.7"}
-        reagent {:mvn/version "0.8.1"}
-        re-frame {:mvn/version "0.10.8"}
-        ;; datascript {:mvn/version "0.17.1"}
-        re-com {:mvn/version "2.5.0"}
-        zprint {:mvn/version "0.4.16"}
-        net.mikera/core.matrix {:mvn/version "0.62.0"}
-        expound {:mvn/version "0.7.2"}
         }}
