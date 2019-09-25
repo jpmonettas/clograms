@@ -84,43 +84,48 @@
 
 body {
   font-size: 11px;
+  background-color: #504945 !important;
   color: #eee !important;
 }
 
-body .context-menu {
+body .app-wrapper.loading {
+  opacity: 0.5;
+}
+
+body .app-wrapper .context-menu {
   background: #3c3836;
   min-width: 200px;
   border-radius: 3px;
   overflow: hidden;
 }
 
-body .context-menu ul li {
+body .app-wrapper .context-menu ul li {
   padding: 10px;
   cursor: pointer;
 }
 
-body .context-menu ul li:hover {
+body .app-wrapper .context-menu ul li:hover {
   background-color: #665c54;
 }
 
-body ul {
+body .app-wrapper ul {
   list-style: none;
   padding: 0;
 }
 
-body .project-name {
+body .app-wrapper .project-name {
 
 }
 
-body .namespace-name {
+body .app-wrapper .namespace-name {
 
 }
 
-body .var-name {
+body .app-wrapper .var-name {
 
 }
 
-body .draggable-entity {
+body .app-wrapper .draggable-entity {
   padding: 5px;
   border-radius: 3px;
   margin: 5px;
@@ -129,23 +134,23 @@ body .draggable-entity {
   cursor: no-drop;
 }
 
-body .draggable-project {
+body .app-wrapper .draggable-project {
   border: 1px solid #458588;
 }
 
-body .draggable-project.main-project {
+body .app-wrapper .draggable-project.main-project {
   border-width: 2px;
 }
 
-body .draggable-namespace {
+body .app-wrapper .draggable-namespace {
   border: 1px solid #b16286;
 }
 
-body .draggable-var {
+body .app-wrapper .draggable-var {
   border: 1px solid #689d6a;
 }
 
-body .draggable-var .var {
+body .app-wrapper .draggable-var .var {
   display: inline-block;
   margin-right: 4px;
   width: 7px;
@@ -153,11 +158,11 @@ body .draggable-var .var {
   border-radius: 3px;
 }
 
-body .draggable-var .var.private {
+body .app-wrapper .draggable-var .var.private {
   background-color: #cc241d;
 }
 
-body .draggable-var .var.public {
+body .app-wrapper .draggable-var .var.public {
   background-color: #98971a;
 }
 
@@ -282,4 +287,48 @@ body .draggable-var .var.public {
 .side-bar .selected-browser .header {
   font-weight: bold;
   margin-left: 5px;
+}
+
+.loading-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-overlay .spinner-outer {
+  width: 104px;
+  height: 104px;
+  z-index: 5;
+}
+
+.loading-overlay .spinner-outer .text {
+  z-index: 10;
+  position: relative;
+  top: 27px;
+  left: 23px;
+}
+
+.loading-overlay .spinner-outer .spinner-path {
+  stroke-dasharray: 170;
+  stroke-dashoffset: 20;
+}
+
+.loading-overlay .spinner-outer .spinner-inner {
+  animation: rotate 1.4s linear infinite;
+  width: 104px;
+  height: 104px;
+  top: -36px;
+  position: relative;
+}
+
+@keyframes rotate {
+
+  to {
+    transform: rotate(360deg);
+  }
+
 }

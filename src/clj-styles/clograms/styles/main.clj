@@ -1,4 +1,5 @@
-(ns clograms.styles.main)
+(ns clograms.styles.main
+  (:require [garden.stylesheet :refer [at-media at-keyframes]]))
 
 (def color {:super-light-grey "#EEE"
             :light-grey "rgb(60,60,60)"
@@ -61,38 +62,41 @@
 
 (def general
   [:body {:font-size "11px"
+          :background-color (str (color :background) " !important")
           :color (str (color :main-font) " !important")}
-   [:.context-menu {:background (color :side-bar)
-                    :min-width "200px"
-                    :border-radius border-radius
-                    :overflow :hidden}
-    [:ul
-     [:li {:padding "10px"
-           :cursor :pointer}
-      [:&:hover {:background-color (color :selection)}]]]]
-   [:ul {:list-style :none
-         :padding 0}]
-   [:.project-name {}]
-   [:.namespace-name {}]
-   [:.var-name {}]
-   [:.draggable-entity
-    {:padding "5px"
-     :border-radius border-radius
-     :margin "5px"
-     :background-color (color :background)
-     :font-size "11px"
-     :cursor :no-drop}]
-   [:.draggable-project {:border  (str "1px solid " (color :project-node))}
-    [:&.main-project {:border-width "2px"}]]
-   [:.draggable-namespace {:border (str "1px solid " (color :namespace-node))}]
-   [:.draggable-var {:border (str "1px solid " (color :var-node))}
-    [:.var {:display :inline-block
-            :margin-right "4px"
-            :width "7px"
-            :height "7px"
-            :border-radius border-radius}
-     [:&.private {:background-color (color :red)}]
-     [:&.public {:background-color (color :green)}]]]])
+   [:.app-wrapper
+    [:&.loading {:opacity 0.5}]
+    [:.context-menu {:background (color :side-bar)
+                     :min-width "200px"
+                     :border-radius border-radius
+                     :overflow :hidden}
+     [:ul
+      [:li {:padding "10px"
+            :cursor :pointer}
+       [:&:hover {:background-color (color :selection)}]]]]
+    [:ul {:list-style :none
+          :padding 0}]
+    [:.project-name {}]
+    [:.namespace-name {}]
+    [:.var-name {}]
+    [:.draggable-entity
+     {:padding "5px"
+      :border-radius border-radius
+      :margin "5px"
+      :background-color (color :background)
+      :font-size "11px"
+      :cursor :no-drop}]
+    [:.draggable-project {:border  (str "1px solid " (color :project-node))}
+     [:&.main-project {:border-width "2px"}]]
+    [:.draggable-namespace {:border (str "1px solid " (color :namespace-node))}]
+    [:.draggable-var {:border (str "1px solid " (color :var-node))}
+     [:.var {:display :inline-block
+             :margin-right "4px"
+             :width "7px"
+             :height "7px"
+             :border-radius border-radius}
+      [:&.private {:background-color (color :red)}]
+      [:&.public {:background-color (color :green)}]]]]])
 
 (def top-bar
   [:.top-bar {:position :absolute
@@ -156,10 +160,37 @@
     [:.header {:font-weight :bold
                :margin-left "5px"}]]])
 
+(def loading-spinner
+  [[:.loading-overlay {:width "100%"
+                       :height "100%"
+                       :position :absolute
+                       :display :flex
+                       :align-items :center
+                       :justify-content :center
+                       :z-index 1000}
+    [:.spinner-outer {:width "104px"
+                      :height "104px"
+                      :z-index 5}
+     [:.text {:z-index 10
+              :position :relative
+              :top "27px"
+              :left "23px"}]
+     [:.spinner-path
+      {:stroke-dasharray 170
+       :stroke-dashoffset 20}]
+     [:.spinner-inner
+      {:animation "rotate 1.4s linear infinite"
+       :width "104px"
+       :height "104px"
+       :top "-36px"
+       :position :relative}]]]
+   (at-keyframes :rotate [:to {:transform "rotate(360deg)"}])])
+
 ;; This creates resources/public/css/main.css
 (def ^:garden main
   (list
    diagram
    general
    top-bar
-   side-bar))
+   side-bar
+   loading-spinner))

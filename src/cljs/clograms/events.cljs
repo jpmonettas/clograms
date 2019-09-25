@@ -47,7 +47,8 @@
     (js/console.log "Have " (count datascript-db) "datoms. Main project id " main-project-id)
     (assoc db
            :datascript/db datascript-db
-           :main-project/id main-project-id)))
+           :main-project/id main-project-id
+           :loading? false)))
 
 (defn build-project-node [entity]
   {:entity entity

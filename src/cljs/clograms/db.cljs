@@ -50,5 +50,6 @@
                        :selected-project nil
                        :selected-namespace nil}
     :ctx-menu nil
-    :selected-color (first selectable-colors)}
+    :selected-color (first selectable-colors)
+    :loading? true}
    (rg/initial-db)))

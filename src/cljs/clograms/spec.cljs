@@ -44,10 +44,13 @@
 
 (s/def :main-project/id :project/id)
 
+(s/def ::loading? boolean?)
+
 (s/def ::db (s/keys :req [::rg/diagram]
                     :opt [:datascript/db
                           :main-project/id]
                     :req-un [::side-bar
                              ::projects-browser
-                             ::selected-color]
+                             ::selected-color
+                             ::loading?]
                     :opt-un [::ctx-menu]))

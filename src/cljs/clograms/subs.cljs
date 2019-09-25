@@ -225,3 +225,8 @@
  ::project-color
  (fn [db [_ project]]
    (db/project-color db project)))
+
+(re-frame/reg-sub
+ ::loading?
+ (fn [db _]
+   (:loading? db)))
