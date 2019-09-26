@@ -52,8 +52,8 @@
 (s/def ::cli-origin ::coord)
 (s/def ::cli-current ::coord)
 (s/def ::start-pos ::coord)
-(s/def ::grab-object (s/keys :req [:diagram.object/type
-                                   ::rg/id]
+(s/def ::grab-object (s/keys :req [:diagram.object/type]
+                             :opt [::rg/id]
                              :req-un [::start-pos]
                              :opt-un [::tmp-link-from]))
 
