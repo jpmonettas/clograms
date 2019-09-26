@@ -266,7 +266,7 @@
         [x2 y2] (center (get-in nodes [to-n :ports to-p]))
         x2 (or x2 (:to-x l))
         y2 (or y2 (:to-y l))]
-    (when (and (pos? x1) (pos? y1)) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
+    (when (and x1 y1) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
       [:g
        [:path {:stroke :gray
                :fill :none
