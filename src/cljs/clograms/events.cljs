@@ -11,7 +11,11 @@
             [clojure.string :as str]
             [clojure.spec.alpha :as s]
             [clograms.spec :as clograms-spec]
-            [expound.alpha :as expound]))
+            [expound.alpha :as expound]
+            [cljs.tools.reader :as tools-reader]
+            [clograms.utils :as utils]
+            [goog.string :as gstring]
+            [clojure.zip :as zip]))
 
 ;; (d/pull @db-conn '[:project/name {:project/dependency 6}] 2)
 ;; (d/pull @db-conn '[:project/name :project/dependency] 1)
@@ -56,8 +60,26 @@
                 :on-success      []
                 :on-failure      [:save-failed]}})
 
-(defn db-loaded [db ds-db]
-  (let [datascript-db (cljs.reader/read-string ds-db)
+(defn deserialize-datascript-db [ds-db-str]
+  (try
+    (let [{:keys [schema datoms]} (cljs.reader/read-string ds-db-str)
+          datoms' (keep (fn [[eid a v]]
+                          (try
+                            (let [deserialized-val (if (= a :function/source-form)
+                                                     (tools-reader/read-string v)
+                                                     v)]
+                              [:db/add eid a deserialized-val])
+                            (catch js/Error e
+                              (js/console.warn (str "[Skipping] Couldn't parse source-form for function " eid " probably because of reg exp non compatible with JS")))))
+                        datoms)
+          conn (d/create-conn schema)]
+      (d/transact! conn datoms')
+      (d/db conn))
+    (catch js/Error e
+      (js/console.error "Couldn't read db" (ex-data e) e))))
+
+(defn db-loaded [db ds-db-str]
+  (let [datascript-db (deserialize-datascript-db ds-db-str)
         main-project-id (d/q '[:find ?pid .
                                :in $ ?pn
                                :where [?pid :project/name ?pn]]
@@ -81,14 +103,44 @@
   {:entity entity
    :diagram.node/type :clograms/namespace-node})
 
+(defn add-node-from-link [x]
+  (js/console.log "ADDING" x))
+
+(defn make-function-source-link [src]
+  (gstring/format "<a onclick=\"clograms.events.add_node_from_link(5)\">%s</a>" src))
+
+(defn enhance-source [{:keys [:function/source-form] :as entity}]
+  (let [{:keys [line column]} (meta source-form)
+        all-symbols-meta (loop [all nil
+                                zloc (utils/move-zipper-to-next (utils/code-zipper source-form) symbol?)]
+                           (if (zip/end? zloc)
+                             all
+                             (recur (if-let [m (meta (zip/node zloc))]
+                                      (conj all m)
+                                      all) ;; we should add only if it points to some other var
+                                    (utils/move-zipper-to-next zloc symbol?))))
+        all-meta-at-origin (->>  all-symbols-meta
+                                 (map (fn [m]
+                                        (-> m
+                                            (update :line #(- % line))
+                                            (update :end-line #(- % line))
+                                            (update :column #(- % column))
+                                            (update :end-column #(- % column))))))]
+
+    (reduce (fn [e {:keys [line column end-column]}]
+              (update e :function/source-str
+                      (fn [src]
+                        (let [r (utils/replace-in-str-line make-function-source-link
+                                                           src
+                                                           line
+                                                           column
+                                                           (- end-column column))]
+                          r))))
+     entity
+     all-meta-at-origin)))
+
 (defn build-var-node [entity]
-  {:entity (-> entity
-               (update :function/source
-                       (fn [src]
-                         (-> src
-                             (str/replace "clojure.core/" "")
-                             (str/replace "cljs.core/" "")
-                             (zp/zprint-file-str {})))))
+  {:entity (enhance-source entity)
    :diagram.node/type :clograms/var-node})
 
 (defn add-entity-to-diagram [db e {:keys [link-to-selected? client-x client-y] :as opts}]

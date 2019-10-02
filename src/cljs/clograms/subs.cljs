@@ -28,18 +28,19 @@
 (re-frame/reg-sub
  ::all-entities
  (fn [{:keys [:datascript/db]} _]
-   (->> (d/q '[:find ?pname ?nsname ?vname ?fsrc
+   (->> (d/q '[:find ?pname ?nsname ?vname ?fsrcf ?fsrcs
                :in $
                :where
                [?vid :var/name ?vname]
                [?vid :var/namespace ?nsid]
                [?fid :function/var ?vid]
-               [?fid :function/source ?fsrc]
+               [?fid :function/source-form ?fsrcf]
+               [?fid :function/source-str ?fsrcs]
                [?nsid :namespace/name ?nsname]
                [?pid :project/name ?pname]
                [?nsid :namespace/project ?pid]]
              db)
-        (map #(zipmap [:project/name :namespace/name :var/name :function/source] %)))))
+        (map #(zipmap [:project/name :namespace/name :var/name :function/source-form :function/source-str] %)))))
 
 (re-frame/reg-sub
  ::selected-entity
@@ -95,7 +96,7 @@
 
 (defn vars-items [datascript-db nsid]
   (when datascript-db
-    (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrc
+    (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrcf ?fsrcs
                 :in $ ?nsid
                 :where
                 [?nsid :namespace/project ?pid]
@@ -104,13 +105,15 @@
                 [?vid :var/public? ?vpub]
                 [?vid :var/line ?vline]
                 [?fid :function/var ?vid]
-                [?fid :function/source ?fsrc]
+                [?fid :function/source-form ?fsrcf]
+                [?fid :function/source-str ?fsrcs]
                 #_[?vid :function/_var ?fid]
                 #_[(get-else $ ?fid :function/var nil) ?x]
                 #_[(get-else $ ?fid :file/name "N/A") ?fname]]
               datascript-db
               nsid)
-         (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/public? :var/line :function/id :function/source] %))
+         (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/public?
+                        :var/line :function/id :function/source-form :function/source-str] %))
          (map #(assoc % :type :var))
          (sort-by :var/line))))
 
@@ -133,7 +136,7 @@
   (memoize
    (fn [db ns vname]
      (when db
-       (let [q-result (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrc ?vid
+       (let [q-result (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcf ?fsrcs ?vid
                             :in $ ?nsn ?vn
                             :where
                             [?nid :namespace/name ?nsn]
@@ -143,7 +146,8 @@
                             [?vrid :var-ref/namespace ?vrnid]
                             [?vrid :var-ref/in-function ?fnid]
                             [?fnid :function/var ?fnvid]
-                            [?fnid :function/source ?fsrc]
+                            [?fnid :function/source-form ?fsrcf]
+                            [?fnid :function/source-str ?fsrcs]
                             [?fnvid :var/name ?in-fn]
                             [?vrnid :namespace/name ?vrnsn]
                             [?pid :project/name ?pname]
@@ -153,13 +157,14 @@
                           (symbol ns)
                           (symbol vname))]
         (->> q-result
-             (map #(zipmap [:project/name :namespace/name :var/name :function/source :id] %))))))))
+             (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
+                            :function/source-str :id] %))))))))
 
 (def calls-refs
   (memoize
    (fn [db ns vname]
      (when db
-       (let [q-result (d/q '[:find ?pname ?destnsname ?destvname ?fsrc ?dvid
+       (let [q-result (d/q '[:find ?pname ?destnsname ?destvname ?fsrcf ?fsrcs ?dvid
                             :in $ ?nsn ?vn
                             :where
                             [?pid :project/name ?pname]
@@ -167,7 +172,8 @@
                             [?dvid :var/name ?destvname]
                             [?dvid :var/namespace ?destns]
                             [?dfid :function/var ?dvid]
-                            [?dfid :function/source ?fsrc]
+                            [?dfid :function/source-form ?fsrcf]
+                            [?dfid :function/source-str ?fsrcs]
                             [?destns :namespace/name ?destnsname]
                             [?vrid :var-ref/var ?dvid]
                             [?vrid :var-ref/in-function ?fid]
@@ -180,7 +186,8 @@
                           (symbol ns)
                           (symbol vname))]
         (->> q-result
-             (map #(zipmap [:project/name :namespace/name :var/name :function/source :id] %))))))))
+             (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
+                            :function/source-str :id] %))))))))
 
 
 

@@ -12,14 +12,14 @@
     (println "dev mode")))
 
 (defn mount-root []
+  (re/register-node-component! :clograms/project-node views/project-node-component)
+  (re/register-node-component! :clograms/namespace-node views/namespace-node-component)
+  (re/register-node-component! :clograms/var-node views/var-node-component)
   (re-frame/clear-subscription-cache!)
   (reagent/render [views/main-panel]
                   (.getElementById js/document "app")))
 
 (defn ^:export init []
-  (re/register-node-component! :clograms/project-node views/project-node-component)
-  (re/register-node-component! :clograms/namespace-node views/namespace-node-component)
-  (re/register-node-component! :clograms/var-node views/var-node-component)
   (re-frame/dispatch-sync [::events/initialize-db])
   (dev-setup)
   (mount-root))

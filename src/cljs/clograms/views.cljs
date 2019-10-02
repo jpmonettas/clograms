@@ -144,8 +144,9 @@
      [:div.var-node.custom-node
       [:div.node-body
        [:div [:span.namespace-name (str (:namespace/name var) "/")] [:span.var-name (:var/name var)]]
-       [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
-        (:function/source var)]]]]))
+       [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
+                     :dangerouslySetInnerHTML {:__html (:function/source-str var)}}
+        ]]]]))
 
 ;; --------------------------------------------------------------------
 
@@ -213,7 +214,7 @@
    {:draggable true
     :on-drag-start (fn [event]
                      (-> event
-                         .-dataTransfer
+                         .-dataTransfer ;; TODO: this should be serialized/deserialized  by hand to avoid loosing meta
                          (.setData "entity-data" (assoc var :type :var))))}
    [:div
     [:div {:class (str "var " (if (:var/public? var) "public" "private"))}]
