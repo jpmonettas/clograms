@@ -28,7 +28,7 @@
 (re-frame/reg-sub
  ::all-entities
  (fn [{:keys [:datascript/db]} _]
-   (->> (d/q '[:find ?pname ?nsname ?vname ?fsrcf ?fsrcs
+   (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fsrcf ?fsrcs
                :in $
                :where
                [?vid :var/name ?vname]
@@ -40,7 +40,7 @@
                [?pid :project/name ?pname]
                [?nsid :namespace/project ?pid]]
              db)
-        (map #(zipmap [:project/name :namespace/name :var/name :function/source-form :function/source-str] %)))))
+        (map #(zipmap [:project/name :namespace/name :var/name :var/id :function/source-form :function/source-str] %)))))
 
 (re-frame/reg-sub
  ::selected-entity
@@ -134,89 +134,43 @@
 
 (def callers-refs
   (memoize
-   (fn [db ns vname]
+   (fn [db var-id]
      (when db
-       (let [q-result (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcf ?fsrcs ?vid
-                            :in $ ?nsn ?vn
-                            :where
-                            [?nid :namespace/name ?nsn]
-                            [?vid :var/namespace ?nid]
-                            [?vid :var/name ?vn]
-                            [?vrid :var-ref/var ?vid]
-                            [?vrid :var-ref/namespace ?vrnid]
-                            [?vrid :var-ref/in-function ?fnid]
-                            [?fnid :function/var ?fnvid]
-                            [?fnid :function/source-form ?fsrcf]
-                            [?fnid :function/source-str ?fsrcs]
-                            [?fnvid :var/name ?in-fn]
-                            [?vrnid :namespace/name ?vrnsn]
-                            [?pid :project/name ?pname]
-                            [?vrnid :namespace/project ?pid]
-                            [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
-                          db
-                          (symbol ns)
-                          (symbol vname))]
-        (->> q-result
-             (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
-                            :function/source-str :id] %))))))))
-
-(def calls-refs
-  (memoize
-   (fn [db ns vname]
-     (when db
-       (let [q-result (d/q '[:find ?pname ?destnsname ?destvname ?fsrcf ?fsrcs ?dvid
-                            :in $ ?nsn ?vn
-                            :where
-                            [?pid :project/name ?pname]
-                            [?destns :namespace/project ?pid]
-                            [?dvid :var/name ?destvname]
-                            [?dvid :var/namespace ?destns]
-                            [?dfid :function/var ?dvid]
-                            [?dfid :function/source-form ?fsrcf]
-                            [?dfid :function/source-str ?fsrcs]
-                            [?destns :namespace/name ?destnsname]
-                            [?vrid :var-ref/var ?dvid]
-                            [?vrid :var-ref/in-function ?fid]
-                            [?fid :function/var ?fvid]
-
-                            [?fvid :var/name ?vn]
-                            [?fvid :var/namespace ?fvnsid]
-                            [?fvnsid :namespace/name ?nsn]]
-                          db
-                          (symbol ns)
-                          (symbol vname))]
-        (->> q-result
-             (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
-                            :function/source-str :id] %))))))))
-
-
+       (let [q-result (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcf ?fsrcs ?fnvid
+                             :in $ ?vid
+                             :where
+                             [?vid :var/namespace ?nid]
+                             [?vid :var/name ?vn]
+                             [?vrid :var-ref/var ?vid]
+                             [?vrid :var-ref/namespace ?vrnid]
+                             [?vrid :var-ref/in-function ?fnid]
+                             [?fnid :function/var ?fnvid]
+                             [?fnid :function/source-form ?fsrcf]
+                             [?fnid :function/source-str ?fsrcs]
+                             [?fnvid :var/name ?in-fn]
+                             [?vrnid :namespace/name ?vrnsn]
+                             [?pid :project/name ?pname]
+                             [?vrnid :namespace/project ?pid]
+                             [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
+                           db
+                           var-id)]
+         (->> q-result
+              (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
+                             :function/source-str :var/id] %))))))))
 
 (re-frame/reg-sub
  ::selected-var-refs
  (fn [db _]
    (let [selected-entity (:entity (rg/selected-node db))
-         non-interesting (fn [v]
-                           (#{'cljs.core 'clojure.core} (:namespace/name v)))
-         same-as-selected (fn [v]
-                            (and (= (symbol (:namespace/name v)) (symbol (:namespace/name selected-entity)))
-                                 (= (symbol (:var/name v)) (symbol (:var/name selected-entity)))))]
+         non-interesting (fn [v] (#{'cljs.core 'clojure.core} (:namespace/name v)))
+         same-as-selected (fn [v] (= (:var/id v) (:var/id selected-entity)))]
 
      (when (and selected-entity
-                (= (:type selected-entity) :var))
-       (let [all-calls-refs (calls-refs (:datascript/db db)
-                                        (:namespace/name selected-entity)
-                                        (:var/name selected-entity))
-             all-callers-refs (callers-refs (:datascript/db db)
-                                            (:namespace/name selected-entity)
-                                            (:var/name selected-entity))]
-         {:calls-to (->> all-calls-refs
-                         (remove non-interesting)
-                         (remove same-as-selected)
-                         (map #(assoc % :type :var))
-                         (into #{}))
-          :called-by (->> all-callers-refs
+                (= (:entity/type selected-entity) :var))
+       (let [all-callers-refs (callers-refs (:datascript/db db) (:var/id selected-entity))]
+         {:called-by (->> all-callers-refs
                           (remove same-as-selected)
-                          (map #(assoc % :type :var))
+                          (map #(assoc % :entity/type :var))
                           (into #{}))})))))
 (re-frame/reg-sub
  ::ctx-menu

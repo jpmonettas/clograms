@@ -95,29 +95,32 @@
   (let [diagram (cljs.reader/read-string diagram-str)]
     (merge db diagram)))
 
-(defn build-project-node [entity]
-  {:entity entity
-   :diagram.node/type :clograms/project-node})
+(defmulti build-node (fn [datascript-db entity-type id] entity-type))
 
-(defn build-namespace-node [entity]
-  {:entity entity
-   :diagram.node/type :clograms/namespace-node})
+(defmethod build-node :project
+  [datascript-db entity-type id]
+  (let [entity {:entity/type :project
+                :project/id id
+                :project/name (:project/name (d/entity datascript-db id))}]
+    {:entity entity
+    :diagram.node/type :clograms/project-node}))
 
-(defn add-node-from-link [ref-proj ref-namespace ref-name]
-  (re-frame/dispatch [::add-entity-to-diagram {:type :var
-                                               :project/name ref-proj
-                                               :namespace/name ref-namespace
-                                               :var/name ref-name}])
-  (prn "ADDING VAR" (symbol ref-proj) (symbol ref-namespace) (symbol ref-name)))
+(defmethod build-node :namespace
+  [datascript-db entity-type id]
+  (let [namespace (d/entity datascript-db id)
+        entity {:entity/type :namespace
+                :project/name (:project/name (:namespace/project namespace))
+                :namespace/id id
+                :namespace/name (:namespace/name namespace)}]
+    {:entity entity
+    :diagram.node/type :clograms/namespace-node}))
 
-(defn make-function-source-link [ref-proj ref-namespace ref-name src]
-  (gstring/format "<a onclick=\"clograms.events.add_node_from_link('%s','%s','%s')\">%s</a>"
-                  ref-proj ref-namespace ref-name src))
+(defn add-var-from-link [var-id]
+  (re-frame/dispatch [::add-entity-to-diagram :var var-id {}]))
 
-
-(defn project-name [datascript-db ns-name]
-  ;; TODO: implement
-  'dummy/proj)
+(defn make-function-source-link [var-id src]
+  (gstring/format "<a onclick=\"clograms.events.add_var_from_link(%d)\">%s</a>"
+                  var-id src))
 
 (defn enhance-source [datascript-db {:keys [:function/source-form] :as entity}]
   (let [{:keys [line column]} (meta source-form)
@@ -126,10 +129,7 @@
                            (if (zip/end? zloc)
                              all
                              (recur (if-let [m (meta (zip/node zloc))]
-                                      (let [project-name (project-name datascript-db (:var-ref/namespace m))]
-                                        (conj all (assoc m
-                                                         :var/name (zip/node zloc)
-                                                         :project/name project-name)))
+                                      (conj all m)
                                       all) ;; we should add only if it points to some other var
                                     (utils/move-zipper-to-next zloc symbol?))))
         all-meta-at-origin (->>  all-symbols-meta
@@ -140,14 +140,11 @@
                                             (update :column #(- % column))
                                             (update :end-column #(- % column))))))]
     (reduce (fn [e {:keys [line column end-column] :as m}]
-              (if (and (:var-ref/namespace m)
-                       (not= (:var/name entity) (:var/name m)))
+              (if (and (:var/id m)
+                       (not= (:var/id entity) (:var/id m)))
                 (update e :function/source-str
                         (fn [src]
-                          (utils/replace-in-str-line (partial make-function-source-link
-                                                              (:project/name m)
-                                                              (:var-ref/namespace m)
-                                                              (:var/name m))
+                          (utils/replace-in-str-line (partial make-function-source-link (:var/id m))
                                                      src
                                                      line
                                                      column
@@ -156,15 +153,35 @@
      entity
      all-meta-at-origin)))
 
-(defn build-var-node [datascript-db entity]
-  {:entity (enhance-source datascript-db entity)
-   :diagram.node/type :clograms/var-node})
+(defmethod build-node :var
+  [datascript-db entity-type id]
+  (let [entity (merge {:entity/type :var
+                       :var/id id}
+                      (->> (d/q '[:find ?vn ?fsf ?fss ?nsn ?pn
+                                  :in $ ?vid
+                                  :where
+                                  [?vid :var/name ?vn]
+                                  [?vid :var/namespace ?nsid]
+                                  [?nsid :namespace/name ?nsn]
+                                  [?nsid :namespace/project ?pid]
+                                  [?pid :project/name ?pn]
+                                  [?fid :function/var ?vid]
+                                  [?fid :function/source-form ?fsf]
+                                  [?fid :function/source-str ?fss]]
+                                datascript-db
+                                id)
+                           first
+                           (zipmap [:var/name
+                                    :function/source-form
+                                    :function/source-str
+                                    :namespace/name
+                                    :project/name])))]
+    {:entity (enhance-source datascript-db entity)
+     :diagram.node/type :clograms/var-node}))
 
-(defn add-entity-to-diagram [db e {:keys [link-to-selected? client-x client-y] :as opts}]
-  {:dispatch [::rg/add-node (-> (case (:type e)
-                                  :project (build-project-node e)
-                                  :namespace (build-namespace-node e)
-                                  :var (build-var-node (:datascript/db db) e))
+(defn add-entity-to-diagram [db entity-type id {:keys [link-to-selected? client-x client-y] :as opts}]
+  (println "Adding entity to diagram" entity-type id)
+  {:dispatch [::rg/add-node (-> (build-node (:datascript/db db) entity-type id)
                                 (assoc :client-x client-x
                                        :client-y client-y))
               [{:diagram.port/type nil} {:diagram.port/type nil}]]}
@@ -186,7 +203,7 @@
 
 (defn node-selected [db node]
   (let [entity (:entity node)]
-    (case (:type entity)
+    (case (:entity/type entity)
       :var {:db db
             :dispatch [::select-side-bar-tab :selected-browser]}
       :project {:db db
@@ -238,7 +255,7 @@
 (re-frame/reg-event-fx ::initialize-db [inter-check] (fn [_ _] (initial-db)))
 (re-frame/reg-event-fx ::reload-db [inter-check] (fn [cofxs [_]] (reload-db)))
 (re-frame/reg-event-db ::db-loaded [inter-check] (fn [db [_ new-db]] (db-loaded db new-db)))
-(re-frame/reg-event-fx ::add-entity-to-diagram [inter-check] (fn [{:keys [db]} [_ e opts]] (add-entity-to-diagram db e opts)))
+(re-frame/reg-event-fx ::add-entity-to-diagram [inter-check] (fn [{:keys [db]} [_ et id opts]] (add-entity-to-diagram db et id opts)))
 (re-frame/reg-event-fx ::remove-entity-from-diagram [inter-check] (fn [{:keys [db]} [_ id]] (remove-entity-from-diagram db id)))
 (re-frame/reg-event-fx ::rg/node-selected [inter-check] (fn [{:keys [db]} [_ node]] (node-selected db node)))
 (re-frame/reg-event-db ::show-context-menu [inter-check] (fn [db [_ ctx-menu]] (show-context-menu db ctx-menu)))
@@ -260,15 +277,9 @@
 (comment
 
   (re-frame/dispatch [::add-entity-to-diagram
-                      {:type :function
-                       :namespace/name "cljs.core"
-                       :var/name "map2"}
+                      :var
+                      213
                       {}])
 
-  (re-frame/dispatch [::add-entity-to-diagram
-                      {:type :namespace
-                       :namespace/name "cljs.core"
-                       :namespace/public-vars []
-                       :namespace/private-vars []}
-                      {}])
+
   )

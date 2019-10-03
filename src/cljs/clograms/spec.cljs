@@ -49,6 +49,8 @@
 (s/def :namespace/colors (s/map-of :namespace/name string?))
 (s/def :project/colors (s/map-of :project/name string?))
 
+(s/def :entity/type #{:var :namespace :project})
+
 (s/def ::db (s/keys :req [::rg/diagram]
                     :opt [:datascript/db
                           :main-project/id

@@ -64,7 +64,9 @@
 
 (defn add-node-port [db node-id {:keys [::id]:as port}]
   (let [port-id (or id (gen-random-id))]
-    (update-in db [::diagram :nodes node-id :ports] assoc port-id (merge {::id port-id}
+    (update-in db [::diagram :nodes node-id :ports] assoc port-id (merge {::id port-id
+                                                                          ;; automatically set after render
+                                                                          :x 0 :y 0 :w 0 :h 0}
                                                                          port))))
 
 (defn add-node [db {:keys [:client-x :client-y ::id] :as data} & [ports]]
@@ -72,7 +74,9 @@
         [dia-x dia-y] (client-coord->dia-coord (::diagram db) [(or client-x 500) (or client-y 500)])
         db' (update-in db [::diagram :nodes] assoc node-id (merge {::id node-id
                                                                    :x dia-x
-                                                                   :y dia-y}
+                                                                   :y dia-y
+                                                                   ;; automatically set after render
+                                                                   :w 0 :h 0}
                                                                   data))]
 
     (if (seq ports)

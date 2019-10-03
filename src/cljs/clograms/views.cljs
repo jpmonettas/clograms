@@ -171,7 +171,7 @@
                                  (str (:namespace/name e) "/" (:var/name e))))
        :on-change (fn [e]
                     (when (map? e)
-                      (re-frame/dispatch [::events/add-entity-to-diagram (assoc e :type :var)])))]]]))
+                      (re-frame/dispatch [::events/add-entity-to-diagram :var (:var/id e)])))]]]))
 
 (defn draggable-ref-node [r]
   [:li.draggable-var.draggable-entity
@@ -179,7 +179,8 @@
     :on-drag-start (fn [event]
                      (-> event
                          .-dataTransfer
-                         (.setData "entity-data" (assoc r :type :var))))}
+                         (.setData "entity-data" {:entity/type :var
+                                                  :id (:var/id r)})))}
    [:div
     [:div.namespace-name (:namespace/name r)]
     [:div.var-name (name (:var/name r) )]]
@@ -193,7 +194,8 @@
     :on-drag-start (fn [event]
                      (-> event
                          .-dataTransfer
-                         (.setData "entity-data" (assoc project :type :project))))
+                         (.setData "entity-data" {:entity/type :project
+                                                  :id (:project/id project)})))
     :on-click (fn [_]
                 (re-frame/dispatch [::events/side-bar-browser-select-project project]))}
    [:div (str (:project/name project))]])
@@ -204,7 +206,8 @@
     :on-drag-start (fn [event]
                      (-> event
                          .-dataTransfer
-                         (.setData "entity-data" (assoc namespace :type :namespace))))
+                         (.setData "entity-data" {:entity/type :namespace
+                                                  :id (:namespace/id namespace)})))
     :on-click (fn [_]
                 (re-frame/dispatch [::events/side-bar-browser-select-namespace namespace]))}
    [:div (:namespace/name namespace)]])
@@ -215,7 +218,8 @@
     :on-drag-start (fn [event]
                      (-> event
                          .-dataTransfer ;; TODO: this should be serialized/deserialized  by hand to avoid loosing meta
-                         (.setData "entity-data" (assoc var :type :var))))}
+                         (.setData "entity-data" {:entity/type :var
+                                                  :id (:var/id var)})))}
    [:div
     [:div {:class (str "var " (if (:var/public? var) "public" "private"))}]
     [:span.var-name (:var/name var)]]])
@@ -255,11 +259,6 @@
                        [draggable-ref-node r]))])]
     (fn []
       [:div.selected-browser
-       [:div
-        [:div.header "Calls to"]
-        (when-let [vars (:calls-to @refs)]
-          [var-list vars])]
-
        [:div
         [:div.header "Called by"]
         (when-let [vars (:called-by @refs)]
@@ -313,7 +312,7 @@
                         (re-frame/dispatch [::events/hide-context-menu]))}
        label])]])
 
-(defn to-symbol-if-exists [m k]
+#_(defn to-symbol-if-exists [m k]
   (if (contains? m k)
     (update m k symbol)
     m))
@@ -322,11 +321,8 @@
   (let [dia @(re-frame/subscribe [::rg/diagram])]
     [:div.diagram-wrapper
      {:on-drop (fn [evt]
-                 (let [entity (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data")))
-                                  (to-symbol-if-exists :project/name)
-                                  (to-symbol-if-exists :namespace/name)
-                                  (to-symbol-if-exists :var/name))]
-                   (re-frame/dispatch [::events/add-entity-to-diagram entity
+                 (let [{:keys [:entity/type :id]} (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data"))))]
+                   (re-frame/dispatch [::events/add-entity-to-diagram type id
                                        {:link-to-selected? true
                                         :client-x (.-clientX evt)
                                         :client-y (.-clientY evt)}])))
