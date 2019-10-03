@@ -116,7 +116,7 @@
     :diagram.node/type :clograms/namespace-node}))
 
 (defn add-var-from-link [var-id]
-  (re-frame/dispatch [::add-entity-to-diagram :var var-id {}]))
+  (re-frame/dispatch [::add-entity-to-diagram :var var-id {:link-to :last}]))
 
 (defn make-function-source-link [var-id src]
   (gstring/format "<a onclick=\"clograms.events.add_var_from_link(%d)\">%s</a>"
@@ -179,24 +179,26 @@
     {:entity (enhance-source datascript-db entity)
      :diagram.node/type :clograms/var-node}))
 
-(defn add-entity-to-diagram [db entity-type id {:keys [link-to-selected? client-x client-y] :as opts}]
-  (println "Adding entity to diagram" entity-type id)
-  {:dispatch [::rg/add-node (-> (build-node (:datascript/db db) entity-type id)
-                                (assoc :client-x client-x
-                                       :client-y client-y))
-              [{:diagram.port/type nil} {:diagram.port/type nil}]]}
-  #_{:clograms.diagrams/add-node (cond-> {:entity e
-                                          :x (or x 500)
-                                          :y (or y 500)
-                                          :on-node-selected [::select-node]
-                                          :on-node-unselected [::unselect-node]
-                                          }
+(defn add-entity-to-diagram [db entity-type id {:keys [link-to client-x client-y] :as opts}]
+  (println "Adding entity to diagram" entity-type id " link to " link-to)
+  (let [new-node-id (rg/gen-random-id)
+        port-in-id (rg/gen-random-id)
+        port-out-id (rg/gen-random-id)
+        selected-node (rg/selected-node db)]
+    {:dispatch-n (cond-> [[::rg/add-node (-> (build-node (:datascript/db db) entity-type id)
+                                             (assoc :client-x client-x
+                                                    :client-y client-y
+                                                    ::rg/id new-node-id))
+                           [{:diagram.port/type nil ::rg/id port-in-id} {:diagram.port/type nil ::rg/id port-out-id}]]]
+                   (and link-to selected-node) (into [[::rg/add-link
 
-                                   link-to-selected? (assoc :link-to {:id (get-in db [:diagram :selected-node :storm.entity/id])
-                                                                      :port  (case (:type e)
-                                                                               :call-to :out
-                                                                               :called-by :in)}))
-     }  )
+                                                       (let [port-sel-fn ({:first first :last last} link-to)
+                                                             port-id (-> (rg/node-ports selected-node) vals port-sel-fn ::rg/id)]
+                                                         [(::rg/id selected-node) port-id])
+
+                                                       [new-node-id (if (= :first link-to)
+                                                                      port-out-id
+                                                                      port-in-id)]]]))}))
 
 (defn remove-entity-from-diagram [db id]
   {:dispatch [::rg/remove-node id]})

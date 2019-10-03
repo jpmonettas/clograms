@@ -101,10 +101,13 @@
 (defn select-node [db node-id]
   (assoc-in db [::diagram :selected-node-id] node-id))
 
+(defn node-ports [node]
+  (:ports node))
+
 (defn add-link [db [from-node from-port :as from] [to-node to-port :as to]]
   (let [link-id (gen-random-id)]
     (update-in db [::diagram :links] assoc link-id {::id link-id
-                                                   :from-port from
+                                                    :from-port from
                                                     :to-port to})))
 
 ;;;;;;;;;;

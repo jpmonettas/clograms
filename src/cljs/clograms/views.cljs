@@ -180,7 +180,8 @@
                      (-> event
                          .-dataTransfer
                          (.setData "entity-data" {:entity/type :var
-                                                  :id (:var/id r)})))}
+                                                  :id (:var/id r)
+                                                  :link-to :first})))}
    [:div
     [:div.namespace-name (:namespace/name r)]
     [:div.var-name (name (:var/name r) )]]
@@ -312,18 +313,13 @@
                         (re-frame/dispatch [::events/hide-context-menu]))}
        label])]])
 
-#_(defn to-symbol-if-exists [m k]
-  (if (contains? m k)
-    (update m k symbol)
-    m))
-
 (defn diagram []
   (let [dia @(re-frame/subscribe [::rg/diagram])]
     [:div.diagram-wrapper
      {:on-drop (fn [evt]
-                 (let [{:keys [:entity/type :id]} (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data"))))]
+                 (let [{:keys [:entity/type :id :link-to]} (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data"))))]
                    (re-frame/dispatch [::events/add-entity-to-diagram type id
-                                       {:link-to-selected? true
+                                       {:link-to link-to
                                         :client-x (.-clientX evt)
                                         :client-y (.-clientY evt)}])))
       :on-drag-over (fn [evt ] (.preventDefault evt))
