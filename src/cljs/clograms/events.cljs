@@ -103,20 +103,33 @@
   {:entity entity
    :diagram.node/type :clograms/namespace-node})
 
-(defn add-node-from-link [x]
-  (js/console.log "ADDING" x))
+(defn add-node-from-link [ref-proj ref-namespace ref-name]
+  (re-frame/dispatch [::add-entity-to-diagram {:type :var
+                                               :project/name ref-proj
+                                               :namespace/name ref-namespace
+                                               :var/name ref-name}])
+  (prn "ADDING VAR" (symbol ref-proj) (symbol ref-namespace) (symbol ref-name)))
 
-(defn make-function-source-link [src]
-  (gstring/format "<a onclick=\"clograms.events.add_node_from_link(5)\">%s</a>" src))
+(defn make-function-source-link [ref-proj ref-namespace ref-name src]
+  (gstring/format "<a onclick=\"clograms.events.add_node_from_link('%s','%s','%s')\">%s</a>"
+                  ref-proj ref-namespace ref-name src))
 
-(defn enhance-source [{:keys [:function/source-form] :as entity}]
+
+(defn project-name [datascript-db ns-name]
+  ;; TODO: implement
+  'dummy/proj)
+
+(defn enhance-source [datascript-db {:keys [:function/source-form] :as entity}]
   (let [{:keys [line column]} (meta source-form)
         all-symbols-meta (loop [all nil
                                 zloc (utils/move-zipper-to-next (utils/code-zipper source-form) symbol?)]
                            (if (zip/end? zloc)
                              all
                              (recur (if-let [m (meta (zip/node zloc))]
-                                      (conj all m)
+                                      (let [project-name (project-name datascript-db (:var-ref/namespace m))]
+                                        (conj all (assoc m
+                                                         :var/name (zip/node zloc)
+                                                         :project/name project-name)))
                                       all) ;; we should add only if it points to some other var
                                     (utils/move-zipper-to-next zloc symbol?))))
         all-meta-at-origin (->>  all-symbols-meta
@@ -126,28 +139,32 @@
                                             (update :end-line #(- % line))
                                             (update :column #(- % column))
                                             (update :end-column #(- % column))))))]
-
-    (reduce (fn [e {:keys [line column end-column]}]
-              (update e :function/source-str
-                      (fn [src]
-                        (let [r (utils/replace-in-str-line make-function-source-link
-                                                           src
-                                                           line
-                                                           column
-                                                           (- end-column column))]
-                          r))))
+    (reduce (fn [e {:keys [line column end-column] :as m}]
+              (if (and (:var-ref/namespace m)
+                       (not= (:var/name entity) (:var/name m)))
+                (update e :function/source-str
+                        (fn [src]
+                          (utils/replace-in-str-line (partial make-function-source-link
+                                                              (:project/name m)
+                                                              (:var-ref/namespace m)
+                                                              (:var/name m))
+                                                     src
+                                                     line
+                                                     column
+                                                     (- end-column column))))
+                e))
      entity
      all-meta-at-origin)))
 
-(defn build-var-node [entity]
-  {:entity (enhance-source entity)
+(defn build-var-node [datascript-db entity]
+  {:entity (enhance-source datascript-db entity)
    :diagram.node/type :clograms/var-node})
 
 (defn add-entity-to-diagram [db e {:keys [link-to-selected? client-x client-y] :as opts}]
   {:dispatch [::rg/add-node (-> (case (:type e)
                                   :project (build-project-node e)
                                   :namespace (build-namespace-node e)
-                                  :var (build-var-node e))
+                                  :var (build-var-node (:datascript/db db) e))
                                 (assoc :client-x client-x
                                        :client-y client-y))
               [{:diagram.port/type nil} {:diagram.port/type nil}]]}
