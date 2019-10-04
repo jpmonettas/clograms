@@ -12,10 +12,9 @@
             [clojure.spec.alpha :as s]
             [clograms.spec :as clograms-spec]
             [expound.alpha :as expound]
-            [cljs.tools.reader :as tools-reader]))
+            [clograms.models :as models]
+            ))
 
-;; (d/pull @db-conn '[:project/name {:project/dependency 6}] 2)
-;; (d/pull @db-conn '[:project/name :project/dependency] 1)
 
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
@@ -26,10 +25,6 @@
 ;; now we create an interceptor using `after`
 (def inter-check (re-frame/after (partial check-and-throw ::clograms-spec/db)))
 
-(defn initial-db []
-  {:db db/default-db
-   :dispatch-n [[::reload-db]
-                [::load-diagram]]})
 
 (defn reload-db []
   {:http-xhrio {:method          :get
@@ -57,31 +52,9 @@
                 :on-success      []
                 :on-failure      [:save-failed]}})
 
-(defn deserialize-datascript-db [ds-db-str]
-  (try
-    (let [{:keys [schema datoms]} (cljs.reader/read-string ds-db-str)
-          datoms' (keep (fn [[eid a v]]
-                          (try
-                            (let [deserialized-val (if (= a :function/source-form)
-                                                     (tools-reader/read-string v)
-                                                     v)]
-                              [:db/add eid a deserialized-val])
-                            (catch js/Error e
-                              (js/console.warn (str "[Skipping] Couldn't parse source-form for function " eid " probably because of reg exp non compatible with JS")))))
-                        datoms)
-          conn (d/create-conn schema)]
-      (d/transact! conn datoms')
-      (d/db conn))
-    (catch js/Error e
-      (js/console.error "Couldn't read db" (ex-data e) e))))
-
 (defn db-loaded [db ds-db-str]
-  (let [datascript-db (deserialize-datascript-db ds-db-str)
-        main-project-id (d/q '[:find ?pid .
-                               :in $ ?pn
-                               :where [?pid :project/name ?pn]]
-                             datascript-db
-                             'clindex/main-project)]
+  (let [datascript-db (db/deserialize-datascript-db ds-db-str)
+        main-project-id (db/main-project-id datascript-db)]
     (js/console.log "Have " (count datascript-db) "datoms. Main project id " main-project-id)
     (assoc db
            :datascript/db datascript-db
@@ -92,28 +65,8 @@
   (let [diagram (cljs.reader/read-string diagram-str)]
     (merge db diagram)))
 
-(defmulti build-node (fn [entity-type id] entity-type))
-
-(defmethod build-node :project
-  [entity-type id]
-  {:entity {:entity/type :project
-            :project/id id}
-   :diagram.node/type :clograms/project-node})
-
-(defmethod build-node :namespace
-  [entity-type id]
-  {:entity {:entity/type :namespace
-            :namespace/id id}
-   :diagram.node/type :clograms/namespace-node})
-
 (defn add-var-from-link [var-id]
   (re-frame/dispatch [::add-entity-to-diagram :var var-id {:link-to :last}]))
-
-(defmethod build-node :var
-  [entity-type id]
-  {:entity {:entity/type :var
-            :var/id id}
-   :diagram.node/type :clograms/var-node})
 
 (defn add-entity-to-diagram [db entity-type id {:keys [link-to client-x client-y] :as opts}]
   (println "Adding entity to diagram" entity-type id " link to " link-to)
@@ -121,7 +74,7 @@
         port-in-id (rg/gen-random-id)
         port-out-id (rg/gen-random-id)
         selected-node (rg/selected-node db)]
-    {:dispatch-n (cond-> [[::rg/add-node (-> (build-node entity-type id)
+    {:dispatch-n (cond-> [[::rg/add-node (-> (models/build-node entity-type id)
                                              (assoc :client-x client-x
                                                     :client-y client-y
                                                     ::rg/id new-node-id))
@@ -172,26 +125,25 @@
 (defn hide-context-menu [db]
   (db/set-ctx-menu db nil))
 
-(defn select-side-bar-tab [db tab]
-  (assoc-in db [:side-bar :selected-side-bar-tab] tab))
-
 (defn side-bar-browser-back [db]
-  (update-in db [:projects-browser :level] #(max (dec %) 0)))
+  (db/update-side-bar-browser-level db #(max (dec %) 0)))
 
 (defn side-bar-browser-select-project [db p]
   (-> db
       (db/select-project (:project/id p))
-      (assoc-in [:projects-browser :level] (project-browser-level-key->idx :namespaces))))
+      (db/update-side-bar-browser-level (constantly (project-browser-level-key->idx :namespaces)))))
 
 (defn side-bar-browser-select-namespace [db ns]
   (-> db
       (db/select-namespace (:namespace/id ns))
-      (assoc-in [:projects-browser :level] (project-browser-level-key->idx :vars))))
+      (db/update-side-bar-browser-level (constantly (project-browser-level-key->idx :vars)))))
 
-(defn unselect-node [db]
-  (assoc-in db [:diagram :selected-node] nil))
+(defn initialize-db-and-load []
+  {:db db/default-db
+   :dispatch-n [[::reload-db]
+                [::load-diagram]]})
 
-(re-frame/reg-event-fx ::initialize-db [inter-check] (fn [_ _] (initial-db)))
+(re-frame/reg-event-fx ::initialize-db [inter-check] (fn [_ _] (initialize-db-and-load)))
 (re-frame/reg-event-fx ::reload-db [inter-check] (fn [cofxs [_]] (reload-db)))
 (re-frame/reg-event-db ::db-loaded [inter-check] (fn [db [_ new-db]] (db-loaded db new-db)))
 (re-frame/reg-event-fx ::add-entity-to-diagram [inter-check] (fn [{:keys [db]} [_ et id opts]] (add-entity-to-diagram db et id opts)))
@@ -202,11 +154,11 @@
 (re-frame/reg-event-db ::set-namespace-color [inter-check] (fn [db [_ ns-name]] (set-namespace-color db ns-name)))
 (re-frame/reg-event-db ::set-project-color [inter-check] (fn [db [_ project-name]] (set-project-color db project-name)))
 (re-frame/reg-event-db ::hide-context-menu [inter-check] (fn [db [_]] (hide-context-menu db)))
-(re-frame/reg-event-db ::select-side-bar-tab [inter-check] (fn [db [_ tab]] (select-side-bar-tab db tab)))
+(re-frame/reg-event-db ::select-side-bar-tab [inter-check] (fn [db [_ tab]] (db/select-side-bar-tab db tab)))
 (re-frame/reg-event-db ::side-bar-browser-back [inter-check] (fn [db _] (side-bar-browser-back db)))
 (re-frame/reg-event-db ::side-bar-browser-select-project [inter-check] (fn [db [_ p]] (side-bar-browser-select-project db p)))
 (re-frame/reg-event-db ::side-bar-browser-select-namespace [inter-check] (fn [db [_ ns]] (side-bar-browser-select-namespace db ns)))
-(re-frame/reg-event-db ::unselect-node [inter-check] (fn [db [_]] (unselect-node db)))
+(re-frame/reg-event-db ::unselect-node [inter-check] (fn [db [_]] (db/unselect-node db)))
 (re-frame/reg-event-fx ::load-diagram [inter-check] (fn [_ _] (load-diagram)))
 (re-frame/reg-event-db ::diagram-loaded [inter-check] (fn [db [_ diagram]] (diagram-loaded db diagram)))
 (re-frame/reg-event-fx ::save-diagram [] (fn [cofxs _] (save-diagram (select-keys (:db cofxs)

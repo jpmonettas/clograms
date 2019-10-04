@@ -5,45 +5,13 @@
             [clograms.re-grams.re-grams :as rg]
             [clograms.utils :as utils]
             [clojure.zip :as zip]
-            [goog.string :as gstring]))
-
-#_(defn dependency-tree [db main-project-id]
-  (d/pull db '[:project/name {:project/depends 6}] main-project-id))
-
-#_(re-frame/reg-sub
- ::projecs-dependencies-edges
- (fn [{:keys [:datascript/db :main-project/id]} _]
-   (when (and db id)
-     (->> (dependency-tree db id)
-          (tree-seq (comp not-empty :project/depends) :project/depends)
-         (mapcat (fn [{:keys [:project/depends] :as p}]
-                   (map (fn [d]
-                          [p d])
-                        depends)))
-         (into #{})))))
-
-#_(re-frame/reg-sub
- ::diagram
- (fn [{:keys [diagram]} _]
-   diagram))
-
+            [goog.string :as gstring]
+            [clograms.models :as models]))
 
 (re-frame/reg-sub
  ::all-entities
  (fn [{:keys [:datascript/db]} _]
-   (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fsrcf ?fsrcs
-               :in $
-               :where
-               [?vid :var/name ?vname]
-               [?vid :var/namespace ?nsid]
-               [?fid :function/var ?vid]
-               [?fid :function/source-form ?fsrcf]
-               [?fid :function/source-str ?fsrcs]
-               [?nsid :namespace/name ?nsname]
-               [?pid :project/name ?pname]
-               [?nsid :namespace/project ?pid]]
-             db)
-        (map #(zipmap [:project/name :namespace/name :var/name :var/id :function/source-form :function/source-str] %)))))
+   (db/all-entities db)))
 
 (re-frame/reg-sub
  ::selected-entity
@@ -65,62 +33,33 @@
 
 (re-frame/reg-sub
  ::side-bar-browser-selected-project
- (fn [{:keys [:projects-browser :datascript/db]}]
-   (let [project-id (:selected-project projects-browser)]
+ (fn [db]
+   (let [project-id (db/selected-project db)]
      {:project/id project-id
-      :project/name (:project/name (d/entity db project-id))})))
+      :project/name (:project/name (db/project-entity (:datascript/db db) project-id))})))
 
 (re-frame/reg-sub
  ::side-bar-browser-selected-namespace
- (fn [{:keys [:projects-browser :datascript/db]}]
-   (let [ns-id (:selected-namespace projects-browser)]
+ (fn [db]
+   (let [ns-id (db/selected-namespace db)]
      {:namespace/id ns-id
-      :namespace/name (:namespace/name (d/entity db ns-id))})))
+      :namespace/name (:namespace/name (db/namespace-entity (:datascript/db db) ns-id))})))
 
 (defn project-items [datascript-db]
   (when datascript-db
-    (->> (d/q '[:find ?pid ?pname
-                :in $
-                :where
-                [?pid :project/name ?pname]]
-              datascript-db)
-         (map #(zipmap [:project/id :project/name] %))
+    (->> (db/all-projects datascript-db)
          (map #(assoc % :type :project))
          (sort-by (comp str :project/name)))))
 
 (defn namespaces-items [datascript-db pid]
   (when datascript-db
-    (->> (d/q '[:find ?pid ?nsid ?nsname
-               :in $ ?pid
-               :where
-               [?nsid :namespace/project ?pid]
-               [?nsid :namespace/name ?nsname]]
-             datascript-db
-             pid)
-        (map #(zipmap [:project/id :namespace/id :namespace/name] %))
+    (->> (db/all-namespaces datascript-db pid)
         (map #(assoc % :type :namespace))
         (sort-by (comp str :namespace/name)))))
 
 (defn vars-items [datascript-db nsid]
   (when datascript-db
-    (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrcf ?fsrcs
-                :in $ ?nsid
-                :where
-                [?nsid :namespace/project ?pid]
-                [?vid :var/namespace ?nsid]
-                [?vid :var/name ?vname]
-                [?vid :var/public? ?vpub]
-                [?vid :var/line ?vline]
-                [?fid :function/var ?vid]
-                [?fid :function/source-form ?fsrcf]
-                [?fid :function/source-str ?fsrcs]
-                #_[?vid :function/_var ?fid]
-                #_[(get-else $ ?fid :function/var nil) ?x]
-                #_[(get-else $ ?fid :file/name "N/A") ?fname]]
-              datascript-db
-              nsid)
-         (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/public?
-                        :var/line :function/id :function/source-form :function/source-str] %))
+    (->> (db/all-vars datascript-db nsid)
          (map #(assoc % :type :var))
          (sort-by :var/line))))
 
@@ -138,30 +77,10 @@
        :vars (vars-items (:datascript/db db) selected-namespace)))))
 
 (def callers-refs
-  (memoize
-   (fn [db var-id]
-     (when db
-       (let [q-result (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcf ?fsrcs ?fnvid
-                             :in $ ?vid
-                             :where
-                             [?vid :var/namespace ?nid]
-                             [?vid :var/name ?vn]
-                             [?vrid :var-ref/var ?vid]
-                             [?vrid :var-ref/namespace ?vrnid]
-                             [?vrid :var-ref/in-function ?fnid]
-                             [?fnid :function/var ?fnvid]
-                             [?fnid :function/source-form ?fsrcf]
-                             [?fnid :function/source-str ?fsrcs]
-                             [?fnvid :var/name ?in-fn]
-                             [?vrnid :namespace/name ?vrnsn]
-                             [?pid :project/name ?pname]
-                             [?vrnid :namespace/project ?pid]
-                             [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
-                           db
-                           var-id)]
-         (->> q-result
-              (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
-                             :function/source-str :var/id] %))))))))
+  (memoize ;; ATTENTION ! Be careful with this cache when we implement reload on file change
+   (fn [datascript-db var-id]
+     (when datascript-db
+       (db/var-x-refs datascript-db var-id)))))
 
 (re-frame/reg-sub
  ::selected-var-refs
@@ -184,8 +103,8 @@
 
 (re-frame/reg-sub
  ::selected-color
- (fn [{:keys [selected-color]}]
-   selected-color))
+ (fn [db]
+   (db/selected-color db)))
 
 (re-frame/reg-sub
  ::namespace-color
@@ -200,20 +119,7 @@
 (re-frame/reg-sub
  ::loading?
  (fn [db _]
-   (:loading? db)))
-
-(defmulti fill-entity (fn [_ entity] (:entity/type entity)))
-
-(defmethod fill-entity :project
-  [ds-db {:keys [:project/id] :as e}]
-  (assoc e :project/name (:project/name (d/entity ds-db id))))
-
-(defmethod fill-entity :namespace
-  [ds-db {:keys [:namespace/id] :as e}]
-  (let [namespace (d/entity ds-db id)]
-    (assoc e
-           :project/name (:project/name (:namespace/project namespace))
-           :namespace/name (:namespace/name namespace))))
+   (db/loading? db)))
 
 (defn make-function-source-link [var-id src]
   (gstring/format "<a onclick=\"clograms.events.add_var_from_link(%d)\">%s</a>"
@@ -250,29 +156,7 @@
             entity
             all-meta-at-origin)))
 
-(defmethod fill-entity :var
-  [ds-db {:keys [:var/id] :as e}]
-  (let [entity-extra (->> (d/q '[:find ?vn ?fsf ?fss ?nsn ?pn
-                                 :in $ ?vid
-                                 :where
-                                 [?vid :var/name ?vn]
-                                 [?vid :var/namespace ?nsid]
-                                 [?nsid :namespace/name ?nsn]
-                                 [?nsid :namespace/project ?pid]
-                                 [?pid :project/name ?pn]
-                                 [?fid :function/var ?vid]
-                                 [?fid :function/source-form ?fsf]
-                                 [?fid :function/source-str ?fss]]
-                               ds-db
-                               id)
-                          first
-                          (zipmap [:var/name
-                                   :function/source-form
-                                   :function/source-str
-                                   :namespace/name
-                                   :project/name])
-                          (enhance-source ds-db))]
-    (merge e entity-extra)))
+
 
 (re-frame/reg-sub
  ::datascript-db
@@ -283,4 +167,6 @@
  ::entity
  :<- [::datascript-db]
  (fn [datascript-db [_ entity]]
-   (fill-entity datascript-db entity)))
+   (->> entity
+        (models/enrich-entity datascript-db)
+        (enhance-source datascript-db))))
