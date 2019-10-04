@@ -1,7 +1,7 @@
 (ns clograms.ui.components.menues
   (:require [re-frame.core :as re-frame]
             [clograms.events :as events]
-            [clograms.re-grams :as rg]))
+            [clograms.re-grams.re-grams :as rg]))
 
 (defn remove-ctx-menu-option [node]
   {:label "Remove"

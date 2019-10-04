@@ -1,7 +1,7 @@
 (ns clograms.spec
   (:require [clojure.spec.alpha :as s]
-            [clograms.re-grams-spec :as rg-spec]
-            [clograms.re-grams :as rg]))
+            [clograms.re-grams.re-grams-spec :as rg-spec]
+            [clograms.re-grams.re-grams :as rg]))
 
 ;;;;;;;;;;;; More general specs
 

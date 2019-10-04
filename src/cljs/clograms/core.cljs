@@ -5,7 +5,7 @@
             [clograms.ui.screens.main :as main-screen]
             [clograms.ui.components.nodes :as nodes]
             [clograms.config :as config]
-            [clograms.re-grams :as re]))
+            [clograms.re-grams.re-grams :as re]))
 
 (defn dev-setup []
   (when config/debug?

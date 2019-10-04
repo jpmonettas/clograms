@@ -6,7 +6,7 @@
             [ajax.core :as ajax]
             [datascript.core :as d]
             [clograms.db :refer [project-browser-level-key->idx]]
-            [clograms.re-grams :as rg]
+            [clograms.re-grams.re-grams :as rg]
             [zprint.core :as zp]
             [clojure.string :as str]
             [clojure.spec.alpha :as s]

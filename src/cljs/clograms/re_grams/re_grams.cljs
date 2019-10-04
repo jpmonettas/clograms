@@ -1,4 +1,4 @@
-(ns clograms.re-grams
+(ns clograms.re-grams.re-grams
   (:require [reagent.core :as r]
             [cljs.pprint :as pp]
             [goog.string :as gstring]

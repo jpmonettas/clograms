@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [datascript.core :as d]
             [clograms.db :refer [project-browser-level-idx->key] :as db]
-            [clograms.re-grams :as rg]
+            [clograms.re-grams.re-grams :as rg]
             [clograms.utils :as utils]
             [clojure.zip :as zip]
             [goog.string :as gstring]))

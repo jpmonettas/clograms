@@ -3,7 +3,7 @@
             [clograms.subs :as subs]
             [clograms.ui.components.toolbars :as toolbars]
             [clograms.events :as events]
-            [clograms.re-grams :as rg]
+            [clograms.re-grams.re-grams :as rg]
             [clograms.ui.components.general :as general-components]
             [clograms.ui.components.menues :as menues]))
 

@@ -1,5 +1,5 @@
 (ns clograms.db
-  (:require [clograms.re-grams :as rg]))
+  (:require [clograms.re-grams.re-grams :as rg]))
 
 (def project-browser-transitions
   [:projects :namespaces :vars])

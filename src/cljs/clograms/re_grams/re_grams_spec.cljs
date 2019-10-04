@@ -1,6 +1,6 @@
-(ns clograms.re-grams-spec
+(ns clograms.re-grams.re-grams-spec
   (:require [clojure.spec.alpha :as s]
-            [clograms.re-grams :as rg]))
+            [clograms.re-grams.re-grams :as rg]))
 
 (s/def :diagram.object/type #{:node :link :diagram})
 (s/def ::rg/id string?)
