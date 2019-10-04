@@ -5,8 +5,7 @@
             [clograms.ui.components.menues :as menues]))
 
 (defn node-wrapper [{:keys [ctx-menu node]} child]
-  (let [project-color @(re-frame/subscribe [::subs/project-color (get-in node [:entity :project/name])])
-        ns-color @(re-frame/subscribe [::subs/namespace-color (get-in node [:entity :namespace/name])])]
+  (let [node-color @(re-frame/subscribe [::subs/node-color (:entity node)])]
     [:div {:on-context-menu (fn [evt]
                              (let [x (.. evt -nativeEvent -pageX)
                                    y (.. evt -nativeEvent -pageY)]
@@ -15,7 +14,7 @@
                                  {:x x
                                   :y y
                                   :menu ctx-menu}])))
-           :style {:background-color (or ns-color project-color)}}
+           :style {:background-color node-color}}
      child]))
 
 (defn project-node-component [{:keys [entity] :as node}]
@@ -29,8 +28,8 @@
 (defn namespace-node-component [{:keys [entity] :as node}]
   (let [ns @(re-frame/subscribe [::subs/entity entity])]
     [node-wrapper {:node node
-                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name entity))
-                              (menues/set-ns-color-ctx-menu-option (:namespace/name entity))
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name ns))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name ns))
                               (menues/remove-ctx-menu-option node)]}
     [:div.namespace-node.custom-node
      [:div.node-body
@@ -40,8 +39,8 @@
 (defn var-node-component [{:keys [entity] :as node}]
   (let [var @(re-frame/subscribe [::subs/entity entity])]
     [node-wrapper {:node node
-                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name entity))
-                              (menues/set-ns-color-ctx-menu-option (:namespace/name entity))
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name var))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name var))
                               (menues/remove-ctx-menu-option node)]}
      [:div.var-node.custom-node
       [:div.node-body

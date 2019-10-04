@@ -107,14 +107,14 @@
    (db/selected-color db)))
 
 (re-frame/reg-sub
- ::namespace-color
- (fn [db [_ ns]]
-   (db/namespace-color db ns)))
+ ::namespace-colors
+ (fn [db [_]]
+   (db/namespace-colors db)))
 
 (re-frame/reg-sub
- ::project-color
- (fn [db [_ project]]
-   (db/project-color db project)))
+ ::project-colors
+ (fn [db [_]]
+   (db/project-colors db)))
 
 (re-frame/reg-sub
  ::loading?
@@ -122,7 +122,7 @@
    (db/loading? db)))
 
 (defn make-function-source-link [var-id src]
-  (gstring/format "<a onclick=\"clograms.events.add_var_from_link(%d)\">%s</a>"
+  (gstring/format "<a onclick=\"clograms.diagram.entities.add_var_from_link(%d)\">%s</a>"
                   var-id src))
 
 (defn enhance-source [datascript-db {:keys [:function/source-form] :as entity}]
@@ -170,3 +170,20 @@
    (->> entity
         (models/enrich-entity datascript-db)
         (enhance-source datascript-db))))
+
+(re-frame/reg-sub
+ ::node-color
+ :<- [::datascript-db]
+ :<- [::project-colors]
+ :<- [::namespace-colors]
+ (fn [[ds-db proj-colors ns-colors] [_ entity]]
+   (let [[proj-name ns-name] (case (:entity/type entity)
+                               :var (let [ve (db/var-entity ds-db (:var/id entity))]
+                                      [(:project/name ve)
+                                       (:namespace/name ve)])
+                               :namespace (let [nse (db/namespace-entity ds-db (:namespace/id entity))]
+                                            [(-> nse :namespace/project :project/name)
+                                             (:namespace/name nse)])
+                               :project [(:project/name (db/project-entity ds-db (:project/id entity)))
+                                         nil])]
+     (or (get ns-colors ns-name) (get proj-colors proj-name)))))

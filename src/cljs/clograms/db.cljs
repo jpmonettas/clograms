@@ -37,14 +37,14 @@
 (defn set-namespace-color [db ns color]
   (assoc-in db [:namespace/colors ns] color))
 
-(defn namespace-color [db ns]
-  (get-in db [:namespace/colors ns]))
+(defn namespace-colors [db]
+  (get db :namespace/colors))
 
 (defn set-project-color [db project color]
   (assoc-in db [:project/colors project] color))
 
-(defn project-color [db project]
-  (get-in db [:project/colors project]))
+(defn project-colors [db]
+  (get db :project/colors))
 
 (defn select-side-bar-tab [db tab]
   (assoc-in db [:side-bar :selected-side-bar-tab] tab))
