@@ -2,7 +2,10 @@
   (:require [re-frame.core :as re-frame]
             [datascript.core :as d]
             [clograms.db :refer [project-browser-level-idx->key] :as db]
-            [clograms.re-grams :as rg]))
+            [clograms.re-grams :as rg]
+            [clograms.utils :as utils]
+            [clojure.zip :as zip]
+            [goog.string :as gstring]))
 
 #_(defn dependency-tree [db main-project-id]
   (d/pull db '[:project/name {:project/depends 6}] main-project-id))
@@ -62,13 +65,17 @@
 
 (re-frame/reg-sub
  ::side-bar-browser-selected-project
- (fn [{:keys [projects-browser]}]
-   (:selected-project projects-browser)))
+ (fn [{:keys [:projects-browser :datascript/db]}]
+   (let [project-id (:selected-project projects-browser)]
+     {:project/id project-id
+      :project/name (:project/name (d/entity db project-id))})))
 
 (re-frame/reg-sub
  ::side-bar-browser-selected-namespace
- (fn [{:keys [projects-browser]}]
-   (:selected-namespace projects-browser)))
+ (fn [{:keys [:projects-browser :datascript/db]}]
+   (let [ns-id (:selected-namespace projects-browser)]
+     {:namespace/id ns-id
+      :namespace/name (:namespace/name (d/entity db ns-id))})))
 
 (defn project-items [datascript-db]
   (when datascript-db
@@ -127,10 +134,8 @@
                        is-main-project #(when (= (:project/name %) 'clindex/main-project) %)
                        main-project (some is-main-project all-projects)]
                    (into [main-project] (remove is-main-project all-projects)))
-       :namespaces (->> (namespaces-items (:datascript/db db) (:project/id selected-project))
-                        (map #(assoc % :project/name (:project/name selected-project))))
-       :vars (->> (vars-items (:datascript/db db) (:namespace/id selected-namespace))
-                  (map #(assoc % :namespace/name (:namespace/name selected-namespace))))))))
+       :namespaces (namespaces-items (:datascript/db db) selected-project)
+       :vars (vars-items (:datascript/db db) selected-namespace)))))
 
 (def callers-refs
   (memoize
@@ -196,3 +201,86 @@
  ::loading?
  (fn [db _]
    (:loading? db)))
+
+(defmulti fill-entity (fn [_ entity] (:entity/type entity)))
+
+(defmethod fill-entity :project
+  [ds-db {:keys [:project/id] :as e}]
+  (assoc e :project/name (:project/name (d/entity ds-db id))))
+
+(defmethod fill-entity :namespace
+  [ds-db {:keys [:namespace/id] :as e}]
+  (let [namespace (d/entity ds-db id)]
+    (assoc e
+           :project/name (:project/name (:namespace/project namespace))
+           :namespace/name (:namespace/name namespace))))
+
+(defn make-function-source-link [var-id src]
+  (gstring/format "<a onclick=\"clograms.events.add_var_from_link(%d)\">%s</a>"
+                  var-id src))
+
+(defn enhance-source [datascript-db {:keys [:function/source-form] :as entity}]
+  (let [{:keys [line column]} (meta source-form)
+        all-symbols-meta (loop [all nil
+                                zloc (utils/move-zipper-to-next (utils/code-zipper source-form) symbol?)]
+                           (if (zip/end? zloc)
+                             all
+                             (recur (if-let [m (meta (zip/node zloc))]
+                                      (conj all m)
+                                      all) ;; we should add only if it points to some other var
+                                    (utils/move-zipper-to-next zloc symbol?))))
+        all-meta-at-origin (->>  all-symbols-meta
+                                 (map (fn [m]
+                                        (-> m
+                                            (update :line #(- % line))
+                                            (update :end-line #(- % line))
+                                            (update :column #(- % column))
+                                            (update :end-column #(- % column))))))]
+    (reduce (fn [e {:keys [line column end-column] :as m}]
+              (if (and (:var/id m)
+                       (not= (:var/id entity) (:var/id m)))
+                (update e :function/source-str
+                        (fn [src]
+                          (utils/replace-in-str-line (partial make-function-source-link (:var/id m))
+                                                     src
+                                                     line
+                                                     column
+                                                     (- end-column column))))
+                e))
+            entity
+            all-meta-at-origin)))
+
+(defmethod fill-entity :var
+  [ds-db {:keys [:var/id] :as e}]
+  (let [entity-extra (->> (d/q '[:find ?vn ?fsf ?fss ?nsn ?pn
+                                 :in $ ?vid
+                                 :where
+                                 [?vid :var/name ?vn]
+                                 [?vid :var/namespace ?nsid]
+                                 [?nsid :namespace/name ?nsn]
+                                 [?nsid :namespace/project ?pid]
+                                 [?pid :project/name ?pn]
+                                 [?fid :function/var ?vid]
+                                 [?fid :function/source-form ?fsf]
+                                 [?fid :function/source-str ?fss]]
+                               ds-db
+                               id)
+                          first
+                          (zipmap [:var/name
+                                   :function/source-form
+                                   :function/source-str
+                                   :namespace/name
+                                   :project/name])
+                          (enhance-source ds-db))]
+    (merge e entity-extra)))
+
+(re-frame/reg-sub
+ ::datascript-db
+ (fn [db _]
+   (:datascript/db db)))
+
+(re-frame/reg-sub
+ ::entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ entity]]
+   (fill-entity datascript-db entity)))

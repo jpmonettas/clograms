@@ -21,12 +21,9 @@
 
 (s/def ::level #{0 1 2})
 
-(s/def ::selected-project (s/nilable (s/keys :req [:project/id
-                                                   :project/name])))
+(s/def ::selected-project (s/nilable :project/id))
 
-(s/def ::selected-namespace (s/nilable (s/keys :req [:project/id
-                                                     :namespace/id
-                                                     :namespace/name])))
+(s/def ::selected-namespace (s/nilable :namespace/id))
 
 (s/def ::projects-browser (s/keys :req-un [::level
                                            ::selected-project

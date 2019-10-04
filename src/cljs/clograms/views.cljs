@@ -117,7 +117,7 @@
    :dispatch [::events/set-project-color project-name]})
 
 (defn project-node-component [{:keys [entity] :as node}]
-  (let [project entity]
+  (let [project @(re-frame/subscribe [::subs/entity entity])]
     [node-wrapper {:node node
                    :ctx-menu [(set-project-color-ctx-menu-option (:project/name project))
                               (remove-ctx-menu-option node)]}
@@ -125,7 +125,7 @@
       [:div.node-body.project-name (str (:project/name project))]]]))
 
 (defn namespace-node-component [{:keys [entity] :as node}]
-  (let [ns entity]
+  (let [ns @(re-frame/subscribe [::subs/entity entity])]
     [node-wrapper {:node node
                    :ctx-menu [(set-project-color-ctx-menu-option (:project/name entity))
                               (set-ns-color-ctx-menu-option (:namespace/name entity))
@@ -136,7 +136,7 @@
       [:span.project-name (str "(" (:project/name ns) ")")]]]]))
 
 (defn var-node-component [{:keys [entity] :as node}]
-  (let [var entity]
+  (let [var @(re-frame/subscribe [::subs/entity entity])]
     [node-wrapper {:node node
                    :ctx-menu [(set-project-color-ctx-menu-option (:project/name entity))
                               (set-ns-color-ctx-menu-option (:namespace/name entity))

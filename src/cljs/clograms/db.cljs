@@ -11,11 +11,11 @@
                                          (map-indexed #(vector %2 %1))
                                          (into {})))
 
-(defn select-project [db p]
-  (assoc-in db [:projects-browser :selected-project] p))
+(defn select-project [db p-id]
+  (assoc-in db [:projects-browser :selected-project] p-id))
 
-(defn select-namespace [db ns]
-  (assoc-in db [:projects-browser :selected-namespace] ns))
+(defn select-namespace [db ns-id]
+  (assoc-in db [:projects-browser :selected-namespace] ns-id))
 
 (defn set-ctx-menu [db ctx-menu]
   (assoc db :ctx-menu ctx-menu))
