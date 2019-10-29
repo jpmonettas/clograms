@@ -40,3 +40,6 @@
 (defn diagram-loaded [db diagram-str]
   (let [diagram (cljs.reader/read-string diagram-str)]
     (merge db diagram)))
+
+(defn new-datascript-db-datoms [db datoms]
+  (update db :datascript/db db/add-datoms datoms))

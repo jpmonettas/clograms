@@ -36,6 +36,7 @@
 
 (re-frame/reg-event-fx ::initialize-db [inter-check] (fn [_ _] (initialize-db-and-load)))
 (re-frame/reg-event-fx ::reload-db [inter-check] (fn [cofxs [_]] (external/reload-datascript-db)))
+(re-frame/reg-event-db ::new-datoms [] (fn [db [_ new-datoms]] (external/new-datascript-db-datoms db new-datoms)))
 (re-frame/reg-event-db ::db-loaded [inter-check] (fn [db [_ new-db]] (external/db-loaded db new-db)))
 (re-frame/reg-event-fx ::add-entity-to-diagram [inter-check] (fn [{:keys [db]} [_ et id opts]] (entities/add-entity-to-diagram db et id opts)))
 (re-frame/reg-event-fx ::remove-entity-from-diagram [inter-check] (fn [{:keys [db]} [_ id]] (entities/remove-entity-from-diagram db id)))

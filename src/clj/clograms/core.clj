@@ -5,11 +5,23 @@
 
 (def current-platform (atom nil))
 
+(defn- prepare-datoms-for-serialization [datoms]
+  (->> datoms
+       (map (fn [[e a v t add?]]
+              (if (or (= a :function/source-form)
+                      (= a :multimethod/source-form))
+                [e a (binding [*print-meta* true] (pr-str v)) t add?]
+                [e a v t add?])))))
+
 (defn re-index-all
-  [folder platform]
+  [folder platform ws-send-fn]
   (reset! current-platform platform)
   (idx/index-project! folder
-                      {:platforms #{platform}}))
+                      {:platforms #{platform}
+                       :on-new-facts
+                       (fn [new-datoms]
+                         (println (format "Pushing %d new datoms to the UI" (count new-datoms)))
+                         (ws-send-fn :sente/all-users-without-uid [:updates/datoms (prepare-datoms-for-serialization new-datoms)]))}))
 
 (defn- log-db [datascript-db-str]
   (spit "./datascript-db.edn" datascript-db-str)
@@ -17,11 +29,8 @@
 
 (defn db-edn []
   (-> {:schema schema/schema
-       :datoms (->> (d/datoms (idx/db @current-platform) :eavt)
-                    (map (fn [[e a v]]
-                           (if (or (= a :function/source-form)
-                                   (= a :multimethod/source-form))
-                             [e a (binding [*print-meta* true] (pr-str v))]
-                             [e a v]))))}
+       :datoms (-> (idx/db @current-platform)
+                   (d/datoms  :eavt)
+                   prepare-datoms-for-serialization)}
       pr-str
       #_(log-db)))

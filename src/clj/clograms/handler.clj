@@ -3,12 +3,8 @@
             [compojure.route :refer [resources]]
             [ring.util.response :refer [resource-response]]
             [ring.util.request :refer [body-string]]
-            [ring.middleware.reload :refer [wrap-reload]]
-            [ring.middleware.params :refer [wrap-params]]
-            [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [clograms.core :refer [re-index-all db-edn]]
-            [clojure.string :as str]
-            [ring.middleware.cors :refer [wrap-cors]]))
+            [clojure.string :as str]))
 
 (defn file-content [path line]
   (let [content (if line
@@ -25,6 +21,9 @@
 (def diagram-file "./diagram.edn")
 
 (defroutes routes
+  ;; sente routes
+
+
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/open-file" [path line :as req]
        {:status 200
@@ -45,9 +44,3 @@
           (spit diagram-file diagram)
           {:status 200}))
   (resources "/"))
-
-(def handler (-> #'routes
-                 (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
-                            :access-control-allow-methods [:get :put :post :delete])
-                 wrap-keyword-params
-                 wrap-params))

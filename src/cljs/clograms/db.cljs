@@ -78,24 +78,32 @@
 ;; Datascript DB ;;
 ;;;;;;;;;;;;;;;;;;;
 
+(defn deserialize-datoms [datoms]
+  (keep (fn [[eid a v t add?]]
+          (try
+            (let [deserialized-val (if (or (= a :function/source-form)
+                                           (= a :multimethod/source-form))
+                                     (tools-reader/read-string v)
+                                     v)]
+              [(if add? :db/add :db/retract) eid a deserialized-val])
+            (catch js/Error e
+              (js/console.warn (str "[Skipping] Couldn't parse source-form for function " eid " probably because of reg exp non compatible with JS")))))
+        datoms))
+
 (defn deserialize-datascript-db [ds-db-str]
   (try
     (let [{:keys [schema datoms]} (cljs.reader/read-string ds-db-str)
-          datoms' (keep (fn [[eid a v]]
-                          (try
-                            (let [deserialized-val (if (or (= a :function/source-form)
-                                                           (= a :multimethod/source-form))
-                                                     (tools-reader/read-string v)
-                                                     v)]
-                              [:db/add eid a deserialized-val])
-                            (catch js/Error e
-                              (js/console.warn (str "[Skipping] Couldn't parse source-form for function " eid " probably because of reg exp non compatible with JS")))))
-                        datoms)
+          datoms' (deserialize-datoms datoms)
           conn (d/create-conn schema)]
       (d/transact! conn datoms')
       (d/db conn))
     (catch js/Error e
       (js/console.error "Couldn't read db" (ex-data e) e))))
+
+(defn add-datoms [datascript-db datoms]
+  (let [tx-data (deserialize-datoms datoms)]
+    (prn "TX_DATA" tx-data)
+    (d/db-with datascript-db tx-data)))
 
 (defn main-project-id [datascript-db]
   (d/q '[:find ?pid .
