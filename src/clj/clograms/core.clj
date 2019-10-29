@@ -11,10 +11,17 @@
   (idx/index-project! folder
                       {:platforms #{platform}}))
 
+(defn- log-db [datascript-db-str]
+  (spit "./datascript-db.edn" datascript-db-str)
+  datascript-db-str)
+
 (defn db-edn []
-  (pr-str {:schema schema/schema
-           :datoms (->> (d/datoms (idx/db @current-platform) :eavt)
-                        (map (fn [[e a v]]
-                               (if (= a :function/source-form)
-                                 [e a (binding [*print-meta* true] (pr-str v))]
-                                 [e a v]))))}))
+  (-> {:schema schema/schema
+       :datoms (->> (d/datoms (idx/db @current-platform) :eavt)
+                    (map (fn [[e a v]]
+                           (if (or (= a :function/source-form)
+                                   (= a :multimethod/source-form))
+                             [e a (binding [*print-meta* true] (pr-str v))]
+                             [e a v]))))}
+      pr-str
+      #_(log-db)))

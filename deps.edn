@@ -10,6 +10,6 @@
         ring-cors                      {:mvn/version "0.1.13"}
         datascript                     {:mvn/version "0.17.1"}
         lambdaisland/garden-watcher    {:mvn/version "0.3.3"}
-        ;;clindex                        {:mvn/version "0.1.0"}
-        clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
+        clindex                        {:mvn/version "0.2.0"}
+        ;;clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
         }}

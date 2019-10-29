@@ -83,7 +83,8 @@
     (let [{:keys [schema datoms]} (cljs.reader/read-string ds-db-str)
           datoms' (keep (fn [[eid a v]]
                           (try
-                            (let [deserialized-val (if (= a :function/source-form)
+                            (let [deserialized-val (if (or (= a :function/source-form)
+                                                           (= a :multimethod/source-form))
                                                      (tools-reader/read-string v)
                                                      v)]
                               [:db/add eid a deserialized-val])
@@ -108,11 +109,11 @@
               :in $ ?vid
               :where
               [?vid :var/name ?vn]
-              [?vid :var/namespace ?nsid]
+              [?nsid :namespace/vars ?vid]
               [?nsid :namespace/name ?nsn]
-              [?nsid :namespace/project ?pid]
               [?pid :project/name ?pn]
-              [?fid :function/var ?vid]
+              [?pid :project/namespaces ?nsid]
+              [?vid :var/function ?fid]
               [?fid :function/source-form ?fsf]
               [?fid :function/source-str ?fss]]
             datascript-db
@@ -129,13 +130,13 @@
               :in $
               :where
               [?vid :var/name ?vname]
-              [?vid :var/namespace ?nsid]
-              [?fid :function/var ?vid]
+              [?nsid :namespace/vars ?vid]
+              [?vid :var/function ?fid]
               [?fid :function/source-form ?fsrcf]
               [?fid :function/source-str ?fsrcs]
               [?nsid :namespace/name ?nsname]
               [?pid :project/name ?pname]
-              [?nsid :namespace/project ?pid]]
+              [?pid :project/namespaces ?nsid]]
             datascript-db)
        (map #(zipmap [:project/name :namespace/name :var/name :var/id :function/source-form :function/source-str] %))))
 
@@ -157,7 +158,7 @@
   (->> (d/q '[:find ?pid ?nsid ?nsname
               :in $ ?pid
               :where
-              [?nsid :namespace/project ?pid]
+              [?pid :project/namespaces ?nsid]
               [?nsid :namespace/name ?nsname]]
             datascript-db
             project-id)
@@ -167,12 +168,12 @@
   (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrcf ?fsrcs
               :in $ ?nsid
               :where
-              [?nsid :namespace/project ?pid]
-              [?vid :var/namespace ?nsid]
+              [?pid :project/namespaces ?nsid]
+              [?nsid :namespace/vars ?vid]
               [?vid :var/name ?vname]
               [?vid :var/public? ?vpub]
               [?vid :var/line ?vline]
-              [?fid :function/var ?vid]
+              [?vid :var/function ?fid]
               [?fid :function/source-form ?fsrcf]
               [?fid :function/source-str ?fsrcs]
               #_[?vid :function/_var ?fid]
@@ -187,18 +188,18 @@
   (->> (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcf ?fsrcs ?fnvid
               :in $ ?vid
               :where
-              [?vid :var/namespace ?nid]
+              [?nid :namespace/vars ?vid]
               [?vid :var/name ?vn]
-              [?vrid :var-ref/var ?vid]
+              [?vid :var/refs ?vrid]
               [?vrid :var-ref/namespace ?vrnid]
               [?vrid :var-ref/in-function ?fnid]
-              [?fnid :function/var ?fnvid]
+              [?fnvid :var/function ?fnid]
               [?fnid :function/source-form ?fsrcf]
               [?fnid :function/source-str ?fsrcs]
               [?fnvid :var/name ?in-fn]
               [?vrnid :namespace/name ?vrnsn]
               [?pid :project/name ?pname]
-              [?vrnid :namespace/project ?pid]
+              [?pid :project/namespaces ?vrnid]
               [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
             datascript-db
             var-id)
