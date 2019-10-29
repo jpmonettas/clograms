@@ -182,7 +182,7 @@
                                       [(:project/name ve)
                                        (:namespace/name ve)])
                                :namespace (let [nse (db/namespace-entity ds-db (:namespace/id entity))]
-                                            [(-> nse :namespace/project :project/name)
+                                            [(-> nse :project/_namespaces :project/name)
                                              (:namespace/name nse)])
                                :project [(:project/name (db/project-entity ds-db (:project/id entity)))
                                          nil])]
