@@ -43,8 +43,13 @@
   border-radius: 3px;
 }
 
+.diagram-wrapper .diagram-layer .node .node-wrapper {
+
+}
+
 .diagram-wrapper .diagram-layer .node-body {
   display: inline-block;
+  color: #eee;
 }
 
 .diagram-wrapper .diagram-layer .node-body .header {
@@ -59,10 +64,12 @@
   background: #3c3836;
   padding: 1px 10px 1px 10px;
   border-radius: 3px;
+  margin-left: 10px;
 }
 
 .diagram-wrapper .diagram-layer .project-node {
   border: 2px solid #458588;
+  background-color: #458588;
 }
 
 .diagram-wrapper .diagram-layer .project-node .port {

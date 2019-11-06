@@ -7,15 +7,17 @@
 
 (defn node-wrapper [{:keys [ctx-menu node]} child]
   (let [node-color @(re-frame/subscribe [::subs/node-color (:entity node)])]
-    [:div {:on-context-menu (fn [evt]
-                             (let [x (.. evt -nativeEvent -pageX)
-                                   y (.. evt -nativeEvent -pageY)]
-                               (re-frame/dispatch
-                                [::events/show-context-menu
-                                 {:x x
-                                  :y y
-                                  :menu ctx-menu}])))
-           :style {:background-color node-color}}
+    [:div.node-wrapper {:on-context-menu (fn [evt]
+                                           (let [x (.. evt -nativeEvent -pageX)
+                                                 y (.. evt -nativeEvent -pageY)]
+                                             (re-frame/dispatch
+                                              [::events/show-context-menu
+                                               {:x x
+                                                :y y
+                                                :menu ctx-menu}])))
+                        :style (when node-color
+                                 {:color node-color
+                                  :box-shadow "10px 10px 18px"})}
      child]))
 
 (defn project-node-component [{:keys [entity] :as node}]
@@ -64,6 +66,7 @@
           (if @collapsed
             [:ul.fn-args
              (for [args-vec (:function/args var)]
+               ^{:key (str args-vec)}
                [:li.args-vec args-vec])]
             [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
                           :dangerouslySetInnerHTML {:__html (:function/source-str var)}}])]]]))))

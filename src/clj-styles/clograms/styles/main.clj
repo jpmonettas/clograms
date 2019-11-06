@@ -46,8 +46,10 @@
                 :cursor :crosshair}]]
     [:.node [:&.selected {:border "2px solid"
                           :border-color (color :node-selection)
-                          :border-radius border-radius}]]
-    [:.node-body {:display :inline-block}
+                          :border-radius border-radius}]
+     [:.node-wrapper {}]]
+    [:.node-body {:display :inline-block
+                  :color (color :main-font)}
      [:.header {:display :flex
                 :justify-content :space-between
                 :margin-bottom "5px"}
@@ -55,8 +57,10 @@
                         :cursor :pointer
                         :background (color :side-bar)
                         :padding "1px 10px 1px 10px"
-                        :border-radius border-radius}]]]
-    [:.project-node {:border (str "2px solid " (color :project-node))}
+                        :border-radius border-radius
+                        :margin-left "10px"}]]]
+    [:.project-node {:border (str "2px solid " (color :project-node))
+                     :background-color (color :project-node)}
      [:.port {:background-color (color :project-node)}]]
     [:.namespace-node {:border  (str "2px solid " (color :namespace-node))
                        :background-color (color :namespace-node)}
