@@ -7,13 +7,14 @@
         ring                           {:mvn/version "1.7.1"
                                         ;; since we are using our own fork of tools.namespace
                                         ;; called jpmonettas/tools.namespace
-                                        :exclusions [org.clojure/tools.namespace]}
+                                        :exclusions [org.clojure/tools.namespace]
+                                        }
         ring-cors                      {:mvn/version "0.1.13"}
         datascript                     {:mvn/version "0.17.1"}
         lambdaisland/garden-watcher    {:mvn/version "0.3.3"}
         com.taoensso/sente             {:mvn/version "1.14.0"}
         http-kit                       {:mvn/version "2.3.0"}
 
-        clindex                        {:mvn/version "0.2.1"}
+        clindex                        {:mvn/version "0.2.3"}
         ;; clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
         }}

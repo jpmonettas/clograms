@@ -102,7 +102,6 @@
 
 (defn add-datoms [datascript-db datoms]
   (let [tx-data (deserialize-datoms datoms)]
-    (prn "TX_DATA" tx-data)
     (d/db-with datascript-db tx-data)))
 
 (defn main-project-id [datascript-db]
@@ -113,25 +112,17 @@
        'clindex/main-project))
 
 (defn var-entity [datascript-db var-id]
-  (->> (d/q '[:find ?vn ?fsf ?fss ?nsn ?pn
-              :in $ ?vid
-              :where
-              [?vid :var/name ?vn]
-              [?nsid :namespace/vars ?vid]
-              [?nsid :namespace/name ?nsn]
-              [?pid :project/name ?pn]
-              [?pid :project/namespaces ?nsid]
-              [?vid :var/function ?fid]
-              [?fid :function/source-form ?fsf]
-              [?fid :function/source-str ?fss]]
-            datascript-db
-            var-id)
-       first
-       (zipmap [:var/name
-                :function/source-form
-                :function/source-str
-                :namespace/name
-                :project/name])))
+  (let [var (d/entity datascript-db var-id)
+        func (:var/function var)
+        ns (:namespace/_vars var)
+        proy (:project/_namespaces ns)]
+    {:var/name (:var/name var)
+     :var/docstring (:var/docstring var)
+     :function/source-form (:function/source-form func)
+     :function/source-str (:function/source-str func)
+     :function/args (:function/args func)
+     :namespace/name (:namespace/name ns)
+     :project/name (:project/name proy)}))
 
 (defn all-entities [datascript-db]
   (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fsrcf ?fsrcs

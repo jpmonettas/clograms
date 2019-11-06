@@ -33,7 +33,8 @@
   (let [namespace (d/entity ds-db id)]
     (assoc e
            :project/name (:project/name (:project/_namespaces namespace))
-           :namespace/name (:namespace/name namespace))))
+           :namespace/name (:namespace/name namespace)
+           :namespace/docstring (:namespace/docstring namespace))))
 
 (defmethod enrich-entity :var
   [ds-db {:keys [:var/id] :as e}]

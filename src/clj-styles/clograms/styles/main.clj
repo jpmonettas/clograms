@@ -47,17 +47,36 @@
     [:.node [:&.selected {:border "2px solid"
                           :border-color (color :node-selection)
                           :border-radius border-radius}]]
-    [:.node-body {:display :inline-block}]
+    [:.node-body {:display :inline-block}
+     [:.header {:display :flex
+                :justify-content :space-between
+                :margin-bottom "5px"}
+      [:.collapse-node {:display :inline-block
+                        :cursor :pointer
+                        :background (color :side-bar)
+                        :padding "1px 10px 1px 10px"
+                        :border-radius border-radius}]]]
     [:.project-node {:border (str "2px solid " (color :project-node))}
      [:.port {:background-color (color :project-node)}]]
-    [:.namespace-node {:border  (str "2px solid " (color :namespace-node))}
-     [:.port {:background-color (color :namespace-node)}]]
-    [:.var-node {:border (str "2px solid " (color :var-node))}
+    [:.namespace-node {:border  (str "2px solid " (color :namespace-node))
+                       :background-color (color :namespace-node)}
+     [:.port {:background-color (color :namespace-node)}]
+     [:.namespace-doc {:max-width "500px"
+                       :font-size "10px"
+                       :max-height "200px"
+                       :background-color (color :namespace-node)
+                       :padding 0
+                       :border :unset
+                       :color (color :main-font)
+                       :opacity 0.7}]]
+    [:.var-node {:border (str "2px solid " (color :var-node))
+                 :background-color (color :var-node)}
      [:.port {:background-color (color :var-node)}]
      [:.var-name {:font-weight :bold}]
      [:.source {:max-width "500px"
                 :font-size "10px"
                 :max-height "200px"
+                :border :unset
                 :background-color (color :main-font)}]]]])
 
 (def general

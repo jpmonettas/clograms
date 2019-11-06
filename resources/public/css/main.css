@@ -47,6 +47,20 @@
   display: inline-block;
 }
 
+.diagram-wrapper .diagram-layer .node-body .header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.diagram-wrapper .diagram-layer .node-body .header .collapse-node {
+  display: inline-block;
+  cursor: pointer;
+  background: #3c3836;
+  padding: 1px 10px 1px 10px;
+  border-radius: 3px;
+}
+
 .diagram-wrapper .diagram-layer .project-node {
   border: 2px solid #458588;
 }
@@ -57,14 +71,27 @@
 
 .diagram-wrapper .diagram-layer .namespace-node {
   border: 2px solid #b16286;
+  background-color: #b16286;
 }
 
 .diagram-wrapper .diagram-layer .namespace-node .port {
   background-color: #b16286;
 }
 
+.diagram-wrapper .diagram-layer .namespace-node .namespace-doc {
+  max-width: 500px;
+  font-size: 10px;
+  max-height: 200px;
+  background-color: #b16286;
+  padding: 0;
+  border: unset;
+  color: #eee;
+  opacity: 0.7;
+}
+
 .diagram-wrapper .diagram-layer .var-node {
   border: 2px solid #689d6a;
+  background-color: #689d6a;
 }
 
 .diagram-wrapper .diagram-layer .var-node .port {
@@ -79,6 +106,7 @@
   max-width: 500px;
   font-size: 10px;
   max-height: 200px;
+  border: unset;
   background-color: #eee;
 }
 

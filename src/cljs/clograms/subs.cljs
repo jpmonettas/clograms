@@ -41,9 +41,10 @@
 (re-frame/reg-sub
  ::side-bar-browser-selected-namespace
  (fn [db]
-   (let [ns-id (db/selected-namespace db)]
+   (let [ns-id (db/selected-namespace db)
+         ns-entity (db/namespace-entity (:datascript/db db) ns-id)]
      {:namespace/id ns-id
-      :namespace/name (:namespace/name (db/namespace-entity (:datascript/db db) ns-id))})))
+      :namespace/name (:namespace/name ns-entity)})))
 
 (defn project-items [datascript-db]
   (when datascript-db
@@ -167,9 +168,8 @@
  ::entity
  :<- [::datascript-db]
  (fn [datascript-db [_ entity]]
-   (->> entity
-        (models/enrich-entity datascript-db)
-        (enhance-source datascript-db))))
+   (cond->> (models/enrich-entity datascript-db entity)
+     (= (:entity/type entity) :var) (enhance-source datascript-db))))
 
 (re-frame/reg-sub
  ::node-color
