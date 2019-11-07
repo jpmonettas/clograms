@@ -13,7 +13,7 @@
      {:on-drop (fn [evt]
                  (let [{:keys [:entity/type :id :link-to]} (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data"))))]
                    (re-frame/dispatch [::events/add-entity-to-diagram type id
-                                       {:link-to link-to
+                                       {:link-to-node-id link-to
                                         :client-x (.-clientX evt)
                                         :client-y (.-clientY evt)}])))
       :on-drag-over (fn [evt ] (.preventDefault evt))

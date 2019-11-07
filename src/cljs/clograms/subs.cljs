@@ -122,11 +122,13 @@
  (fn [db _]
    (db/loading? db)))
 
-(defn make-function-source-link [var-id src]
-  (gstring/format "<a onclick=\"clograms.diagram.entities.add_var_from_link(%d)\">%s</a>"
-                  var-id src))
+(defn make-function-source-link [var-id node-id src]
+  (gstring/format "<a onclick=\"clograms.diagram.entities.add_var_from_link(%d,'%s')\">%s</a>"
+                  var-id node-id src))
 
-(defn enhance-source [datascript-db {:keys [:function/source-form] :as entity}]
+(defn enhance-source-str
+  "Returns a enhanced `source-str` with anchors added for each var that appears on `source-form`"
+  [source-str var-id source-form node-id]
   (let [{:keys [line column]} (meta source-form)
         all-symbols-meta (loop [all nil
                                 zloc (utils/move-zipper-to-next (utils/code-zipper source-form) symbol?)]
@@ -143,21 +145,17 @@
                                             (update :end-line #(- % line))
                                             (update :column #(- % column))
                                             (update :end-column #(- % column))))))]
-    (reduce (fn [e {:keys [line column end-column] :as m}]
+    (reduce (fn [src {:keys [line column end-column] :as m}]
               (if (and (:var/id m)
-                       (not= (:var/id entity) (:var/id m)))
-                (update e :function/source-str
-                        (fn [src]
-                          (utils/replace-in-str-line (partial make-function-source-link (:var/id m))
+                       (not= var-id (:var/id m)))
+                (utils/replace-in-str-line (partial make-function-source-link (:var/id m) node-id)
                                                      src
                                                      line
                                                      column
-                                                     (- end-column column))))
-                e))
-            entity
+                                                     (- end-column column))
+                src))
+            source-str
             all-meta-at-origin)))
-
-
 
 (re-frame/reg-sub
  ::datascript-db
@@ -165,11 +163,34 @@
    (:datascript/db db)))
 
 (re-frame/reg-sub
- ::entity
+ ::project-entity
  :<- [::datascript-db]
- (fn [datascript-db [_ entity]]
-   (cond->> (models/enrich-entity datascript-db entity)
-     (= (:entity/type entity) :var) (enhance-source datascript-db))))
+ (fn [datascript-db [_ proj-id]]
+   (db/project-entity datascript-db proj-id)))
+
+(re-frame/reg-sub
+ ::namespace-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ ns-id]]
+   (db/namespace-entity datascript-db ns-id)))
+
+(re-frame/reg-sub
+ ::function-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ var-id node-id]]
+   (let [e (db/function-entity datascript-db var-id)]
+     (update e :function/source-str enhance-source-str var-id (:function/source-form e) node-id))))
+
+(re-frame/reg-sub
+ ::multimethod-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ var-id node-id]]
+   (let [e (db/multimethod-entity datascript-db var-id)]
+     (update e :multi/methods
+             (fn [mm]
+               (->> mm
+                    (map (fn [method]
+                           (update method :multimethod/source-str enhance-source-str var-id (:multimethod/source-form method) node-id)))))))))
 
 (re-frame/reg-sub
  ::node-color
@@ -178,9 +199,12 @@
  :<- [::namespace-colors]
  (fn [[ds-db proj-colors ns-colors] [_ entity]]
    (let [[proj-name ns-name] (case (:entity/type entity)
-                               :var (let [ve (db/var-entity ds-db (:var/id entity))]
-                                      [(:project/name ve)
-                                       (:namespace/name ve)])
+                               :function (let [ve (db/var-entity ds-db (:var/id entity))]
+                                           [(:project/name ve)
+                                            (:namespace/name ve)])
+                               :multimethod (let [ve (db/var-entity ds-db (:var/id entity))]
+                                              [(:project/name ve)
+                                               (:namespace/name ve)])
                                :namespace (let [nse (db/namespace-entity ds-db (:namespace/id entity))]
                                             [(-> nse :project/_namespaces :project/name)
                                              (:namespace/name nse)])

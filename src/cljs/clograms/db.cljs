@@ -111,7 +111,7 @@
        datascript-db
        'clindex/main-project))
 
-(defn var-entity [datascript-db var-id]
+(defn function-entity [datascript-db var-id]
   (let [var (d/entity datascript-db var-id)
         func (:var/function var)
         ns (:namespace/_vars var)
@@ -123,6 +123,47 @@
      :function/args (:function/args func)
      :namespace/name (:namespace/name ns)
      :project/name (:project/name proy)}))
+
+(defn multimethod-entity [datascript-db var-id]
+  (let [var (d/entity datascript-db var-id)
+        multi (:var/multi var)
+        ns (:namespace/_vars var)
+        proy (:project/_namespaces ns)]
+    {:var/name (:var/name var)
+     :var/docstring (:var/docstring var)
+     :multi/dispatch-form (:multi/dispatch-form multi)
+     :multi/methods (map (fn [multi-method]
+                           (select-keys multi-method
+                                        [:multimethod/dispatch-val
+                                         :multimethod/source-form
+                                         :multimethod/source-str]))
+                           (:multi/methods multi))
+     :namespace/name (:namespace/name ns)
+     :project/name (:project/name proy)}))
+
+(defn var-entity [datascript-db var-id]
+  (let [var (d/entity datascript-db var-id)
+        ns (:namespace/_vars var)
+        proy (:project/_namespaces ns)]
+    {:var/name (:var/name var)
+     :var/docstring (:var/docstring var)
+     :var/type (cond
+                 (:var/function var) :function
+                 (:var/multi var)    :multimethod)
+     :namespace/name (:namespace/name ns)
+     :project/name (:project/name proy)}))
+
+(defn project-entity [datascript-db project-id]
+  (let [proj (d/entity datascript-db project-id)]
+    {:project/id project-id
+     :project/name (:project/name proj)}))
+
+(defn namespace-entity [datascript-db namespace-id]
+  (let [ns (d/entity datascript-db namespace-id)]
+    {:namespace/id namespace-id
+     :project/name (:project/name (:project/_namespaces ns))
+     :namespace/name (:namespace/name ns)
+     :namespace/docstring (:namespace/docstring ns)}))
 
 (defn all-entities [datascript-db]
   (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fsrcf ?fsrcs
@@ -138,12 +179,6 @@
               [?pid :project/namespaces ?nsid]]
             datascript-db)
        (map #(zipmap [:project/name :namespace/name :var/name :var/id :function/source-form :function/source-str] %))))
-
-(defn project-entity [datascript-db project-id]
-  (d/entity datascript-db project-id))
-
-(defn namespace-entity [datascript-db project-id]
-  (d/entity datascript-db project-id))
 
 (defn all-projects [datascript-db]
   (->> (d/q '[:find ?pid ?pname
@@ -163,8 +198,9 @@
             project-id)
        (map #(zipmap [:project/id :namespace/id :namespace/name] %))))
 
-(defn all-vars [datascript-db ns-id]
-  (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?fsrcf ?fsrcs
+(defn all-vars
+  [datascript-db ns-id]
+  (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?mid
               :in $ ?nsid
               :where
               [?pid :project/namespaces ?nsid]
@@ -172,16 +208,17 @@
               [?vid :var/name ?vname]
               [?vid :var/public? ?vpub]
               [?vid :var/line ?vline]
-              [?vid :var/function ?fid]
-              [?fid :function/source-form ?fsrcf]
-              [?fid :function/source-str ?fsrcs]
-              #_[?vid :function/_var ?fid]
-              #_[(get-else $ ?fid :function/var nil) ?x]
-              #_[(get-else $ ?fid :file/name "N/A") ?fname]]
+              [(get-else $ ?vid :var/function "N/A") ?fid]
+              [(get-else $ ?vid :var/multi "N/A") ?mid]]
             datascript-db
             ns-id)
-       (map #(zipmap [:project/id :namespace/id :var/id :var/name :var/public?
-                      :var/line :function/id :function/source-form :function/source-str] %))))
+       (map (fn [data]
+              (let [var (zipmap [:project/id :namespace/id :var/id :var/name :var/public? :var/line :fn :multi] data)]
+                (-> var
+                    (assoc :var/type (cond
+                                       (not= "N/A" (:fn var))    :function
+                                       (not= "N/A" (:multi var)) :multimethod))
+                    (dissoc :fn :multi)))))))
 
 (defn var-x-refs [datascript-db var-id]
   (->> (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcf ?fsrcs ?fnvid

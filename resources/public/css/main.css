@@ -201,6 +201,10 @@ body .app-wrapper .draggable-var .var.public {
   background-color: #98971a;
 }
 
+body .app-wrapper .draggable-var .var-type {
+  margin-right: 3px;
+}
+
 .top-bar {
   position: absolute;
   z-index: 10;

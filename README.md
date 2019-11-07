@@ -2,9 +2,11 @@
 
 Explore clojure projects by building diagrams
 
-WIP
+**WIP** please stay tuned !
 
-<img src="/docs/screenshot.png?raw=true"/>
+<img src="/docs/screenshot-zoom-out.png?raw=true"/>
+
+<img src="/docs/screenshot-zoom-in.png?raw=true"/>
 
 ## How to build and run
 

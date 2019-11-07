@@ -37,10 +37,13 @@
     :on-drag-start (fn [event]
                      (-> event
                          .-dataTransfer ;; TODO: this should be serialized/deserialized  by hand to avoid loosing meta
-                         (.setData "entity-data" {:entity/type :var
+                         (.setData "entity-data" {:entity/type (:var/type var)
                                                   :id (:var/id var)})))}
    [:div
     [:div {:class (str "var " (if (:var/public? var) "public" "private"))}]
+    [:span.var-type (case (:var/type var)
+                      :multimethod "(M)"
+                      "")]
     [:span.var-name (:var/name var)]]])
 
 (defn draggable-ref-node [r]

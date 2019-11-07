@@ -3,7 +3,8 @@
             [reagent.core :as r]
             [clograms.subs :as subs]
             [clograms.events :as events]
-            [clograms.ui.components.menues :as menues]))
+            [clograms.ui.components.menues :as menues]
+            [clograms.re-grams.re-grams :as re]))
 
 (defn node-wrapper [{:keys [ctx-menu node]} child]
   (let [node-color @(re-frame/subscribe [::subs/node-color (:entity node)])]
@@ -21,7 +22,7 @@
      child]))
 
 (defn project-node-component [{:keys [entity] :as node}]
-  (let [project @(re-frame/subscribe [::subs/entity entity])]
+  (let [project @(re-frame/subscribe [::subs/project-entity (:project/id entity)])]
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name project))
                               (menues/remove-ctx-menu-option node)]}
@@ -31,7 +32,7 @@
 (defn namespace-node-component [{:keys [entity] :as node}]
   (let [collapsed (r/atom false)]
    (fn [{:keys [entity] :as node}]
-     (let [ns @(re-frame/subscribe [::subs/entity entity])]
+     (let [ns @(re-frame/subscribe [::subs/namespace-entity (:namespace/id entity)])]
        [node-wrapper {:node node
                       :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name ns))
                                  (menues/set-ns-color-ctx-menu-option (:namespace/name ns))
@@ -48,10 +49,10 @@
             [:pre.namespace-doc {:on-wheel (fn [e] (.stopPropagation e))}
              (:namespace/docstring ns)])]]]))))
 
-(defn var-node-component [{:keys [entity] :as node}]
+(defn function-node-component [{:keys [entity] :as node}]
   (let [collapsed (r/atom false)]
    (fn [{:keys [entity] :as node}]
-     (let [var @(re-frame/subscribe [::subs/entity entity])]
+     (let [var @(re-frame/subscribe [::subs/function-entity (:var/id entity) (::re/id node)])]
        [node-wrapper {:node node
                       :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name var))
                                  (menues/set-ns-color-ctx-menu-option (:namespace/name var))
@@ -70,3 +71,29 @@
                [:li.args-vec args-vec])]
             [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
                           :dangerouslySetInnerHTML {:__html (:function/source-str var)}}])]]]))))
+
+(defn multimethod-node-component [{:keys [entity] :as node}]
+  (let [expanded (r/atom {})]
+   (fn [{:keys [entity] :as node}]
+     (let [mm @(re-frame/subscribe [::subs/multimethod-entity (:var/id entity) (::re/id node)])]
+       [node-wrapper {:node node
+                      :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name mm))
+                                 (menues/set-ns-color-ctx-menu-option (:namespace/name mm))
+                                 (menues/remove-ctx-menu-option node)]}
+        [:div.var-node.custom-node
+         [:div.node-body
+          [:div.header
+           [:div
+            [:span.namespace-name (str (:namespace/name mm) "/")]
+            [:span.var-name (:var/name mm)]]]
+          [:div
+           (doall
+            (for [method (:multi/methods mm)]
+              ^{:key (pr-str (:multimethod/dispatch-val method))}
+              [:div
+               [:div.header
+                [:div.dispatch-val (pr-str (:multimethod/dispatch-val method))]
+                [:div.collapse-node {:on-click #(swap! expanded update (:multimethod/dispatch-val method) not)} "^"]]
+               (when (@expanded (:multimethod/dispatch-val method))
+                 [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
+                               :dangerouslySetInnerHTML {:__html (:multimethod/source-str method)}}])]))]]]]))))

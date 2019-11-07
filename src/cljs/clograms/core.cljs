@@ -35,7 +35,8 @@
 (defn mount-root []
   (re/register-node-component! :clograms/project-node nodes/project-node-component)
   (re/register-node-component! :clograms/namespace-node nodes/namespace-node-component)
-  (re/register-node-component! :clograms/var-node nodes/var-node-component)
+  (re/register-node-component! :clograms/function-node nodes/function-node-component)
+  (re/register-node-component! :clograms/multimethod-node nodes/multimethod-node-component)
   (re-frame/clear-subscription-cache!)
   (reagent/render [main-screen/main-panel]
                   (.getElementById js/document "app")))

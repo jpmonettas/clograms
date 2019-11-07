@@ -94,9 +94,12 @@
                                       (= (first to-port) node-id))))
                         (into {}))))))
 
+(defn get-node [db node-id]
+  (get-in db [::diagram :nodes node-id]))
+
 (defn selected-node [db]
   (let [selected-node-id (get-in db [::diagram :selected-node-id])]
-    (get-in db [::diagram :nodes selected-node-id])))
+    (get-node db selected-node-id)))
 
 (defn select-node [db node-id]
   (assoc-in db [::diagram :selected-node-id] node-id))

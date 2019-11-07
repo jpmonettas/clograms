@@ -119,7 +119,8 @@
              :height "7px"
              :border-radius border-radius}
       [:&.private {:background-color (color :red)}]
-      [:&.public {:background-color (color :green)}]]]]])
+      [:&.public {:background-color (color :green)}]]
+     [:.var-type {:margin-right "3px"}]]]])
 
 (def top-bar
   [:.top-bar {:position :absolute
