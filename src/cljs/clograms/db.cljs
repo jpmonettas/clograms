@@ -46,6 +46,15 @@
 (defn project-colors [db]
   (get db :project/colors))
 
+(defn node-comment [db node-id]
+  (get-in db [:node/comments node-id]))
+
+(defn set-node-comment [db node-id comment]
+  (assoc-in db [:node/comments node-id] comment))
+
+(defn remove-node-comment [db node-id]
+  (update db :node/comments dissoc node-id))
+
 (defn select-side-bar-tab [db tab]
   (assoc-in db [:side-bar :selected-side-bar-tab] tab))
 

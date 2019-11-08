@@ -47,7 +47,13 @@
     [:.node [:&.selected {:border "2px solid"
                           :border-color (color :node-selection)
                           :border-radius border-radius}]
-     [:.node-wrapper {}]]
+     [:.node-wrapper {}
+      [:.node-comment {:position :absolute
+                       :opacity 0.5
+                       :border-radius border-radius
+                       :background-color (color :side-bar)
+                       :margin-left "5%"
+                       :width "90%"}]]]
     [:.node-body {:display :inline-block
                   :color (color :main-font)}
      [:.header {:display :flex

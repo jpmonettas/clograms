@@ -46,13 +46,16 @@
 (s/def :namespace/colors (s/map-of :namespace/name string?))
 (s/def :project/colors (s/map-of :project/name string?))
 
+(s/def :node/comments (s/map-of ::rg/id string?))
+
 (s/def :entity/type #{:var :namespace :project})
 
 (s/def ::db (s/keys :req [::rg/diagram]
                     :opt [:datascript/db
                           :main-project/id
                           :namespace/colors
-                          :project/colors]
+                          :project/colors
+                          :node/comments]
                     :req-un [::side-bar
                              ::projects-browser
                              ::selected-color

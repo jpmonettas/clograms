@@ -41,6 +41,8 @@
 (re-frame/reg-event-fx ::add-entity-to-diagram [inter-check] (fn [{:keys [db]} [_ et id opts]] (entities/add-entity-to-diagram db et id opts)))
 (re-frame/reg-event-fx ::remove-entity-from-diagram [inter-check] (fn [{:keys [db]} [_ id]] (entities/remove-entity-from-diagram db id)))
 (re-frame/reg-event-fx ::rg/node-selected [inter-check] (fn [{:keys [db]} [_ node]] (selection/node-selected db node)))
+(re-frame/reg-event-db ::set-node-comment [inter-check] (fn [db [_ node-id comment]] (db/set-node-comment db node-id comment)))
+(re-frame/reg-event-db ::remove-node-comment [inter-check] (fn [db [_ node-id comment]] (db/remove-node-comment db node-id)))
 (re-frame/reg-event-db ::show-context-menu [inter-check] (fn [db [_ ctx-menu]] (menues/show-context-menu db ctx-menu)))
 (re-frame/reg-event-db ::hide-context-menu [inter-check] (fn [db [_]] (menues/hide-context-menu db)))
 (re-frame/reg-event-db ::select-color [inter-check] (fn [db [_ color]] (tools/select-color db color)))
@@ -56,7 +58,8 @@
 (re-frame/reg-event-fx ::save-diagram [] (fn [cofxs _] (external/save-diagram (select-keys (:db cofxs)
                                                                                            [::rg/diagram
                                                                                             :project/colors
-                                                                                            :namespace/colors]))))
+                                                                                            :namespace/colors
+                                                                                            :node/comments]))))
 
 
 

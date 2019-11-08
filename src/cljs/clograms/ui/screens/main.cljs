@@ -25,9 +25,10 @@
   (let [ctx-menu @(re-frame/subscribe [::subs/ctx-menu])
         loading? @(re-frame/subscribe [::subs/loading?])]
     [:div
-     (when loading? [general-components/loading-spinner])
-     [:div.app-wrapper {:class (when loading? "loading")}
-      (when ctx-menu [menues/context-menu ctx-menu])
-      [toolbars/top-bar]
-      [toolbars/side-bar]
-      [diagram]]]))
+     (if loading?
+       [general-components/loading-spinner]
+       [:div.app-wrapper {:class (when loading? "loading")}
+        (when ctx-menu [menues/context-menu ctx-menu])
+        [toolbars/top-bar]
+        [toolbars/side-bar]
+        [diagram]])]))

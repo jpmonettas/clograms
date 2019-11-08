@@ -47,6 +47,15 @@
 
 }
 
+.diagram-wrapper .diagram-layer .node .node-wrapper .node-comment {
+  position: absolute;
+  opacity: 0.5;
+  border-radius: 3px;
+  background-color: #3c3836;
+  margin-left: 5%;
+  width: 90%;
+}
+
 .diagram-wrapper .diagram-layer .node-body {
   display: inline-block;
   color: #eee;

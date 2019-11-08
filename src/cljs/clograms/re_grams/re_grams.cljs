@@ -197,7 +197,8 @@
                     :on-click (fn [evt] (dispatch [::select-node (::id n)]))
                     :on-mouse-down (fn [evt]
                                      (.stopPropagation evt)
-                                     (.preventDefault evt)
+                                       ;; this makes things like text areas inside nodes unable to get focus
+                                     #_(.preventDefault evt)
                                      (when (= left-button (.-buttons evt))
                                        (dispatch [::grab {:diagram.object/type :node
                                                           ::id (::id n)

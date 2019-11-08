@@ -211,3 +211,8 @@
                                :project [(:project/name (db/project-entity ds-db (:project/id entity)))
                                          nil])]
      (or (get ns-colors ns-name) (get proj-colors proj-name)))))
+
+(re-frame/reg-sub
+ ::node-comment
+ (fn [db [_ node-id]]
+   (db/node-comment db node-id)))
