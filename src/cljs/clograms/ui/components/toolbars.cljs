@@ -54,8 +54,7 @@
                      (-> event
                          .-dataTransfer
                          (.setData "entity-data" {:entity/type :var
-                                                  :id (:var/id r)
-                                                  :link-to :first})))}
+                                                  :id (:var/id r)})))}
    [:div
     [:div.namespace-name (:namespace/name r)]
     [:div.var-name (name (:var/name r) )]]
@@ -141,19 +140,37 @@
    [entity-selector]
    [color-selector]])
 
+(defn draggable-re-frame-node [r]
+  [:li.draggable-entity
+   {:draggable true
+    :on-drag-start (fn [event]
+                     (-> event
+                         .-dataTransfer
+                         (.setData "entity-data" {:entity/type (:entity/type r)
+                                                  :id (:id r)})))}
+   [:div
+    [:div.namespace-name (:namespace/name r)]
+    [:div.var-name (name (:re-frame/key r))]]
+   [:div.project-name (str "(" (:project/name r) ")")]])
+
+(defn re-frame-subs-list []
+  (let [all-subs @(re-frame/subscribe [::subs/re-frame-subs])]
+    [:ul.list
+     (for [s all-subs]
+       ^{:key (str (:id s))}
+       [draggable-re-frame-node s])]))
+
 (defn side-bar []
-  (let [refs @(re-frame/subscribe [::subs/selected-var-refs])
-        tab @(re-frame/subscribe [::subs/selected-side-bar-tab])]
-    [:div.side-bar
-     [gral-components/accordion
-      :right-side-bar
-      {:project-browser {:title "Projects"
-                         :child [projects-browser]}
-       :re-frame-subs {:title "Re-frame subs"
+  [:div.side-bar
+   [gral-components/accordion
+    :right-side-bar
+    {:project-browser {:title "Projects"
+                       :child [projects-browser]}
+     :re-frame-subs {:title "Re-frame subs"
+                     :child [re-frame-subs-list]}
+     :re-frame-events {:title "Re-frame events"
                        :child [:div "-------------------------"]}
-       :re-frame-events {:title "Re-frame events"
-                         :child [:div "-------------------------"]}
-       :re-frame-fxs {:title "Re-frame effects"
-                         :child [:div "-------------------------"]}
-       :re-frame-cofx {:title "Re-frame co-effects"
-                         :child [:div "-------------------------"]}}]]))
+     :re-frame-fxs {:title "Re-frame effects"
+                    :child [:div "-------------------------"]}
+     :re-frame-cofx {:title "Re-frame co-effects"
+                     :child [:div "-------------------------"]}}]])

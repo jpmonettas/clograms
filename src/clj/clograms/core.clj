@@ -1,9 +1,12 @@
 (ns clograms.core
   (:require [datascript.core :as d]
             [clindex.api :as idx]
-            [clindex.schema :as schema]))
+            [clindex.schema :as schema]
+            [clograms.index.re-frame :as re-frame-idx]))
 
 (def current-platform (atom nil))
+(def extra-schema
+  (merge re-frame-idx/extra-schema))
 
 (defn- prepare-datoms-for-serialization [datoms]
   (->> datoms
@@ -18,6 +21,7 @@
   (reset! current-platform platform)
   (idx/index-project! folder
                       {:platforms #{platform}
+                       :extra-schema extra-schema
                        :on-new-facts
                        (fn [new-datoms]
                          (println (format "Pushing %d new datoms to the UI" (count new-datoms)))
@@ -28,7 +32,7 @@
   datascript-db-str)
 
 (defn db-edn []
-  (-> {:schema schema/schema
+  (-> {:schema (idx/db-schema)
        :datoms (-> (idx/db @current-platform)
                    (d/datoms  :eavt)
                    prepare-datoms-for-serialization)}

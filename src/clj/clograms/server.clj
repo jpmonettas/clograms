@@ -9,7 +9,8 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.cors :refer [wrap-cors]]
             [taoensso.sente :as sente]
-            [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])
+            [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]]
+            )
   (:gen-class))
 
 (defn build-websocket []

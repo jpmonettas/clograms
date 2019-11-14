@@ -19,6 +19,11 @@
  (fn [{:keys [selected-entity]} _]
    selected-entity))
 
+(re-frame/reg-sub
+ ::datascript-db
+ (fn [db _]
+   (:datascript/db db)))
+
 ;;;;;;;;;;;;;;;;;;;
 ;; Right sidebar ;;
 ;;;;;;;;;;;;;;;;;;;
@@ -88,7 +93,7 @@
      (when datascript-db
        (db/var-x-refs datascript-db var-id)))))
 
-(re-frame/reg-sub
+#_(re-frame/reg-sub
  ::selected-var-refs
  (fn [db _]
    (let [selected-entity (:entity (rg/selected-node db))
@@ -102,6 +107,15 @@
                           (remove same-as-selected)
                           (map #(assoc % :entity/type :var))
                           (into #{}))})))))
+
+;; Re-frame features subscriptions
+(re-frame/reg-sub
+ ::re-frame-subs
+ :<- [::datascript-db]
+ (fn [datascript-db]
+   (db/all-re-frame-subs datascript-db)))
+
+
 (re-frame/reg-sub
  ::ctx-menu
  (fn [{:keys [ctx-menu]}]
@@ -162,10 +176,6 @@
             source-str
             all-meta-at-origin)))
 
-(re-frame/reg-sub
- ::datascript-db
- (fn [db _]
-   (:datascript/db db)))
 
 (re-frame/reg-sub
  ::project-entity

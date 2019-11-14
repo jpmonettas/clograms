@@ -254,3 +254,16 @@
             var-id)
        (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
                       :function/source-str :var/id] %))))
+
+(defn all-re-frame-subs [datascript-db]
+  (->> (d/q '[:find ?subid ?subk ?nsn ?pn
+              :in $
+              :where
+              [?subid :re-frame.subs/key ?subk]
+              [?nsid :namespace/re-frame-subs ?subid]
+              [?nsid :namespace/name ?nsn]
+              [?pid :project/namespaces ?nsid]
+              [?pn :project/name ?pn]]
+            datascript-db)
+       (map #(zipmap [:id :re-frame/key :namespace/name :project/name] %))
+       (map #(assoc % :entity/type :re-frame-subs))))
