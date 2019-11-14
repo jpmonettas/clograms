@@ -7,8 +7,8 @@
 (s/def :diagram.node/type (s/nilable keyword?))
 (s/def :diagram.port/type (s/nilable keyword?))
 
-(s/def ::client-x (s/nilable number?)) ;; TODO: fix nilable
-(s/def ::client-y (s/nilable number?)) ;; TODO: fix nilable
+(s/def ::client-x number?)
+(s/def ::client-y number?)
 
 (s/def ::w number?)
 (s/def ::h number?)
@@ -24,13 +24,13 @@
 
 (s/def ::node (s/keys :req [::rg/id
                             :diagram.node/type]
-                      :req-un [::client-x
-                               ::client-y
-                               ::w
+                      :req-un [::w
                                ::h
                                ::x
                                ::y]
-                      :opt-un [::ports]))
+                      :opt-un [::ports
+                               ::client-x
+                               ::client-y]))
 
 (s/def ::from-port (s/tuple ::rg/id ::rg/id))
 (s/def ::to-port (s/tuple ::rg/id ::rg/id))

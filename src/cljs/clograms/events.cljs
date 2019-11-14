@@ -52,7 +52,6 @@
 (re-frame/reg-event-db ::side-bar-browser-back [inter-check] (fn [db _] (browser/side-bar-browser-back db)))
 (re-frame/reg-event-db ::side-bar-browser-select-project [inter-check] (fn [db [_ p]] (browser/side-bar-browser-select-project db p)))
 (re-frame/reg-event-db ::side-bar-browser-select-namespace [inter-check] (fn [db [_ ns]] (browser/side-bar-browser-select-namespace db ns)))
-(re-frame/reg-event-db ::unselect-node [inter-check] (fn [db [_]] (db/unselect-node db)))
 (re-frame/reg-event-fx ::load-diagram [inter-check] (fn [_ _] (external/load-diagram)))
 (re-frame/reg-event-db ::diagram-loaded [inter-check] (fn [db [_ diagram]] (external/diagram-loaded db diagram)))
 (re-frame/reg-event-fx ::save-diagram [] (fn [cofxs _] (external/save-diagram (select-keys (:db cofxs)

@@ -22,6 +22,17 @@
 
 (def border-radius "3px")
 
+(def debug
+  [[:.node-debug {:position :absolute
+                    :top "-83px"
+                    :font-size "10px"
+                    :opacity 0.5
+                  :z-index 10000}]
+   [:.debug-bar {:position :absolute
+                 :height "100px !important"
+                 :bottom "-50px"
+                 :left "10px"}]])
+
 (def diagram
   [:.diagram-wrapper {:width "100%"
                       :height "100%"
@@ -59,6 +70,8 @@
      [:.header {:display :flex
                 :justify-content :space-between
                 :margin-bottom "5px"}
+      [:.dispatch-val {:white-space :nowrap
+                       :font-size "12px"}]
       [:.collapse-node {:display :inline-block
                         :cursor :pointer
                         :background (color :side-bar)
@@ -227,4 +240,5 @@
    general
    top-bar
    side-bar
-   loading-spinner))
+   loading-spinner
+   debug))

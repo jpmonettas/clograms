@@ -11,14 +11,15 @@
   (let [node-color (re-frame/subscribe [::subs/node-color (:entity node)])
         node-comment (re-frame/subscribe [::subs/node-comment (::rg/id node)])]
     (fn [{:keys [ctx-menu node]} child]
-     [:div.node-wrapper {:on-context-menu (fn [evt]
-                                            (let [x (.. evt -nativeEvent -pageX)
-                                                  y (.. evt -nativeEvent -pageY)]
-                                              (re-frame/dispatch
-                                               [::events/show-context-menu
-                                                {:x x
-                                                 :y y
-                                                 :menu ctx-menu}])))
+      [:div.node-wrapper {:on-context-menu (fn [evt]
+                                             (.preventDefault evt)
+                                             (let [x (.. evt -nativeEvent -pageX)
+                                                   y (.. evt -nativeEvent -pageY)]
+                                               (re-frame/dispatch
+                                                [::events/show-context-menu
+                                                 {:x x
+                                                  :y y
+                                                  :menu ctx-menu}])))
                          :on-double-click (fn [evt]
                                             (re-frame/dispatch [::events/set-node-comment (::rg/id node) ""]))
                          :style (when-let [color @node-color]

@@ -13,6 +13,9 @@
                                          (map-indexed #(vector %2 %1))
                                          (into {})))
 
+(defn diagram [db]
+  (::rg/diagram db))
+
 (defn select-project [db p-id]
   (assoc-in db [:projects-browser :selected-project] p-id))
 
@@ -60,9 +63,6 @@
 
 (defn update-side-bar-browser-level [db f]
  (update-in db [:projects-browser :level] f))
-
-(defn unselect-node [db]
-  (assoc-in db [:diagram :selected-node] nil))
 
 (defn loading? [db]
   (:loading? db))

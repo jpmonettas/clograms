@@ -44,13 +44,13 @@
 
 (defn client-coord->dia-coord [{:keys [translate scale]} [client-x client-y]]
   (let [[tx ty] translate]
-    [(/ (- client-x tx) scale)
-     (/ (- client-y ty) scale)]))
+    [(quot (- client-x tx) scale)
+     (quot (- client-y ty) scale)]))
 
 (defn dia-coord->client-coord [{:keys [translate scale]} [dia-x dia-y]]
   (let [[tx ty] translate]
-    [(* (+ dia-x tx) scale)
-     (* (+ dia-y ty) scale)]))
+    [(int (* (+ dia-x tx) scale))
+     (int (* (+ dia-y ty) scale))]))
 
 (defn grab [db grab-obj client-grab-origin]
   (assoc-in db [::diagram :grab] {:cli-origin client-grab-origin
@@ -69,9 +69,12 @@
                                                                           :x 0 :y 0 :w 0 :h 0}
                                                                          port))))
 
-(defn add-node [db {:keys [:client-x :client-y ::id] :as data} & [ports]]
+(defn add-node [db {:keys [:client-x :client-y :x :y ::id] :as data} & [ports]]
   (let [node-id (or id (gen-random-id))
-        [dia-x dia-y] (client-coord->dia-coord (::diagram db) [(or client-x 500) (or client-y 500)])
+        [dia-x dia-y] (cond
+                        (and x y) [x y]
+                        (and client-x client-y) (client-coord->dia-coord (::diagram db) [client-x client-y])
+                        :else (client-coord->dia-coord (::diagram db) [500 500]))
         db' (update-in db [::diagram :nodes] assoc node-id (merge {::id node-id
                                                                    :x dia-x
                                                                    :y dia-y
@@ -128,8 +131,8 @@
     (update-in db [::diagram :nodes node-id :ports port-id]
               (fn [dims]
                 (assoc dims
-                       :w (/ w scale)
-                       :h (/ h scale)
+                       :w (quot w scale)
+                       :h (quot h scale)
                        :x x
                        :y y)))))
 
@@ -174,11 +177,31 @@
     (update-in db [::diagram :nodes node-id]
                (fn [dims]
                  (assoc dims
-                        :w (/ w scale)
-                        :h (/ h scale))))))
+                        :w (quot w scale)
+                        :h (quot h scale))))))
 
 (def left-button 1)
 (def right-button 2)
+
+;; Graphical debugging stuff
+
+(def debug false)
+
+(defn node-debug [{:keys [x y w h] :as node}]
+  (let [s @(subscribe [::scale])
+        t @(subscribe [::translate])
+        [cx cy] (dia-coord->client-coord {:translate t :scale s} [x y])]
+   [:ul.node-debug
+    [:li (str "x: " x)]
+    [:li (str "y: " y)]
+    [:li (str "w: " w)]
+    [:li (str "h: " h)]
+    [:li (str "cx: " cx)]
+    [:li (str "cy: " cy)]]))
+
+(defn debug-bar [scale translate]
+  [:div.debug-bar
+   [:span (gstring/format "translate: %s, scale: %1.3f" translate scale)]])
 
 (defn node [n]
   (let [node-component (get @node-components (:diagram.node/type n) default-node)
@@ -207,6 +230,7 @@
                     :style {:position :absolute
                             :top (:y n)
                             :left (:x n)}}
+         (when debug [node-debug n])
          [:div.ports {:style {:display :flex
                               :justify-content :space-between}}
           (for [p (vals (:ports n))]
@@ -258,7 +282,7 @@
                     new-translate-y (+ ty y-scale-diff)]
                 (if (< min-scale new-scale max-scale)
                   (assoc dia
-                         :translate [new-translate-x new-translate-y]
+                         :translate [(int new-translate-x) (int new-translate-y)]
                          :scale new-scale)
                   dia))))))
 
@@ -270,7 +294,7 @@
 
 (defn link [nodes {:keys [from-port to-port]  :as l}]
   (let [center (fn [{:keys [x y w h]}] (when (and x y w h)
-                                         [(+ x (/ w 2)) (+ y (/ h 2))]))
+                                         [(+ x (quot w 2)) (+ y (quot h 2))]))
         [from-n from-p] from-port
         [to-n to-p] to-port
         [x1 y1] (center (get-in nodes [from-n :ports from-p]))
@@ -302,6 +326,7 @@
                                                                   (dispatch [::drag [(.-clientX evt) (.-clientY evt)]])))
                                                :on-mouse-up (fn [evt]
                                                               (dispatch [::grab-release]))}
+                         (when debug [debug-bar scale translate])
                          [:div.transform-div {:style {:transform (gstring/format "translate(%dpx,%dpx) scale(%f)" tx ty scale)
                                                       :transform-origin "0px 0px"
                                                       :height "100%"
