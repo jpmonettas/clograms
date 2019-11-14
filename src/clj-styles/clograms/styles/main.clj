@@ -112,9 +112,10 @@
     [:.context-menu {:background (color :side-bar)
                      :min-width "200px"
                      :border-radius border-radius
-                     :overflow :hidden}
-     [:ul
-      [:li {:padding "10px"
+                     :overflow :hidden
+                     :font-size "11px"}
+     [:ul {:padding "10px"}
+      [:li {:padding "4px"
             :cursor :pointer}
        [:&:hover {:background-color (color :selection)}]]]]
     [:ul {:list-style :none
@@ -234,6 +235,20 @@
        :position :relative}]]]
    (at-keyframes :rotate [:to {:transform "rotate(360deg)"}])])
 
+(def accordion
+  [:.accordion
+   [:.item {:border "1px solid"
+            :border-color (color :grey)
+            :padding "2px"}
+    [:.body {:display :none}]
+
+    [:&.active {:margin-top "4px"
+                :margin-bottom "4px"}
+     [:.body {:display :block
+              :max-height "500px"
+              :overflow :scroll}]]
+    ]])
+
 ;; This creates resources/public/css/main.css
 (def ^:garden main
   (list
@@ -242,4 +257,8 @@
    top-bar
    side-bar
    loading-spinner
-   debug))
+   debug
+
+   ;; components
+   accordion
+   ))

@@ -1,4 +1,5 @@
-(ns clograms.ui.components.general)
+(ns clograms.ui.components.general
+  (:require [re-frame.core :refer [subscribe dispatch]]))
 
 (defn loading-spinner []
   [:div.loading-overlay
@@ -22,3 +23,14 @@
       [:stop {:offset "100%"
               :stop-color "#e7ebf8"
               :stop-opacity "0"}]]]]])
+
+(defn accordion [accordion-id items-map]
+  (let [active-item @(subscribe [:accordion/active-item accordion-id])]
+   [:div.accordion
+    (for [[item-id {:keys [title child]}] items-map]
+      ^{:key (str item-id)}
+      [:div.item {:class (when (= item-id active-item) "active")}
+       [:div.title {:on-click #(dispatch [:accordion/activate-item accordion-id item-id])}
+        title]
+       [:div.body
+        child]])]))

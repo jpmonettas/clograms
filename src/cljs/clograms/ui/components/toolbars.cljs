@@ -4,7 +4,8 @@
             [clograms.events :as events]
             [clojure.string :as str]
             [re-com.core :as re-com]
-            [clograms.db :as db]))
+            [clograms.db :as db]
+            [clograms.ui.components.general :as gral-components]))
 
 (defn draggable-project [project]
   [:div.draggable-project.draggable-entity
@@ -60,7 +61,7 @@
     [:div.var-name (name (:var/name r) )]]
    [:div.project-name (str "(" (:project/name r) ")")]])
 
-(defn selected-var-browser []
+#_(defn selected-var-browser []
   (let [refs (re-frame/subscribe [::subs/selected-var-refs])
         var-list (fn [vars]
                    [:ul
@@ -144,14 +145,15 @@
   (let [refs @(re-frame/subscribe [::subs/selected-var-refs])
         tab @(re-frame/subscribe [::subs/selected-side-bar-tab])]
     [:div.side-bar
-     [re-com/horizontal-tabs
-      :model tab
-      :class "side-bar-tabs"
-      :tabs [{:id :projects-browser
-              :label "Browser"}
-             {:id :selected-browser
-              :label "Selection"}]
-      :on-change #(re-frame/dispatch [::events/select-side-bar-tab %])]
-     (case tab
-       :projects-browser [projects-browser]
-       :selected-browser [selected-var-browser])]))
+     [gral-components/accordion
+      :right-side-bar
+      {:project-browser {:title "Projects"
+                         :child [projects-browser]}
+       :re-frame-subs {:title "Re-frame subs"
+                       :child [:div "-------------------------"]}
+       :re-frame-events {:title "Re-frame events"
+                         :child [:div "-------------------------"]}
+       :re-frame-fxs {:title "Re-frame effects"
+                         :child [:div "-------------------------"]}
+       :re-frame-cofx {:title "Re-frame co-effects"
+                         :child [:div "-------------------------"]}}]]))

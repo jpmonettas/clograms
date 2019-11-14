@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [datascript.core :as d]
             [clograms.db :refer [project-browser-level-idx->key] :as db]
+            [clograms.db.components :as components-db]
             [clograms.re-grams.re-grams :as rg]
             [clograms.utils :as utils]
             [clojure.zip :as zip]
@@ -18,10 +19,14 @@
  (fn [{:keys [selected-entity]} _]
    selected-entity))
 
+;;;;;;;;;;;;;;;;;;;
+;; Right sidebar ;;
+;;;;;;;;;;;;;;;;;;;
+
 (re-frame/reg-sub
- ::selected-side-bar-tab
- (fn [{:keys [side-bar]} _]
-   (:selected-side-bar-tab side-bar)))
+ :accordion/active-item
+ (fn [db [_ accordion-id]]
+   (components-db/accordion-active-item db accordion-id)))
 
 (re-frame/reg-sub
  ::side-bar-browser-level

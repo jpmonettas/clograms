@@ -150,10 +150,15 @@ body .app-wrapper .context-menu {
   min-width: 200px;
   border-radius: 3px;
   overflow: hidden;
+  font-size: 11px;
+}
+
+body .app-wrapper .context-menu ul {
+  padding: 10px;
 }
 
 body .app-wrapper .context-menu ul li {
-  padding: 10px;
+  padding: 4px;
   cursor: pointer;
 }
 
@@ -410,4 +415,25 @@ body .app-wrapper .draggable-var .var-type {
   height: 100px !important;
   bottom: -50px;
   left: 10px;
+}
+
+.accordion .item {
+  border: 1px solid;
+  border-color: ;
+  padding: 2px;
+}
+
+.accordion .item .body {
+  display: none;
+}
+
+.accordion .item.active {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.accordion .item.active .body {
+  display: block;
+  max-height: 500px;
+  overflow: scroll;
 }

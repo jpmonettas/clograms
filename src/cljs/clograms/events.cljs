@@ -1,6 +1,7 @@
 (ns clograms.events
   (:require [re-frame.core :as re-frame]
             [clograms.db :as db]
+            [clograms.db.components :as components-db]
             [reagent.dom :as rdom]
             [day8.re-frame.http-fx]
             [datascript.core :as d]
@@ -48,7 +49,6 @@
 (re-frame/reg-event-db ::select-color [inter-check] (fn [db [_ color]] (tools/select-color db color)))
 (re-frame/reg-event-db ::set-namespace-color [inter-check] (fn [db [_ ns-name]] (tools/set-namespace-color db ns-name)))
 (re-frame/reg-event-db ::set-project-color [inter-check] (fn [db [_ project-name]] (tools/set-project-color db project-name)))
-(re-frame/reg-event-db ::select-side-bar-tab [inter-check] (fn [db [_ tab]] (db/select-side-bar-tab db tab)))
 (re-frame/reg-event-db ::side-bar-browser-back [inter-check] (fn [db _] (browser/side-bar-browser-back db)))
 (re-frame/reg-event-db ::side-bar-browser-select-project [inter-check] (fn [db [_ p]] (browser/side-bar-browser-select-project db p)))
 (re-frame/reg-event-db ::side-bar-browser-select-namespace [inter-check] (fn [db [_ ns]] (browser/side-bar-browser-select-namespace db ns)))
@@ -59,7 +59,7 @@
                                                                                             :project/colors
                                                                                             :namespace/colors
                                                                                             :node/comments]))))
-
+(re-frame/reg-event-db :accordion/activate-item [] (fn [db [_ accordion-id item-id]] (components-db/accordion-activate-item db accordion-id item-id)))
 
 
 (comment
