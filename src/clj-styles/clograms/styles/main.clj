@@ -70,6 +70,7 @@
      [:.header {:display :flex
                 :justify-content :space-between
                 :margin-bottom "5px"}
+      [:.title {:whitespace :nowrap}]
       [:.dispatch-val {:white-space :nowrap
                        :font-size "12px"}]
       [:.collapse-node {:display :inline-block

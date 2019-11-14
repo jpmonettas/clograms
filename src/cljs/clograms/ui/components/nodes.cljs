@@ -60,7 +60,7 @@
         [:div.namespace-node.custom-node
          [:div.node-body
           [:div.header
-           [:div
+           [:div.title
             [:span.namespace-name (str (:namespace/name ns))]
             [:span.project-name (str "(" (:project/name ns) ")")]]
            [:div.collapse-node {:on-click #(swap! collapsed not)} "^"]]
@@ -80,7 +80,7 @@
         [:div.var-node.custom-node
          [:div.node-body
           [:div.header
-           [:div
+           [:div.title
             [:span.namespace-name (str (:namespace/name var) "/")]
             [:span.var-name (:var/name var)]]
            [:div.collapse-node {:on-click #(swap! collapsed not)} "^"]]
@@ -103,7 +103,7 @@
         [:div.var-node.custom-node
          [:div.node-body
           [:div.header
-           [:div
+           [:div.title
             [:span.namespace-name (str (:namespace/name mm) "/")]
             [:span.var-name (:var/name mm)]]]
           [:div

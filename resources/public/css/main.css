@@ -67,6 +67,10 @@
   margin-bottom: 5px;
 }
 
+.diagram-wrapper .diagram-layer .node-body .header .title {
+  whitespace: nowrap;
+}
+
 .diagram-wrapper .diagram-layer .node-body .header .dispatch-val {
   white-space: nowrap;
   font-size: 12px;
