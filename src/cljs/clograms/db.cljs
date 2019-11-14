@@ -263,7 +263,7 @@
               [?nsid :namespace/re-frame-subs ?subid]
               [?nsid :namespace/name ?nsn]
               [?pid :project/namespaces ?nsid]
-              [?pn :project/name ?pn]]
+              [?pid :project/name ?pn]]
             datascript-db)
        (map #(zipmap [:id :re-frame/key :namespace/name :project/name] %))
        (map #(assoc % :entity/type :re-frame-subs))))

@@ -110,10 +110,19 @@
 
 ;; Re-frame features subscriptions
 (re-frame/reg-sub
- ::re-frame-subs
+ ::re-frame-subs-tree
  :<- [::datascript-db]
  (fn [datascript-db]
-   (db/all-re-frame-subs datascript-db)))
+   (->> (db/all-re-frame-subs datascript-db)
+        (group-by :namespace/name)
+        (map (fn [[ns-symb ns-subs]]
+               {:type :namespace
+                :data {:namespace/name ns-symb
+                       :project/name (:project/name (first ns-subs))}
+                :childs (map (fn [sub]
+                               {:data sub
+                                :type :subscription})
+                             ns-subs)})))))
 
 
 (re-frame/reg-sub

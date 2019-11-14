@@ -228,6 +228,10 @@ body .app-wrapper .draggable-var .var-type {
   margin-right: 3px;
 }
 
+body .app-wrapper .draggable-re-frame-feature {
+  border: 1px solid #689d6a;
+}
+
 .top-bar {
   position: absolute;
   z-index: 10;
@@ -298,7 +302,7 @@ body .app-wrapper .draggable-var .var-type {
   top: 0px;
   right: 0px;
   height: 100%;
-  width: 300px;
+  width: 350px;
   background-color: #3c3836;
   z-index: 10;
 }
@@ -436,4 +440,17 @@ body .app-wrapper .draggable-var .var-type {
   display: block;
   max-height: 500px;
   overflow: scroll;
+}
+
+.tree .childs {
+  margin-left: 5px;
+}
+
+.tree.re-frame-feature .namespace {
+  font-size: 12px;
+}
+
+.tree.re-frame-feature .namespace .project-name {
+  font-size: 10px;
+  opacity: 0.7;
 }

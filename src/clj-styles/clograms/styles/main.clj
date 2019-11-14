@@ -141,7 +141,8 @@
              :border-radius border-radius}
       [:&.private {:background-color (color :red)}]
       [:&.public {:background-color (color :green)}]]
-     [:.var-type {:margin-right "3px"}]]]])
+     [:.var-type {:margin-right "3px"}]]
+    [:.draggable-re-frame-feature {:border (str "1px solid " (color :var-node))}]]])
 
 (def top-bar
   [:.top-bar {:position :absolute
@@ -181,7 +182,7 @@
                :top "0px"
                :right "0px"
                :height "100%"
-               :width "300px"
+               :width "350px"
                :background-color (color :side-bar)
                :z-index 10}
    [:.side-bar-tabs {}
@@ -249,6 +250,16 @@
               :overflow :scroll}]]
     ]])
 
+(def tree
+  [:.tree
+   [:.childs {:margin-left "5px"}]
+
+   [:&.re-frame-feature
+    [:.namespace {:font-size "12px"}
+     [:.project-name {:font-size "10px"
+                      :opacity 0.7}]]]
+   ])
+
 ;; This creates resources/public/css/main.css
 (def ^:garden main
   (list
@@ -261,4 +272,5 @@
 
    ;; components
    accordion
+   tree
    ))
