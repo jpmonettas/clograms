@@ -37,6 +37,10 @@
   (re/register-node-component! :clograms/namespace-node nodes/namespace-node-component)
   (re/register-node-component! :clograms/function-node nodes/function-node-component)
   (re/register-node-component! :clograms/multimethod-node nodes/multimethod-node-component)
+  (re/register-node-component! :clograms/re-frame-subs-node nodes/re-frame-subs-node-component)
+  (re/register-node-component! :clograms/re-frame-event-node nodes/re-frame-event-node-component)
+  (re/register-node-component! :clograms/re-frame-fx-node nodes/re-frame-fx-node-component)
+  (re/register-node-component! :clograms/re-frame-cofx-node nodes/re-frame-cofx-node-component)
   (re-frame/clear-subscription-cache!)
   (reagent/render [main-screen/main-panel]
                   (.getElementById js/document "app")))

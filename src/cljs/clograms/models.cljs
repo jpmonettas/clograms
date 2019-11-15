@@ -27,3 +27,27 @@
   {:entity {:entity/type :multimethod
             :var/id var-id}
    :diagram.node/type :clograms/multimethod-node})
+
+(defmethod build-node :re-frame-subs
+  [_ id]
+  {:entity {:entity/type :re-frame-subs
+            :id id}
+   :diagram.node/type :clograms/re-frame-subs-node})
+
+(defmethod build-node :re-frame-event
+  [_ id]
+  {:entity {:entity/type :re-frame-event
+            :id id}
+   :diagram.node/type :clograms/re-frame-event-node})
+
+(defmethod build-node :re-frame-fx
+  [_ id]
+  {:entity {:entity/type :re-frame-fx
+            :id id}
+   :diagram.node/type :clograms/re-frame-fx-node})
+
+(defmethod build-node :re-frame-cofx
+  [_ id]
+  {:entity {:entity/type :re-frame-cofx
+            :id id}
+   :diagram.node/type :clograms/re-frame-cofx-node})

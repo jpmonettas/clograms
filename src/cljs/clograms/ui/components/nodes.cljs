@@ -117,3 +117,51 @@
                (when (@expanded (:multimethod/dispatch-val method))
                  [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
                                :dangerouslySetInnerHTML {:__html (:multimethod/source-str method)}}])]))]]]]))))
+
+(defn re-frame-subs-node-component [{:keys [entity] :as node}]
+  (let [s @(re-frame/subscribe [::subs/re-frame-subs-entity (:id entity)])]
+    [node-wrapper {:node node
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name s))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name s))
+                              (menues/remove-ctx-menu-option node)]}
+     [:div.custom-node.re-frame-node
+      [:div.node-body
+       [:div.header
+        [:div.title "Re frame subscription"]]
+       [:div (str (:re-frame.subs/key s))]]]]))
+
+(defn re-frame-event-node-component [{:keys [entity] :as node}]
+  (let [e @(re-frame/subscribe [::subs/re-frame-event-entity (:id entity)])]
+    [node-wrapper {:node node
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name e))
+                              (menues/remove-ctx-menu-option node)]}
+     [:div.custom-node.re-frame-node
+      [:div.node-body
+       [:div.header
+        [:div.title "Re frame event"]]
+       [:div (str (:re-frame.event/key e))]]]]))
+
+(defn re-frame-fx-node-component [{:keys [entity] :as node}]
+  (let [e @(re-frame/subscribe [::subs/re-frame-fx-entity (:id entity)])]
+    [node-wrapper {:node node
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name e))
+                              (menues/remove-ctx-menu-option node)]}
+     [:div.custom-node.re-frame-node
+      [:div.node-body
+       [:div.header
+        [:div.title "Re frame effect"]]
+       [:div (str (:re-frame.fx/key e))]]]]))
+
+(defn re-frame-cofx-node-component [{:keys [entity] :as node}]
+  (let [e @(re-frame/subscribe [::subs/re-frame-cofx-entity (:id entity)])]
+    [node-wrapper {:node node
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name e))
+                              (menues/remove-ctx-menu-option node)]}
+     [:div.custom-node.re-frame-node
+      [:div.node-body
+       [:div.header
+        [:div.title "Re frame co-effect"]]
+       [:div (str (:re-frame.cofx/key e))]]]]))

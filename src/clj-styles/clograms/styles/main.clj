@@ -101,7 +101,8 @@
                 :font-size "10px"
                 :max-height "200px"
                 :border :unset
-                :background-color (color :main-font)}]]]])
+                :background-color (color :main-font)}]]
+    [:.re-frame-node {:border (str "2px solid " (color :var-node))}]]])
 
 (def general
   [:body {:font-size "11px"

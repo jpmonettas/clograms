@@ -178,6 +178,38 @@
      :namespace/name (:namespace/name ns)
      :namespace/docstring (:namespace/docstring ns)}))
 
+(defn re-frame-subs-entity [datascript-db id]
+  (let [sub (d/entity datascript-db id)
+        ns (:namespace/_re-frame-subs sub)]
+    {:id id
+     :re-frame.subs/key (:re-frame.subs/key sub)
+     :project/name (:project/name (:project/_namespaces ns))
+     :namespace/name (:namespace/name ns)}))
+
+(defn re-frame-event-entity [datascript-db id]
+  (let [e (d/entity datascript-db id)
+        ns (:namespace/_re-frame-events e)]
+    {:id id
+     :re-frame.event/key (:re-frame.event/key e)
+     :project/name (:project/name (:project/_namespaces ns))
+     :namespace/name (:namespace/name ns)}))
+
+(defn re-frame-fx-entity [datascript-db id]
+  (let [e (d/entity datascript-db id)
+        ns (:namespace/_re-frame-fxs e)]
+    {:id id
+     :re-frame.fx/key (:re-frame.fx/key e)
+     :project/name (:project/name (:project/_namespaces ns))
+     :namespace/name (:namespace/name ns)}))
+
+(defn re-frame-cofx-entity [datascript-db id]
+  (let [e (d/entity datascript-db id)
+        ns (:namespace/_re-frame-cofxs e)]
+    {:id id
+     :re-frame.cofx/key (:re-frame.cofx/key e)
+     :project/name (:project/name (:project/_namespaces ns))
+     :namespace/name (:namespace/name ns)}))
+
 (defn all-entities [datascript-db]
   (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fsrcf ?fsrcs
               :in $
@@ -255,15 +287,25 @@
        (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
                       :function/source-str :var/id] %))))
 
-(defn all-re-frame-subs [datascript-db]
+(defn all-re-frame-feature [datascript-db feature-key]
   (->> (d/q '[:find ?subid ?subk ?nsn ?pn
-              :in $
+              :in $ ?key ?nskey
               :where
-              [?subid :re-frame.subs/key ?subk]
-              [?nsid :namespace/re-frame-subs ?subid]
+              [?subid ?key ?subk]
+              [?nsid ?nskey ?subid]
               [?nsid :namespace/name ?nsn]
               [?pid :project/namespaces ?nsid]
               [?pid :project/name ?pn]]
-            datascript-db)
+            datascript-db
+            (case feature-key
+              :re-frame-subs :re-frame.subs/key
+              :re-frame-event :re-frame.event/key
+              :re-frame-fx :re-frame.fx/key
+              :re-frame-cofx :re-frame.cofx/key)
+            (case feature-key
+              :re-frame-subs :namespace/re-frame-subs
+              :re-frame-event :namespace/re-frame-events
+              :re-frame-fx :namespace/re-frame-fxs
+              :re-frame-cofx :namespace/re-frame-cofxs))
        (map #(zipmap [:id :re-frame/key :namespace/name :project/name] %))
-       (map #(assoc % :entity/type :re-frame-subs))))
+       (map #(assoc % :entity/type feature-key))))

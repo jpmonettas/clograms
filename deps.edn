@@ -15,6 +15,6 @@
         com.taoensso/sente             {:mvn/version "1.14.0"}
         http-kit                       {:mvn/version "2.3.0"}
 
-        clindex                        {:mvn/version "0.2.3"}
+        clindex                        {:mvn/version "0.2.4"}
         ;; clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
         }}

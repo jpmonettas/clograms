@@ -135,6 +135,10 @@
   background-color: #eee;
 }
 
+.diagram-wrapper .diagram-layer .re-frame-node {
+  border: 2px solid #689d6a;
+}
+
 body {
   font-size: 11px;
   background-color: #504945 !important;

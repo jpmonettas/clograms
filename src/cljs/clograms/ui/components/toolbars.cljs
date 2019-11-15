@@ -154,6 +154,7 @@
 (defn tree-nodes [comp-map childs]
   [:div.childs
    (for [c childs]
+     ^{:key (str (:data c))}
      [:div.child
       [(get comp-map (:type c)) (:data c)]
       (when (seq (:childs c))
@@ -164,24 +165,36 @@
    [tree-nodes comp-map childs]])
 
 (defn side-bar []
-  [:div.side-bar
-   [gral-components/accordion
-    :right-side-bar
-    {:project-browser {:title "Projects"
-                       :child [projects-browser]}
-     :re-frame-subs {:title "Re-frame subs"
-                     :child (let [namespace-node (fn [n]
-                                                   [:div.namespace
-                                                    [:span.namespace-name (:namespace/name n)]
-                                                    [:span.project-name (str "(" (:project/name n) ")")]])]
-                              [tree
+  (let [namespace-node (fn [n]
+                         [:div.namespace
+                          [:span.namespace-name (:namespace/name n)]
+                          [:span.project-name (str "(" (:project/name n) ")")]])]
+    [:div.side-bar
+     [gral-components/accordion
+      :right-side-bar
+      {:project-browser {:title "Projects"
+                         :child [projects-browser]}
+       :re-frame-subs {:title "Re-frame subs"
+                       :child [tree
                                {:class :re-frame-feature}
                                {:namespace namespace-node
-                                :subscription draggable-re-frame-node}
-                               @(re-frame/subscribe [::subs/re-frame-subs-tree])])}
-     :re-frame-events {:title "Re-frame events"
-                       :child [:div "-------------------------"]}
-     :re-frame-fxs {:title "Re-frame effects"
-                    :child [:div "-------------------------"]}
-     :re-frame-cofx {:title "Re-frame co-effects"
-                     :child [:div "-------------------------"]}}]])
+                                :re-frame-subs draggable-re-frame-node}
+                               @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-subs])]}
+       :re-frame-events {:title "Re-frame events"
+                         :child [tree
+                                 {:class :re-frame-feature}
+                                 {:namespace namespace-node
+                                  :re-frame-event draggable-re-frame-node}
+                                 @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-event])]}
+       :re-frame-fxs {:title "Re-frame effects"
+                      :child [tree
+                              {:class :re-frame-feature}
+                              {:namespace namespace-node
+                               :re-frame-fx draggable-re-frame-node}
+                              @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-fx])]}
+       :re-frame-cofx {:title "Re-frame co-effects"
+                       :child [tree
+                               {:class :re-frame-feature}
+                               {:namespace namespace-node
+                                :re-frame-cofx draggable-re-frame-node}
+                               @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-cofx])]}}]]))

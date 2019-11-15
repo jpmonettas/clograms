@@ -110,10 +110,10 @@
 
 ;; Re-frame features subscriptions
 (re-frame/reg-sub
- ::re-frame-subs-tree
+ ::re-frame-feature-tree
  :<- [::datascript-db]
- (fn [datascript-db]
-   (->> (db/all-re-frame-subs datascript-db)
+ (fn [datascript-db [_ feature-key]]
+   (->> (db/all-re-frame-feature datascript-db feature-key)
         (group-by :namespace/name)
         (map (fn [[ns-symb ns-subs]]
                {:type :namespace
@@ -121,7 +121,7 @@
                        :project/name (:project/name (first ns-subs))}
                 :childs (map (fn [sub]
                                {:data sub
-                                :type :subscription})
+                                :type feature-key})
                              ns-subs)})))))
 
 
@@ -217,6 +217,30 @@
                            (update method :multimethod/source-str enhance-source-str var-id (:multimethod/source-form method) node-id)))))))))
 
 (re-frame/reg-sub
+ ::re-frame-subs-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ id]]
+   (db/re-frame-subs-entity datascript-db id)))
+
+(re-frame/reg-sub
+ ::re-frame-event-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ id]]
+   (db/re-frame-event-entity datascript-db id)))
+
+(re-frame/reg-sub
+ ::re-frame-fx-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ id]]
+   (db/re-frame-fx-entity datascript-db id)))
+
+(re-frame/reg-sub
+ ::re-frame-cofx-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ id]]
+   (db/re-frame-cofx-entity datascript-db id)))
+
+(re-frame/reg-sub
  ::node-color
  :<- [::datascript-db]
  :<- [::project-colors]
@@ -233,7 +257,11 @@
                                             [(-> nse :project/_namespaces :project/name)
                                              (:namespace/name nse)])
                                :project [(:project/name (db/project-entity ds-db (:project/id entity)))
-                                         nil])]
+                                         nil]
+                               :re-frame-subs  (let [r (db/re-frame-subs-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)])
+                               :re-frame-event (let [r (db/re-frame-event-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)])
+                               :re-frame-fx    (let [r (db/re-frame-fx-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)])
+                               :re-frame-cofx  (let [r (db/re-frame-cofx-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)]))]
      (or (get ns-colors ns-name) (get proj-colors proj-name)))))
 
 (re-frame/reg-sub
