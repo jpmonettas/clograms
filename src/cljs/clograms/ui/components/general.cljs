@@ -25,7 +25,8 @@
               :stop-opacity "0"}]]]]])
 
 (defn accordion [accordion-id items-map]
-  (let [active-item @(subscribe [:accordion/active-item accordion-id])]
+  (let [active-item (or @(subscribe [:accordion/active-item accordion-id])
+                        (first (keys items-map)))]
    [:div.accordion
     (for [[item-id {:keys [title child]}] items-map]
       ^{:key (str item-id)}

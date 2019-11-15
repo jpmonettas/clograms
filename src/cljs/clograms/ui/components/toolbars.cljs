@@ -168,33 +168,37 @@
   (let [namespace-node (fn [n]
                          [:div.namespace
                           [:span.namespace-name (:namespace/name n)]
-                          [:span.project-name (str "(" (:project/name n) ")")]])]
+                          [:span.project-name (str "(" (:project/name n) ")")]])
+        re-frame-subs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-subs])
+        re-frame-events @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-event])
+        re-frame-fxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-fx])
+        re-frame-cofxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-cofx])]
     [:div.side-bar
      [gral-components/accordion
       :right-side-bar
-      {:project-browser {:title "Projects"
-                         :child [projects-browser]}
-       :re-frame-subs {:title "Re-frame subs"
-                       :child [tree
-                               {:class :re-frame-feature}
-                               {:namespace namespace-node
-                                :re-frame-subs draggable-re-frame-node}
-                               @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-subs])]}
-       :re-frame-events {:title "Re-frame events"
-                         :child [tree
-                                 {:class :re-frame-feature}
-                                 {:namespace namespace-node
-                                  :re-frame-event draggable-re-frame-node}
-                                 @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-event])]}
-       :re-frame-fxs {:title "Re-frame effects"
-                      :child [tree
-                              {:class :re-frame-feature}
-                              {:namespace namespace-node
-                               :re-frame-fx draggable-re-frame-node}
-                              @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-fx])]}
-       :re-frame-cofx {:title "Re-frame co-effects"
-                       :child [tree
-                               {:class :re-frame-feature}
-                               {:namespace namespace-node
-                                :re-frame-cofx draggable-re-frame-node}
-                               @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-cofx])]}}]]))
+      (cond-> {:project-browser {:title "Projects"
+                                 :child [projects-browser]}}
+        (seq re-frame-subs) (assoc :re-frame-subs {:title "Re-frame subs"
+                                                   :child [tree
+                                                           {:class :re-frame-feature}
+                                                           {:namespace namespace-node
+                                                            :re-frame-subs draggable-re-frame-node}
+                                                           re-frame-subs]})
+        (seq re-frame-events) (assoc :re-frame-events {:title "Re-frame events"
+                                                       :child [tree
+                                                               {:class :re-frame-feature}
+                                                               {:namespace namespace-node
+                                                                :re-frame-event draggable-re-frame-node}
+                                                               re-frame-events]})
+        (seq re-frame-fxs) (assoc :re-frame-fxs {:title "Re-frame effects"
+                                                 :child [tree
+                                                         {:class :re-frame-feature}
+                                                         {:namespace namespace-node
+                                                          :re-frame-fx draggable-re-frame-node}
+                                                         re-frame-fxs]})
+        (seq re-frame-cofxs) (assoc :re-frame-cofx {:title "Re-frame co-effects"
+                                                    :child [tree
+                                                            {:class :re-frame-feature}
+                                                            {:namespace namespace-node
+                                                             :re-frame-cofx draggable-re-frame-node}
+                                                            re-frame-cofxs]}))]]))
