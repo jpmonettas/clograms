@@ -15,9 +15,9 @@
 (s/def ::x number?)
 (s/def ::y number?)
 
-(s/def ::selected-side-bar-tab #{:projects-browser :selected-browser})
+(s/def ::query string?)
 
-(s/def ::side-bar (s/keys :req-un [::selected-side-bar-tab]))
+(s/def ::side-bar (s/keys :req-un [::query]))
 
 (s/def ::level #{0 1 2})
 

@@ -1,7 +1,8 @@
 (ns clograms.db
   (:require [clograms.re-grams.re-grams :as rg]
             [datascript.core :as d]
-            [cljs.tools.reader :as tools-reader]))
+            [cljs.tools.reader :as tools-reader]
+            [clojure.string :as str]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Re-frame DB                                                                 ;;
@@ -62,8 +63,11 @@
 (defn remove-node-comment [db node-id]
   (update db :node/comments dissoc node-id))
 
-(defn select-side-bar-tab [db tab]
-  (assoc-in db [:side-bar :selected-side-bar-tab] tab))
+(defn set-side-bar-search [db query]
+  (assoc-in db [:side-bar :query] query))
+
+(defn side-bar-search [db]
+  (get-in db [:side-bar :query]))
 
 (defn update-side-bar-browser-level [db f]
  (update-in db [:projects-browser :level] f))
@@ -78,7 +82,7 @@
 
 (def default-db
   (merge
-   {:side-bar {:selected-side-bar-tab :projects-browser}
+   {:side-bar {:query ""}
     :projects-browser {:level 0
                        :selected-project nil
                        :selected-namespace nil}

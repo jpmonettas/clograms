@@ -110,6 +110,10 @@
           :color (str (color :main-font) " !important")}
    [:.app-wrapper
     [:&.loading {:opacity 0.5}]
+    [:input {:background-color (color :background)
+             :color (color :super-light-grey)
+             :border "1px solid"
+             :border-radius border-radius}]
     [:.context-menu {:background (color :side-bar)
                      :min-width "200px"
                      :border-radius border-radius
@@ -161,8 +165,6 @@
     [:.type-ahead-wrapper {:display :inline-block}
      [:.project-name {:margin-left "3px"
                       :opacity 0.5}]
-     [:input {:background-color (color :background)
-              :color (color :super-light-grey)}]
      [:.rc-typeahead-suggestion
       {:background-color (color :side-bar)}
       [:&.active {:background-color (color :selection)}]]]]
@@ -185,7 +187,8 @@
                :height "100%"
                :width "350px"
                :background-color (color :side-bar)
-               :z-index 10}
+               :z-index 10
+               :padding "5px"}
    [:.side-bar-tabs {}
     [:li {}
      [:a {:padding "5px"}]
@@ -240,12 +243,14 @@
 (def accordion
   [:.accordion
    [:.item {:border "1px solid"
-            :border-color (color :grey)
-            :padding "2px"}
+            :border-radius border-radius
+            :border-color "#777"
+            :padding "2px"
+            :cursor :pointer}
     [:.body {:display :none}]
 
-    [:&.active {:margin-top "4px"
-                :margin-bottom "4px"}
+    [:&.active {:margin-top "7px"
+                :margin-bottom "7px"}
      [:.body {:display :block
               :max-height "500px"
               :overflow :scroll}]]

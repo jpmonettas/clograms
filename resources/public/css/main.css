@@ -149,6 +149,13 @@ body .app-wrapper.loading {
   opacity: 0.5;
 }
 
+body .app-wrapper input {
+  background-color: #504945;
+  color: #EEE;
+  border: 1px solid;
+  border-radius: 3px;
+}
+
 body .app-wrapper .context-menu {
   background: #3c3836;
   min-width: 200px;
@@ -269,11 +276,6 @@ body .app-wrapper .draggable-re-frame-feature {
   opacity: 0.5;
 }
 
-.top-bar .entity-selector .type-ahead-wrapper input {
-  background-color: #504945;
-  color: #EEE;
-}
-
 .top-bar .entity-selector .type-ahead-wrapper .rc-typeahead-suggestion {
   background-color: #3c3836;
 }
@@ -309,6 +311,7 @@ body .app-wrapper .draggable-re-frame-feature {
   width: 350px;
   background-color: #3c3836;
   z-index: 10;
+  padding: 5px;
 }
 
 .side-bar .side-bar-tabs {
@@ -427,8 +430,10 @@ body .app-wrapper .draggable-re-frame-feature {
 
 .accordion .item {
   border: 1px solid;
-  border-color: ;
+  border-radius: 3px;
+  border-color: #777;
   padding: 2px;
+  cursor: pointer;
 }
 
 .accordion .item .body {
@@ -436,8 +441,8 @@ body .app-wrapper .draggable-re-frame-feature {
 }
 
 .accordion .item.active {
-  margin-top: 4px;
-  margin-bottom: 4px;
+  margin-top: 7px;
+  margin-bottom: 7px;
 }
 
 .accordion .item.active .body {

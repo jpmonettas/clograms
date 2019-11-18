@@ -7,7 +7,8 @@
             [clograms.utils :as utils]
             [clojure.zip :as zip]
             [goog.string :as gstring]
-            [clograms.models :as models]))
+            [clograms.models :as models]
+            [clojure.string :as str]))
 
 (re-frame/reg-sub
  ::all-entities
@@ -56,22 +57,33 @@
      {:namespace/id ns-id
       :namespace/name (:namespace/name ns-entity)})))
 
+(re-frame/reg-sub
+ ::side-bar-search
+ (fn [db]
+   (db/side-bar-search db)))
+
 (defn project-items [datascript-db]
   (when datascript-db
     (->> (db/all-projects datascript-db)
-         (map #(assoc % :type :project))
+         (map #(assoc %
+                      :type :project
+                      :search-name (str (:project/name %))))
          (sort-by (comp str :project/name)))))
 
 (defn namespaces-items [datascript-db pid]
   (when datascript-db
     (->> (db/all-namespaces datascript-db pid)
-        (map #(assoc % :type :namespace))
+         (map #(assoc %
+                      :type :namespace
+                      :search-name (str (:namespace/name %))))
         (sort-by (comp str :namespace/name)))))
 
 (defn vars-items [datascript-db nsid]
   (when datascript-db
     (->> (db/all-vars datascript-db nsid)
-         (map #(assoc % :type :var))
+         (map #(assoc %
+                      :type :var
+                      :search-name (str (:var/name %))))
          (sort-by :var/line))))
 
 (re-frame/reg-sub
@@ -86,6 +98,14 @@
                    (into [main-project] (remove is-main-project all-projects)))
        :namespaces (namespaces-items (:datascript/db db) selected-project)
        :vars (vars-items (:datascript/db db) selected-namespace)))))
+
+(re-frame/reg-sub
+ ::side-bar-browser-items+query
+ :<- [::side-bar-browser-items]
+ :<- [::side-bar-search]
+ (fn [[items query] [_]]
+   (->> items
+        (filter #(str/includes? (:search-name %) query)))))
 
 (def callers-refs
   (memoize ;; ATTENTION ! Be careful with this cache when we implement reload on file change
@@ -108,12 +128,21 @@
                           (map #(assoc % :entity/type :var))
                           (into #{}))})))))
 
+(re-frame/reg-sub
+ ::ref-frame-feature
+ :<- [::datascript-db]
+ (fn [datascript-db [_ feature-key]]
+   (db/all-re-frame-feature datascript-db feature-key)))
+
 ;; Re-frame features subscriptions
 (re-frame/reg-sub
  ::re-frame-feature-tree
- :<- [::datascript-db]
- (fn [datascript-db [_ feature-key]]
-   (->> (db/all-re-frame-feature datascript-db feature-key)
+ (fn [[_ feature-key]]
+   [(re-frame/subscribe [::ref-frame-feature feature-key])
+    (re-frame/subscribe [::side-bar-search])])
+ (fn [[feature-keys query] [_ feature-key]]
+   (->> feature-keys
+        (filter #(str/includes? (subs (str (:re-frame/key %)) 1) query))
         (group-by :namespace/name)
         (map (fn [[ns-symb ns-subs]]
                {:type :namespace
@@ -123,7 +152,6 @@
                                {:data sub
                                 :type feature-key})
                              ns-subs)})))))
-
 
 (re-frame/reg-sub
  ::ctx-menu

@@ -77,7 +77,7 @@
 
 (defn projects-browser []
   (let [browser-level @(re-frame/subscribe [::subs/side-bar-browser-level])
-        items @(re-frame/subscribe [::subs/side-bar-browser-items])
+        items @(re-frame/subscribe [::subs/side-bar-browser-items+query])
         item-component (case browser-level
                          :projects draggable-project
                          :namespaces draggable-namespace
@@ -174,6 +174,9 @@
         re-frame-fxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-fx])
         re-frame-cofxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-cofx])]
     [:div.side-bar
+     [:input.search {:on-change (fn [evt]
+                                  (re-frame/dispatch [::events/side-bar-set-search (-> evt .-target .-value)]))
+                     :value @(re-frame/subscribe [::subs/side-bar-search])}]
      [gral-components/accordion
       :right-side-bar
       (cond-> {:project-browser {:title "Projects"
