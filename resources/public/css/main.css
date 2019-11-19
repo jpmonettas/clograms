@@ -76,15 +76,6 @@
   font-size: 12px;
 }
 
-.diagram-wrapper .diagram-layer .node-body .header .collapse-node {
-  display: inline-block;
-  cursor: pointer;
-  background: #3c3836;
-  padding: 1px 10px 1px 10px;
-  border-radius: 3px;
-  margin-left: 10px;
-}
-
 .diagram-wrapper .diagram-layer .project-node {
   border: 2px solid #458588;
   background-color: #458588;
@@ -147,6 +138,21 @@ body {
 
 body .app-wrapper.loading {
   opacity: 0.5;
+}
+
+body .app-wrapper .collapse-button {
+  display: inline-block;
+  cursor: pointer;
+  background: #3c3836;
+  padding: 1px 10px 1px 10px;
+  border-radius: 3px;
+  margin-left: 10px;
+}
+
+body .app-wrapper .tool-bar {
+  background-color: #3c3836;
+  border: 1px solid;
+  border-color: #777;
 }
 
 body .app-wrapper input {
@@ -246,7 +252,6 @@ body .app-wrapper .draggable-re-frame-feature {
 .top-bar {
   position: absolute;
   z-index: 10;
-  background-color: #3c3836;
   padding: 5px;
   border-radius: 3px;
   display: inline-flex;
@@ -308,8 +313,7 @@ body .app-wrapper .draggable-re-frame-feature {
   top: 0px;
   right: 0px;
   height: 100%;
-  width: 350px;
-  background-color: #3c3836;
+  width: 25%;
   z-index: 10;
   padding: 5px;
 }
@@ -367,6 +371,35 @@ body .app-wrapper .draggable-re-frame-feature {
 .side-bar .selected-browser .header {
   font-weight: bold;
   margin-left: 5px;
+}
+
+.bottom-bar {
+  position: absolute;
+  bottom: 0px;
+  width: 75%;
+  z-index: 10;
+}
+
+.bottom-bar .header {
+  padding: 5px;
+}
+
+.bottom-bar .header .title {
+  width: 96%;
+  display: inline-block;
+}
+
+.bottom-bar .header .collapse-button {
+  background-color: #504945;
+}
+
+.bottom-bar .body {
+  max-height: 300px;
+  overflow: scroll;
+}
+
+.bottom-bar .body.collapsed {
+  display: none;
 }
 
 .loading-overlay {

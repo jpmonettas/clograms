@@ -54,6 +54,28 @@
 (defn project-colors [db]
   (get db :project/colors))
 
+(defn set-var-references [db node-id references]
+  (assoc-in db [:bottom-bar :references] {:node-id node-id
+                                          :vars references}))
+
+(defn current-var-references [db]
+  (get-in db [:bottom-bar :references]))
+
+(defn set-bottom-bar-title [db title]
+  (assoc-in db [:bottom-bar :title] title))
+
+(defn bottom-bar-title [db]
+  (get-in db [:bottom-bar :title]))
+
+(defn bottom-bar [db]
+  (get db :bottom-bar))
+
+(defn toggle-bottom-bar-collapse [db]
+  (update-in db [:bottom-bar :collapsed?] not))
+
+(defn uncollapse-bottom-bar [db]
+  (assoc-in db [:bottom-bar :collapsed?] false))
+
 (defn node-comment [db node-id]
   (get-in db [:node/comments node-id]))
 
@@ -83,6 +105,7 @@
 (def default-db
   (merge
    {:side-bar {:query ""}
+    :bottom-bar {}
     :projects-browser {:level 0
                        :selected-project nil
                        :selected-namespace nil}
@@ -270,6 +293,7 @@
                     (dissoc :fn :multi)))))))
 
 (defn var-x-refs [datascript-db var-id]
+  (prn "Finding var references for " var-id)
   (->> (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcf ?fsrcs ?fnvid
               :in $ ?vid
               :where
@@ -289,7 +313,8 @@
             datascript-db
             var-id)
        (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
-                      :function/source-str :var/id] %))))
+                      :function/source-str :var/id] %))
+       (remove #(= (:var/id %) var-id))))
 
 (defn all-re-frame-feature [datascript-db feature-key]
   (->> (d/q '[:find ?subid ?subk ?nsn ?pn

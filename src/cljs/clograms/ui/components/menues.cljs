@@ -15,6 +15,10 @@
   {:label (str "Set " project-name " project color to selected")
    :dispatch [::events/set-project-color project-name]})
 
+(defn find-references [var-id node-id]
+  {:label "Find references"
+   :dispatch [::events/find-var-references var-id node-id]})
+
 
 (defn context-menu [{:keys [x y menu]}]
   [:div.context-menu {:style {:position :absolute

@@ -5,7 +5,8 @@
             [clograms.events :as events]
             [clograms.ui.components.menues :as menues]
             [clograms.re-grams.re-grams :as rg]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clograms.ui.components.general :as gral-components]))
 
 (defn node-wrapper [{:keys [ctx-menu node]} child]
   (let [node-color (re-frame/subscribe [::subs/node-color (:entity node)])
@@ -63,7 +64,7 @@
            [:div.title
             [:span.namespace-name (str (:namespace/name ns))]
             [:span.project-name (str "(" (:project/name ns) ")")]]
-           [:div.collapse-node {:on-click #(swap! collapsed not)} "^"]]
+           [gral-components/collapse-button @collapsed {:on-click #(swap! collapsed not)}]]
           (when (and (not @collapsed)
                      (not-empty (:namespace/docstring ns)))
             [:pre.namespace-doc {:on-wheel (fn [e] (.stopPropagation e))}
@@ -76,6 +77,7 @@
        [node-wrapper {:node node
                       :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name var))
                                  (menues/set-ns-color-ctx-menu-option (:namespace/name var))
+                                 (menues/find-references (:var/id entity) (::rg/id node))
                                  (menues/remove-ctx-menu-option node)]}
         [:div.var-node.custom-node
          [:div.node-body
@@ -83,7 +85,7 @@
            [:div.title
             [:span.namespace-name (str (:namespace/name var) "/")]
             [:span.var-name (:var/name var)]]
-           [:div.collapse-node {:on-click #(swap! collapsed not)} "^"]]
+           [gral-components/collapse-button @collapsed {:on-click #(swap! collapsed not)}]]
           (if @collapsed
             [:ul.fn-args
              (for [args-vec (:function/args var)]
@@ -113,7 +115,8 @@
               [:div
                [:div.header
                 [:div.dispatch-val (pr-str (:multimethod/dispatch-val method))]
-                [:div.collapse-node {:on-click #(swap! expanded update (:multimethod/dispatch-val method) not)} "^"]]
+                [gral-components/collapse-button (not (get @expanded (:multimethod/dispatch-val method)))
+                 {:on-click #(swap! expanded update (:multimethod/dispatch-val method) not)}]]
                (when (@expanded (:multimethod/dispatch-val method))
                  [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
                                :dangerouslySetInnerHTML {:__html (:multimethod/source-str method)}}])]))]]]]))))

@@ -1,5 +1,6 @@
 (ns clograms.ui.components.toolbars
   (:require [re-frame.core :as re-frame]
+            [reagent.core :as r]
             [clograms.subs :as subs]
             [clograms.events :as events]
             [clojure.string :as str]
@@ -60,21 +61,6 @@
     [:div.var-name (name (:var/name r) )]]
    [:div.project-name (str "(" (:project/name r) ")")]])
 
-#_(defn selected-var-browser []
-  (let [refs (re-frame/subscribe [::subs/selected-var-refs])
-        var-list (fn [vars]
-                   [:ul
-                    (doall
-                     (for [r vars]
-                       ^{:key (str (:namespace/name r) (:var/name r))}
-                       [draggable-ref-node r]))])]
-    (fn []
-      [:div.selected-browser
-       [:div
-        [:div.header "Called by"]
-        (when-let [vars (:called-by @refs)]
-          [var-list vars])]])))
-
 (defn projects-browser []
   (let [browser-level @(re-frame/subscribe [::subs/side-bar-browser-level])
         items @(re-frame/subscribe [::subs/side-bar-browser-items+query])
@@ -134,7 +120,7 @@
                                :on-click #(re-frame/dispatch [::events/select-color c])}])]))
 
 (defn top-bar []
-  [:div.top-bar
+  [:div.top-bar.tool-bar
    [:button.save {:on-click #(re-frame/dispatch [::events/save-diagram])}
     "Save"]
    [entity-selector]
@@ -173,7 +159,7 @@
         re-frame-events @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-event])
         re-frame-fxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-fx])
         re-frame-cofxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-cofx])]
-    [:div.side-bar
+    [:div.side-bar.tool-bar
      [:input.search {:on-change (fn [evt]
                                   (re-frame/dispatch [::events/side-bar-set-search (-> evt .-target .-value)]))
                      :value @(re-frame/subscribe [::subs/side-bar-search])}]
@@ -205,3 +191,25 @@
                                                             {:namespace namespace-node
                                                              :re-frame-cofx draggable-re-frame-node}
                                                             re-frame-cofxs]}))]]))
+
+(defn bottom-bar []
+  (let [references (re-frame/subscribe [::subs/current-var-references])
+        bottom-bar-subs (re-frame/subscribe [::subs/bottom-bar])]
+    (fn []
+      (let [{:keys [node-id vars]} @references
+            {:keys [title collapsed?] :as x} @bottom-bar-subs]
+        [:div.bottom-bar.tool-bar
+         [:div.header
+         [:span.title title]
+         [gral-components/collapse-button collapsed? {:on-click #(re-frame/dispatch [::events/toggle-bottom-bar-collapse])}]]
+        [:div.body {:class (when collapsed? "collapsed")}
+         [:ul.references
+          (for [v vars]
+            ^{:key (str (:var/id v))}
+            [:li {:on-double-click #(re-frame/dispatch [::events/add-entity-to-diagram :var (:var/id v) {:link-to-port :first
+                                                                                                         :link-to-node-id node-id}])}
+             [:span.ns-name (str (:namespace/name v) "/")]
+             [:span.var-name (:var/name v)]
+             [:span.project-name (str "(" (:project/name v) ")")]]
+            )]
+         ]]))))

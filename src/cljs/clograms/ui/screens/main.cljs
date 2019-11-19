@@ -31,4 +31,5 @@
         (when ctx-menu [menues/context-menu ctx-menu])
         [toolbars/top-bar]
         [toolbars/side-bar]
+        [toolbars/bottom-bar]
         [diagram]])]))

@@ -7,9 +7,11 @@
 (defn add-var-from-link [var-id from-node-id]
   (re-frame/dispatch [:clograms.events/add-entity-to-diagram :var var-id {:link-to-port :last :link-to-node-id from-node-id}]))
 
-(defn auto-place-client-coords [{:keys [x y w h] :as link-to-node}]
+(defn auto-place-client-coords [{:keys [x y w h] :as link-to-node} where]
   (let [x-gap 50
-        auto-coords {:x (+ x w x-gap)
+        auto-coords {:x ((case where
+                           :before -
+                           :after +) x w x-gap)
                      :y y}]
     auto-coords))
 
@@ -35,7 +37,9 @@
                                 [[::rg/add-link from to]
                                  (if (and client-x client-y)
                                    {:client-x client-x :client-y client-y}
-                                   (auto-place-client-coords link-to-node))])
+                                   (auto-place-client-coords link-to-node (case link-to-port
+                                                                            :first :before
+                                                                            :last  :after)))])
 
                               ;; nothing to link to
                               [nil {:client-x client-x :client-y client-y}])]

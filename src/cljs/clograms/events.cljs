@@ -49,6 +49,7 @@
 (re-frame/reg-event-db ::select-color [inter-check] (fn [db [_ color]] (tools/select-color db color)))
 (re-frame/reg-event-db ::set-namespace-color [inter-check] (fn [db [_ ns-name]] (tools/set-namespace-color db ns-name)))
 (re-frame/reg-event-db ::set-project-color [inter-check] (fn [db [_ project-name]] (tools/set-project-color db project-name)))
+(re-frame/reg-event-db ::find-var-references [inter-check] (fn [db [_ var-id node-id]] (tools/find-var-references db var-id node-id)))
 (re-frame/reg-event-db ::side-bar-browser-back [inter-check] (fn [db _] (browser/side-bar-browser-back db)))
 (re-frame/reg-event-db ::side-bar-browser-select-project [inter-check] (fn [db [_ p]]
                                                                          (-> db
@@ -59,6 +60,7 @@
                                                                                (browser/side-bar-browser-select-namespace ns)
                                                                                (db/set-side-bar-search ""))))
 (re-frame/reg-event-db ::side-bar-set-search [inter-check] (fn [db [_ query]] (db/set-side-bar-search db query)))
+(re-frame/reg-event-db ::toggle-bottom-bar-collapse [inter-check] (fn [db _] (db/toggle-bottom-bar-collapse db)))
 (re-frame/reg-event-fx ::load-diagram [inter-check] (fn [_ _] (external/load-diagram)))
 (re-frame/reg-event-db ::diagram-loaded [inter-check] (fn [db [_ diagram]] (external/diagram-loaded db diagram)))
 (re-frame/reg-event-fx ::save-diagram [] (fn [cofxs _] (external/save-diagram (select-keys (:db cofxs)

@@ -107,7 +107,17 @@
    (->> items
         (filter #(str/includes? (:search-name %) query)))))
 
-(def callers-refs
+(re-frame/reg-sub
+ ::current-var-references
+ (fn [db _]
+   (db/current-var-references db)))
+
+(re-frame/reg-sub
+ ::bottom-bar
+ (fn [db _]
+   (db/bottom-bar db)))
+
+#_(def callers-refs
   (memoize ;; ATTENTION ! Be careful with this cache when we implement reload on file change
    (fn [datascript-db var-id]
      (when datascript-db

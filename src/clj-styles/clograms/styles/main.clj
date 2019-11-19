@@ -10,7 +10,7 @@
             :code-background "#a89984"
             :selection "#665c54"
             :node-selection "#fb4934"
-            :side-bar "#3c3836"
+            :tool-bars "#3c3836"
             :background "#504945"
 
             :project-node "#458588"
@@ -62,7 +62,7 @@
       [:.node-comment {:position :absolute
                        :opacity 0.5
                        :border-radius border-radius
-                       :background-color (color :side-bar)
+                       :background-color (color :tool-bars)
                        :margin-left "5%"
                        :width "90%"}]]]
     [:.node-body {:display :inline-block
@@ -72,13 +72,7 @@
                 :margin-bottom "5px"}
       [:.title {:whitespace :nowrap}]
       [:.dispatch-val {:white-space :nowrap
-                       :font-size "12px"}]
-      [:.collapse-node {:display :inline-block
-                        :cursor :pointer
-                        :background (color :side-bar)
-                        :padding "1px 10px 1px 10px"
-                        :border-radius border-radius
-                        :margin-left "10px"}]]]
+                       :font-size "12px"}]]]
     [:.project-node {:border (str "2px solid " (color :project-node))
                      :background-color (color :project-node)}
      [:.port {:background-color (color :project-node)}]]
@@ -110,11 +104,20 @@
           :color (str (color :main-font) " !important")}
    [:.app-wrapper
     [:&.loading {:opacity 0.5}]
+    [:.collapse-button {:display :inline-block
+                        :cursor :pointer
+                        :background (color :tool-bars)
+                        :padding "1px 10px 1px 10px"
+                        :border-radius border-radius
+                        :margin-left "10px"}]
+    [:.tool-bar {:background-color (color :tool-bars)
+                 :border "1px solid"
+                 :border-color "#777"}]
     [:input {:background-color (color :background)
              :color (color :super-light-grey)
              :border "1px solid"
              :border-radius border-radius}]
-    [:.context-menu {:background (color :side-bar)
+    [:.context-menu {:background (color :tool-bars)
                      :min-width "200px"
                      :border-radius border-radius
                      :overflow :hidden
@@ -152,7 +155,6 @@
 (def top-bar
   [:.top-bar {:position :absolute
               :z-index 10
-              :background-color (color :side-bar)
               :padding "5px"
               :border-radius border-radius
               :display :inline-flex}
@@ -166,7 +168,7 @@
      [:.project-name {:margin-left "3px"
                       :opacity 0.5}]
      [:.rc-typeahead-suggestion
-      {:background-color (color :side-bar)}
+      {:background-color (color :tool-bars)}
       [:&.active {:background-color (color :selection)}]]]]
 
    [:.color-selector {:display :inline-block
@@ -185,8 +187,7 @@
                :top "0px"
                :right "0px"
                :height "100%"
-               :width "350px"
-               :background-color (color :side-bar)
+               :width "25%"
                :z-index 10
                :padding "5px"}
    [:.side-bar-tabs {}
@@ -194,7 +195,7 @@
      [:a {:padding "5px"}]
      [:&.active {}
       [:a {:color (color :super-light-grey)
-           :background-color (color :side-bar)}]]
+           :background-color (color :tool-bars)}]]
      [:a {:color (color :super-light-grey)
           }]]]
 
@@ -240,6 +241,19 @@
        :position :relative}]]]
    (at-keyframes :rotate [:to {:transform "rotate(360deg)"}])])
 
+(def bottom-bar
+  [:.bottom-bar {:position :absolute
+                 :bottom "0px"
+                 :width "75%"
+                 :z-index 10}
+   [:.header {:padding "5px"}
+    [:.title {:width "96%"
+              :display :inline-block}]
+    [:.collapse-button {:background-color (color :background)}]]
+   [:.body {:max-height "300px"
+            :overflow :scroll}
+    [:&.collapsed {:display :none}]]])
+
 (def accordion
   [:.accordion
    [:.item {:border "1px solid"
@@ -273,6 +287,7 @@
    general
    top-bar
    side-bar
+   bottom-bar
    loading-spinner
    debug
 

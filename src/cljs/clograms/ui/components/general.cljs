@@ -35,3 +35,6 @@
         title]
        [:div.body
         child]])]))
+
+(defn collapse-button [collapsed? {:keys [on-click]}]
+  [:div.collapse-button {:on-click on-click} (if collapsed? "^" "_")])
