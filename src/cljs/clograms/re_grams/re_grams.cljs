@@ -121,9 +121,8 @@
 ;;;;;;;;;;
 
 (defn default-port [props]
-  [:div {:style {:width "10px"
-                 :height "10px"
-                 :background :green}}])
+  [:div.default-port {:style {:width "10px"
+                              :height "10px"}}])
 
 (defn set-port-dimensions [db node-id port-id {:keys [w h client-x client-y]}]
   (let [[x y] (client-coord->dia-coord (::diagram db) [client-x client-y])

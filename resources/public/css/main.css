@@ -28,7 +28,7 @@
   height: 10px;
   margin: 5px;
   border-radius: 3px;
-  background-color: red;
+  background-color: #3c3836;
   color: transparent;
 }
 
@@ -37,10 +37,8 @@
   cursor: crosshair;
 }
 
-.diagram-wrapper .diagram-layer .node.selected {
-  border: 2px solid;
-  border-color: #fb4934;
-  border-radius: 3px;
+.diagram-wrapper .diagram-layer .node.selected .port {
+  background-color: yellow;
 }
 
 .diagram-wrapper .diagram-layer .node .node-wrapper {
@@ -77,16 +75,14 @@
 }
 
 .diagram-wrapper .diagram-layer .project-node {
-  border: 2px solid #458588;
-  background-color: #458588;
+  background-color: #689d6a;
 }
 
 .diagram-wrapper .diagram-layer .project-node .port {
-  background-color: #458588;
+  background-color: #689d6a;
 }
 
 .diagram-wrapper .diagram-layer .namespace-node {
-  border: 2px solid #b16286;
   background-color: #b16286;
 }
 
@@ -106,12 +102,11 @@
 }
 
 .diagram-wrapper .diagram-layer .var-node {
-  border: 2px solid #689d6a;
-  background-color: #689d6a;
+  background-color: #458588;
 }
 
 .diagram-wrapper .diagram-layer .var-node .port {
-  background-color: #689d6a;
+  background-color: #458588;
 }
 
 .diagram-wrapper .diagram-layer .var-node .var-name {
@@ -127,13 +122,17 @@
 }
 
 .diagram-wrapper .diagram-layer .re-frame-node {
-  border: 2px solid #689d6a;
+  background-color: #896dad;
 }
 
 body {
-  font-size: 11px;
   background-color: #504945 !important;
   color: #eee !important;
+}
+
+body .app-wrapper {
+  font-size: 12px;
+  font-family: droid_sansregular;
 }
 
 body .app-wrapper.loading {
@@ -151,14 +150,15 @@ body .app-wrapper .collapse-button {
 
 body .app-wrapper .tool-bar {
   background-color: #3c3836;
-  border: 1px solid;
   border-color: #777;
 }
 
 body .app-wrapper input {
-  background-color: #504945;
+  background-color: #777;
   color: #EEE;
-  border: 1px solid;
+  border: none;
+  padding-left: 2px;
+  height: 23px;
   border-radius: 3px;
 }
 
@@ -189,7 +189,7 @@ body .app-wrapper ul {
 }
 
 body .app-wrapper .project-name {
-
+  whitespace: nowrap;
 }
 
 body .app-wrapper .namespace-name {
@@ -201,7 +201,7 @@ body .app-wrapper .var-name {
 }
 
 body .app-wrapper .draggable-entity {
-  padding: 5px;
+  padding: 4px;
   border-radius: 3px;
   margin: 5px;
   background-color: #504945;
@@ -210,7 +210,7 @@ body .app-wrapper .draggable-entity {
 }
 
 body .app-wrapper .draggable-project {
-  border: 1px solid #458588;
+  background-color: #689d6a;
 }
 
 body .app-wrapper .draggable-project.main-project {
@@ -218,11 +218,11 @@ body .app-wrapper .draggable-project.main-project {
 }
 
 body .app-wrapper .draggable-namespace {
-  border: 1px solid #b16286;
+  background-color: #b16286;
 }
 
 body .app-wrapper .draggable-var {
-  border: 1px solid #689d6a;
+  background-color: #458588;
 }
 
 body .app-wrapper .draggable-var .var {
@@ -238,7 +238,7 @@ body .app-wrapper .draggable-var .var.private {
 }
 
 body .app-wrapper .draggable-var .var.public {
-  background-color: #98971a;
+  background-color: greenyellow;
 }
 
 body .app-wrapper .draggable-var .var-type {
@@ -246,22 +246,24 @@ body .app-wrapper .draggable-var .var-type {
 }
 
 body .app-wrapper .draggable-re-frame-feature {
-  border: 1px solid #689d6a;
+  background-color: #896dad;
 }
 
 .top-bar {
   position: absolute;
   z-index: 10;
   padding: 5px;
+  height: 37px;
   border-radius: 3px;
   display: inline-flex;
 }
 
 .top-bar .save {
   background-color: #504945;
-  height: 32px;
-  margin-right: 3px;
   border-radius: 3px;
+  font-size: 18px;
+  padding: 0px 4px 0 4px;
+  height: 23px;
 }
 
 .top-bar label {
@@ -270,10 +272,23 @@ body .app-wrapper .draggable-re-frame-feature {
 
 .top-bar .entity-selector {
   display: inline-block;
+  margin-left: 3px;
+  margin-right: 3px;
 }
 
 .top-bar .entity-selector .type-ahead-wrapper {
   display: inline-block;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .search-icon {
+  background-color: #504945;
+  border-radius: 3px 0px 0px 3px;
+  padding: 4px;
+  font-size: 15px;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper input {
+  border-radius: 0px 3px 3px 0px;
 }
 
 .top-bar .entity-selector .type-ahead-wrapper .project-name {
@@ -281,30 +296,33 @@ body .app-wrapper .draggable-re-frame-feature {
   opacity: 0.5;
 }
 
-.top-bar .entity-selector .type-ahead-wrapper .rc-typeahead-suggestion {
+.top-bar .entity-selector .type-ahead-wrapper .rc-typeahead {
+  display: inline-block;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .rc-typeahead .rc-typeahead-suggestion {
   background-color: #3c3836;
 }
 
-.top-bar .entity-selector .type-ahead-wrapper .rc-typeahead-suggestion.active {
+.top-bar .entity-selector .type-ahead-wrapper .rc-typeahead .rc-typeahead-suggestion.active {
   background-color: #665c54;
 }
 
 .top-bar .color-selector {
   display: inline-block;
+  border-radius: 3px;
+  height: 23px;
   margin: 0;
+  overflow: hidden;
 }
 
 .top-bar .color-selector .selectable-color {
   display: inline-block;
-  border-radius: 3px;
   width: 30px;
-  margin: 2px;
-  height: 30px;
-  opacity: 0.5;
+  height: 100%;
 }
 
 .top-bar .color-selector .selectable-color.selected {
-  opacity: 1;
   border: 1px solid orange;
 }
 
@@ -313,7 +331,7 @@ body .app-wrapper .draggable-re-frame-feature {
   top: 0px;
   right: 0px;
   height: 100%;
-  width: 25%;
+  width: 350px;
   z-index: 10;
   padding: 5px;
 }
@@ -349,12 +367,15 @@ body .app-wrapper .draggable-re-frame-feature {
 }
 
 .side-bar .projects-browser .head-bar {
-
+  background-color: #504945;
+  padding: 2px;
+  border-radius: 3px;
 }
 
 .side-bar .projects-browser .head-bar .back {
-  background-color: rgb(60,60,60);
+  background-color: #504945;
   margin: 5px;
+  font-size: 14px;
 }
 
 .side-bar .projects-browser .head-bar .browser-selection {
@@ -376,16 +397,17 @@ body .app-wrapper .draggable-re-frame-feature {
 .bottom-bar {
   position: absolute;
   bottom: 0px;
-  width: 75%;
+  width: 74%;
   z-index: 10;
 }
 
 .bottom-bar .header {
   padding: 5px;
+  border-bottom: 1px solid #777;
 }
 
 .bottom-bar .header .title {
-  width: 96%;
+  width: 95%;
   display: inline-block;
 }
 
@@ -400,6 +422,14 @@ body .app-wrapper .draggable-re-frame-feature {
 
 .bottom-bar .body.collapsed {
   display: none;
+}
+
+.bottom-bar .body .references {
+  padding: 5px;
+}
+
+.bottom-bar .body .references li.even {
+  background-color: #403b39;
 }
 
 .loading-overlay {
@@ -462,7 +492,6 @@ body .app-wrapper .draggable-re-frame-feature {
 }
 
 .accordion .item {
-  border: 1px solid;
   border-radius: 3px;
   border-color: #777;
   padding: 2px;
@@ -476,12 +505,14 @@ body .app-wrapper .draggable-re-frame-feature {
 .accordion .item.active {
   margin-top: 7px;
   margin-bottom: 7px;
+  background-color: #504945;
+  border-radius: 3px;
 }
 
 .accordion .item.active .body {
   display: block;
   max-height: 500px;
-  overflow: scroll;
+  overflow-y: scroll;
 }
 
 .tree .childs {

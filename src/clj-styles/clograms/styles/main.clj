@@ -4,7 +4,7 @@
 (def color {:super-light-grey "#EEE"
             :light-grey "rgb(60,60,60)"
             :dark-grey "#2f2f2f"
-            :green "#98971a"
+            :green "greenyellow"
             :red "#cc241d"
 
             :code-background "#a89984"
@@ -13,10 +13,10 @@
             :tool-bars "#3c3836"
             :background "#504945"
 
-            :project-node "#458588"
+            :project-node "#689d6a"
             :namespace-node "#b16286"
-            :var-node "#689d6a"
-
+            :var-node "#458588"
+            :re-frame "#896dad"
             :main-font "#eee"
             })
 
@@ -51,13 +51,11 @@
              :height "10px"
              :margin "5px"
              :border-radius border-radius
-             :background-color :red
+             :background-color (color :tool-bars)
              :color :transparent}
      [:&:hover {:background-color (str "yellow !important")
                 :cursor :crosshair}]]
-    [:.node [:&.selected {:border "2px solid"
-                          :border-color (color :node-selection)
-                          :border-radius border-radius}]
+    [:.node [:&.selected [:.port {:background-color :yellow}]]
      [:.node-wrapper {}
       [:.node-comment {:position :absolute
                        :opacity 0.5
@@ -73,11 +71,9 @@
       [:.title {:whitespace :nowrap}]
       [:.dispatch-val {:white-space :nowrap
                        :font-size "12px"}]]]
-    [:.project-node {:border (str "2px solid " (color :project-node))
-                     :background-color (color :project-node)}
+    [:.project-node {:background-color (color :project-node)}
      [:.port {:background-color (color :project-node)}]]
-    [:.namespace-node {:border  (str "2px solid " (color :namespace-node))
-                       :background-color (color :namespace-node)}
+    [:.namespace-node {:background-color (color :namespace-node)}
      [:.port {:background-color (color :namespace-node)}]
      [:.namespace-doc {:max-width "500px"
                        :font-size "10px"
@@ -87,8 +83,7 @@
                        :border :unset
                        :color (color :main-font)
                        :opacity 0.7}]]
-    [:.var-node {:border (str "2px solid " (color :var-node))
-                 :background-color (color :var-node)}
+    [:.var-node {:background-color (color :var-node)}
      [:.port {:background-color (color :var-node)}]
      [:.var-name {:font-weight :bold}]
      [:.source {:max-width "500px"
@@ -96,13 +91,14 @@
                 :max-height "200px"
                 :border :unset
                 :background-color (color :main-font)}]]
-    [:.re-frame-node {:border (str "2px solid " (color :var-node))}]]])
+    [:.re-frame-node {:background-color (color :re-frame)
+                      }]]])
 
 (def general
-  [:body {:font-size "11px"
-          :background-color (str (color :background) " !important")
+  [:body {:background-color (str (color :background) " !important")
           :color (str (color :main-font) " !important")}
-   [:.app-wrapper
+   [:.app-wrapper {:font-size "12px"
+                   :font-family "droid_sansregular"}
     [:&.loading {:opacity 0.5}]
     [:.collapse-button {:display :inline-block
                         :cursor :pointer
@@ -111,11 +107,12 @@
                         :border-radius border-radius
                         :margin-left "10px"}]
     [:.tool-bar {:background-color (color :tool-bars)
-                 :border "1px solid"
                  :border-color "#777"}]
-    [:input {:background-color (color :background)
+    [:input {:background-color "#777"
              :color (color :super-light-grey)
-             :border "1px solid"
+             :border :none
+             :padding-left "2px"
+             :height "23px"
              :border-radius border-radius}]
     [:.context-menu {:background (color :tool-bars)
                      :min-width "200px"
@@ -128,20 +125,21 @@
        [:&:hover {:background-color (color :selection)}]]]]
     [:ul {:list-style :none
           :padding 0}]
-    [:.project-name {}]
+    [:.project-name {:whitespace :nowrap}]
     [:.namespace-name {}]
     [:.var-name {}]
     [:.draggable-entity
-     {:padding "5px"
+     {:padding "4px"
       :border-radius border-radius
       :margin "5px"
       :background-color (color :background)
       :font-size "11px"
       :cursor :no-drop}]
-    [:.draggable-project {:border  (str "1px solid " (color :project-node))}
+    [:.draggable-project {:background-color (color :project-node)}
      [:&.main-project {:border-width "2px"}]]
-    [:.draggable-namespace {:border (str "1px solid " (color :namespace-node))}]
-    [:.draggable-var {:border (str "1px solid " (color :var-node))}
+    [:.draggable-namespace {:background-color (color :namespace-node)}]
+    [:.draggable-var {:background-color (color :var-node)
+                      }
      [:.var {:display :inline-block
              :margin-right "4px"
              :width "7px"
@@ -150,44 +148,54 @@
       [:&.private {:background-color (color :red)}]
       [:&.public {:background-color (color :green)}]]
      [:.var-type {:margin-right "3px"}]]
-    [:.draggable-re-frame-feature {:border (str "1px solid " (color :var-node))}]]])
+    [:.draggable-re-frame-feature {:background-color (color :re-frame)}]]])
 
 (def top-bar
   [:.top-bar {:position :absolute
               :z-index 10
               :padding "5px"
+              :height "37px"
               :border-radius border-radius
               :display :inline-flex}
    [:.save {:background-color (color :background)
-            :height "32px"
-            :margin-right "3px"
-            :border-radius border-radius}]
+            :border-radius border-radius
+            :font-size "18px"
+            :padding "0px 4px 0 4px"
+            :height "23px"}]
    [:label {:margin-right "3px"}]
-   [:.entity-selector {:display :inline-block}
+   [:.entity-selector {:display :inline-block
+                       :margin-left "3px"
+                       :margin-right "3px"}
     [:.type-ahead-wrapper {:display :inline-block}
+     [:.search-icon {:background-color (color :background)
+                     :border-radius "3px 0px 0px 3px"
+                     :padding "4px"
+                     :font-size "15px"}]
+     [:input {:border-radius "0px 3px 3px 0px"}]
+
      [:.project-name {:margin-left "3px"
                       :opacity 0.5}]
-     [:.rc-typeahead-suggestion
-      {:background-color (color :tool-bars)}
-      [:&.active {:background-color (color :selection)}]]]]
+     [:.rc-typeahead {:display :inline-block}
+      [:.rc-typeahead-suggestion
+       {:background-color (color :tool-bars)}
+       [:&.active {:background-color (color :selection)}]]]]]
 
    [:.color-selector {:display :inline-block
-                      :margin 0}
+                      :border-radius border-radius
+                      :height "23px"
+                      :margin 0
+                      :overflow :hidden}
     [:.selectable-color {:display :inline-block
-                         :border-radius border-radius
                          :width "30px"
-                         :margin "2px"
-                         :height "30px"
-                         :opacity 0.5}
-     [:&.selected {:opacity 1
-                   :border "1px solid orange"}]]]])
+                         :height "100%"}
+     [:&.selected {:border "1px solid orange"}]]]])
 
 (def side-bar
   [:.side-bar {:position :absolute
                :top "0px"
                :right "0px"
                :height "100%"
-               :width "25%"
+               :width "350px"
                :z-index 10
                :padding "5px"}
    [:.side-bar-tabs {}
@@ -201,14 +209,15 @@
 
    [:.projects-browser {:overflow-y :scroll
                         :height "95%"}
-    [:.head-bar {}
-     [:.back {:background-color (color :light-grey)
-              :margin "5px"}]
+    [:.head-bar {:background-color (color :background)
+                 :padding "2px"
+                 :border-radius border-radius}
+     [:.back {:background-color (color :background)
+              :margin "5px"
+              :font-size "14px"}]
      [:.browser-selection {:font-size "11px"
                            :padding "3px"
-                           :border-radius border-radius}
-      #_[:&.namespaces {:background-color (color :project-node)}]
-      #_[:&.vars {:background-color (color :namespace-node)}]]]]
+                           :border-radius border-radius}]]]
 
    [:.selected-browser {:overflow-y :scroll
                         :height "95%"}
@@ -244,30 +253,36 @@
 (def bottom-bar
   [:.bottom-bar {:position :absolute
                  :bottom "0px"
-                 :width "75%"
+                 :width "74%"
                  :z-index 10}
-   [:.header {:padding "5px"}
-    [:.title {:width "96%"
+   [:.header {:padding "5px"
+              :border-bottom "1px solid #777"}
+    [:.title {:width "95%"
               :display :inline-block}]
     [:.collapse-button {:background-color (color :background)}]]
    [:.body {:max-height "300px"
             :overflow :scroll}
-    [:&.collapsed {:display :none}]]])
+    [:&.collapsed {:display :none}]
+    [:.references {:padding "5px"}
+     [:li
+      [:&.odd ]
+      [:&.even {:background-color "#403b39"}]]]]])
 
 (def accordion
   [:.accordion
-   [:.item {:border "1px solid"
-            :border-radius border-radius
+   [:.item {:border-radius border-radius
             :border-color "#777"
             :padding "2px"
             :cursor :pointer}
     [:.body {:display :none}]
 
     [:&.active {:margin-top "7px"
-                :margin-bottom "7px"}
+                :margin-bottom "7px"
+                :background-color (color :background)
+                :border-radius border-radius}
      [:.body {:display :block
               :max-height "500px"
-              :overflow :scroll}]]
+              :overflow-y :scroll}]]
     ]])
 
 (def tree

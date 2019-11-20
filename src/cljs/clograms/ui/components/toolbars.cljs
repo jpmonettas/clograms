@@ -69,9 +69,10 @@
                          :namespaces draggable-namespace
                          :vars draggable-var)]
     [:div.projects-browser
-     [:div.head-bar
-      [:button.back {:on-click #(re-frame/dispatch [::events/side-bar-browser-back])} "<"]
-      [:span.browser-selection {:class (str "draggable-" ({:vars "namespace" :namespaces "project"} browser-level))}
+     [:div.head-bar {:on-click #(re-frame/dispatch [::events/side-bar-browser-back])}
+      (when (#{:namespaces :vars} browser-level)
+        [:i.zmdi.zmdi-arrow-left.back ])
+      [:span.browser-selection
        (case browser-level
          :projects ""
          :namespaces (-> @(re-frame/subscribe [::subs/side-bar-browser-selected-project])
@@ -90,8 +91,8 @@
 (defn entity-selector []
   (let [all-entities (re-frame/subscribe [::subs/all-entities])]
     [:div.entity-selector
-     [:label "Search:"]
      [:div.type-ahead-wrapper
+      [:i.search-icon.zmdi.zmdi-search]
       [re-com/typeahead
        :width "600px"
        :change-on-blur? true
@@ -121,8 +122,7 @@
 
 (defn top-bar []
   [:div.top-bar.tool-bar
-   [:button.save {:on-click #(re-frame/dispatch [::events/save-diagram])}
-    "Save"]
+   [:i.zmdi.zmdi-floppy.save {:on-click #(re-frame/dispatch [::events/save-diagram])}]
    [entity-selector]
    [color-selector]])
 
@@ -200,16 +200,18 @@
             {:keys [title collapsed?] :as x} @bottom-bar-subs]
         [:div.bottom-bar.tool-bar
          [:div.header
-         [:span.title title]
-         [gral-components/collapse-button collapsed? {:on-click #(re-frame/dispatch [::events/toggle-bottom-bar-collapse])}]]
-        [:div.body {:class (when collapsed? "collapsed")}
-         [:ul.references
-          (for [v vars]
-            ^{:key (str (:var/id v))}
-            [:li {:on-double-click #(re-frame/dispatch [::events/add-entity-to-diagram :var (:var/id v) {:link-to-port :first
-                                                                                                         :link-to-node-id node-id}])}
-             [:span.ns-name (str (:namespace/name v) "/")]
-             [:span.var-name (:var/name v)]
-             [:span.project-name (str "(" (:project/name v) ")")]]
-            )]
-         ]]))))
+          [:span.title title]
+          [gral-components/collapse-button collapsed? {:on-click #(re-frame/dispatch [::events/toggle-bottom-bar-collapse])}]]
+         [:div.body {:class (when collapsed? "collapsed")}
+          [:ul.references
+           (map-indexed
+            (fn [i v]
+              ^{:key (str (:var/id v))}
+              [:li {:on-double-click #(re-frame/dispatch [::events/add-entity-to-diagram :var (:var/id v) {:link-to-port :first
+                                                                                                           :link-to-node-id node-id}])
+                    :class (if (even? i) "even" "odd")}
+               [:span.ns-name (str (:namespace/name v) "/")]
+               [:span.var-name (:var/name v)]
+               [:span.project-name (str "(" (:project/name v) ")")]])
+            vars)]
+          ]]))))

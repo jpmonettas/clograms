@@ -105,7 +105,7 @@
 (def default-db
   (merge
    {:side-bar {:query ""}
-    :bottom-bar {}
+    :bottom-bar {:collapsed? true}
     :projects-browser {:level 0
                        :selected-project nil
                        :selected-namespace nil}

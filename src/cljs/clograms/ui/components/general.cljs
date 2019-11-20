@@ -37,4 +37,5 @@
         child]])]))
 
 (defn collapse-button [collapsed? {:keys [on-click]}]
-  [:div.collapse-button {:on-click on-click} (if collapsed? "^" "_")])
+  [:i.collapse-button.zmdi {:on-click on-click
+                            :class (if collapsed? "zmdi-window-maximize" "zmdi-window-minimize")} ])

@@ -19,7 +19,7 @@
   (let [references (db/var-x-refs (:datascript/db db) var-id)
         var-entity (db/var-entity (:datascript/db db) var-id)]
     (-> db
-        (db/set-bottom-bar-title (gstring/format "References to %s/%s (%s)"
+        (db/set-bottom-bar-title (gstring/format "References: %s/%s (%s)"
                                                  (:namespace/name var-entity)
                                                  (:var/name var-entity)
                                                  (:project/name var-entity)))

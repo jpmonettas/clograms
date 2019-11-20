@@ -31,5 +31,6 @@
         (when ctx-menu [menues/context-menu ctx-menu])
         [toolbars/top-bar]
         [toolbars/side-bar]
-        [toolbars/bottom-bar]
+        (when (:title @(re-frame/subscribe [::subs/bottom-bar]))
+          [toolbars/bottom-bar])
         [diagram]])]))
