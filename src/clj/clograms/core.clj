@@ -11,8 +11,10 @@
 (defn- prepare-datoms-for-serialization [datoms]
   (->> datoms
        (map (fn [[e a v t add?]]
-              (if (or (= a :function/source-form)
-                      (= a :multimethod/source-form))
+              (if (#{:function/source-form
+                     :multimethod/source-form
+                     :spec.alpha/source-form
+                     :fspec.alpha/source-form} a)
                 [e a (binding [*print-meta* true] (pr-str v)) t add?]
                 [e a v t add?])))))
 

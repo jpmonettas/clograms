@@ -8,7 +8,8 @@
                 [net.mikera/core.matrix "0.62.0"]
                 [expound "0.7.2"]
                 [com.taoensso/sente "1.14.0"]
-                [org.clojure/core.async "0.4.500"]]
+                [org.clojure/core.async "0.4.500"]
+                [pretty-spec "0.1.3"]]
  :source-paths ["src/cljs"]
  :dev-http {9500 "resources/public/"}
  :builds {:app {:output-dir "resources/public/js/"

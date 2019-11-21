@@ -51,3 +51,9 @@
   {:entity {:entity/type :re-frame-cofx
             :id id}
    :diagram.node/type :clograms/re-frame-cofx-node})
+
+(defmethod build-node :spec
+  [_ spec-id]
+  {:entity {:entity/type :spec
+            :spec/id spec-id}
+   :diagram.node/type :clograms/spec-node})

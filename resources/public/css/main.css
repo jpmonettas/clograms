@@ -59,10 +59,25 @@
   color: #eee;
 }
 
+.diagram-wrapper .diagram-layer .node-body .source {
+  max-width: 500px;
+  font-size: 10px;
+  max-height: 200px;
+  border: unset;
+  background-color: #eee;
+}
+
+.diagram-wrapper .diagram-layer .node-body .spec-source {
+  max-width: 500px;
+  font-size: 9px;
+  opacity: 0.7;
+  max-height: 100px;
+  border: unset;
+  background-color: #eee;
+}
+
 .diagram-wrapper .diagram-layer .node-body .header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
+
 }
 
 .diagram-wrapper .diagram-layer .node-body .header .title {
@@ -70,6 +85,7 @@
 }
 
 .diagram-wrapper .diagram-layer .node-body .header .dispatch-val {
+  display: inline-block;
   white-space: nowrap;
   font-size: 12px;
 }
@@ -113,16 +129,12 @@
   font-weight: bold;
 }
 
-.diagram-wrapper .diagram-layer .var-node .source {
-  max-width: 500px;
-  font-size: 10px;
-  max-height: 200px;
-  border: unset;
-  background-color: #eee;
-}
-
 .diagram-wrapper .diagram-layer .re-frame-node {
   background-color: #896dad;
+}
+
+.diagram-wrapper .diagram-layer .spec-node {
+  background-color: #c17055;
 }
 
 body {
@@ -142,10 +154,8 @@ body .app-wrapper.loading {
 body .app-wrapper .collapse-button {
   display: inline-block;
   cursor: pointer;
-  background: #3c3836;
-  padding: 1px 10px 1px 10px;
-  border-radius: 3px;
-  margin-left: 10px;
+  font-size: 16px;
+  padding: 3px;
 }
 
 body .app-wrapper .tool-bar {
@@ -247,6 +257,10 @@ body .app-wrapper .draggable-var .var-type {
 
 body .app-wrapper .draggable-re-frame-feature {
   background-color: #896dad;
+}
+
+body .app-wrapper .draggable-spec {
+  background-color: #c17055;
 }
 
 .top-bar {
@@ -417,7 +431,7 @@ body .app-wrapper .draggable-re-frame-feature {
 
 .bottom-bar .body {
   max-height: 300px;
-  overflow: scroll;
+  overflow-y: scroll;
 }
 
 .bottom-bar .body.collapsed {

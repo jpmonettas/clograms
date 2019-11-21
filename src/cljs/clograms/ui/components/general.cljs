@@ -38,4 +38,8 @@
 
 (defn collapse-button [collapsed? {:keys [on-click]}]
   [:i.collapse-button.zmdi {:on-click on-click
-                            :class (if collapsed? "zmdi-window-maximize" "zmdi-window-minimize")} ])
+                            :class (if collapsed? "zmdi-caret-right" "zmdi-caret-down")}])
+
+(defn min-max-button [collapsed? {:keys [on-click]}]
+  [:i.collapse-button.zmdi {:on-click on-click
+                            :class (if collapsed? "zmdi-window-maximize" "zmdi-window-minimize")}])

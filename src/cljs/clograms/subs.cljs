@@ -8,7 +8,8 @@
             [clojure.zip :as zip]
             [goog.string :as gstring]
             [clograms.models :as models]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [pretty-spec.core :as pspec]))
 
 (re-frame/reg-sub
  ::all-entities
@@ -144,6 +145,15 @@
  (fn [datascript-db [_ feature-key]]
    (db/all-re-frame-feature datascript-db feature-key)))
 
+(re-frame/reg-sub
+ ::specs
+ :<- [::datascript-db]
+ :<- [::side-bar-search]
+ (fn [[datascript-db query] [_]]
+   (->> (db/all-specs datascript-db)
+        (filter #(str/includes? (str (:spec.alpha/key %)) query))
+        (sort-by (comp str :spec.alpha/key)))))
+
 ;; Re-frame features subscriptions
 (re-frame/reg-sub
  ::re-frame-feature-tree
@@ -241,7 +251,14 @@
  :<- [::datascript-db]
  (fn [datascript-db [_ var-id node-id]]
    (let [e (db/function-entity datascript-db var-id)]
-     (update e :function/source-str enhance-source-str var-id (:function/source-form e) node-id))))
+     (cond-> e
+       true                         (update :function/source-str enhance-source-str var-id (:function/source-form e) node-id)
+       (:fspec.alpha/source-form e) (assoc  :fspec.alpha/source-str
+                                            (with-out-str
+                                              (pspec/pprint (:fspec.alpha/source-form e)
+                                                            {:ns-aliases {"clojure.spec.alpha" "s"
+                                                                          "clojure.core.specs.alpha" "score"
+                                                                          "clojure.core" nil}})))))))
 
 (re-frame/reg-sub
  ::multimethod-entity
@@ -279,6 +296,18 @@
    (db/re-frame-cofx-entity datascript-db id)))
 
 (re-frame/reg-sub
+ ::spec-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ spec-id]]
+   (let [s (db/spec-entity datascript-db spec-id)]
+     (assoc s :spec.alpha/source-str
+            (with-out-str
+              (pspec/pprint (:spec.alpha/source-form s)
+                            {:ns-aliases {"clojure.spec.alpha" "s"
+                                          "clojure.core.specs.alpha" "score"
+                                          "clojure.core" nil}}))))))
+
+(re-frame/reg-sub
  ::node-color
  :<- [::datascript-db]
  :<- [::project-colors]
@@ -299,7 +328,8 @@
                                :re-frame-subs  (let [r (db/re-frame-subs-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)])
                                :re-frame-event (let [r (db/re-frame-event-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)])
                                :re-frame-fx    (let [r (db/re-frame-fx-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)])
-                               :re-frame-cofx  (let [r (db/re-frame-cofx-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)]))]
+                               :re-frame-cofx  (let [r (db/re-frame-cofx-entity ds-db (:id entity))] [(:project/name r) (:namespace/name r)])
+                               :spec           (let [s (db/spec-entity ds-db (:spec/id entity))] [(:project/name s) (:namespace/name s)]))]
      (or (get ns-colors ns-name) (get proj-colors proj-name)))))
 
 (re-frame/reg-sub

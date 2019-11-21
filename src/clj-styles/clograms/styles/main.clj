@@ -17,6 +17,7 @@
             :namespace-node "#b16286"
             :var-node "#458588"
             :re-frame "#896dad"
+            :spec-node "#c17055"
             :main-font "#eee"
             })
 
@@ -65,11 +66,21 @@
                        :width "90%"}]]]
     [:.node-body {:display :inline-block
                   :color (color :main-font)}
-     [:.header {:display :flex
-                :justify-content :space-between
-                :margin-bottom "5px"}
+     [:.source {:max-width "500px"
+                :font-size "10px"
+                :max-height "200px"
+                :border :unset
+                :background-color (color :main-font)}]
+     [:.spec-source {:max-width "500px"
+                     :font-size "9px"
+                     :opacity 0.7
+                     :max-height "100px"
+                     :border :unset
+                     :background-color (color :main-font)}]
+     [:.header {}
       [:.title {:whitespace :nowrap}]
-      [:.dispatch-val {:white-space :nowrap
+      [:.dispatch-val {:display :inline-block
+                       :white-space :nowrap
                        :font-size "12px"}]]]
     [:.project-node {:background-color (color :project-node)}
      [:.port {:background-color (color :project-node)}]]
@@ -85,14 +96,9 @@
                        :opacity 0.7}]]
     [:.var-node {:background-color (color :var-node)}
      [:.port {:background-color (color :var-node)}]
-     [:.var-name {:font-weight :bold}]
-     [:.source {:max-width "500px"
-                :font-size "10px"
-                :max-height "200px"
-                :border :unset
-                :background-color (color :main-font)}]]
-    [:.re-frame-node {:background-color (color :re-frame)
-                      }]]])
+     [:.var-name {:font-weight :bold}]]
+    [:.re-frame-node {:background-color (color :re-frame)}]
+    [:.spec-node {:background-color (color :spec-node)}]]])
 
 (def general
   [:body {:background-color (str (color :background) " !important")
@@ -102,10 +108,8 @@
     [:&.loading {:opacity 0.5}]
     [:.collapse-button {:display :inline-block
                         :cursor :pointer
-                        :background (color :tool-bars)
-                        :padding "1px 10px 1px 10px"
-                        :border-radius border-radius
-                        :margin-left "10px"}]
+                        :font-size "16px"
+                        :padding "3px"}]
     [:.tool-bar {:background-color (color :tool-bars)
                  :border-color "#777"}]
     [:input {:background-color "#777"
@@ -148,7 +152,8 @@
       [:&.private {:background-color (color :red)}]
       [:&.public {:background-color (color :green)}]]
      [:.var-type {:margin-right "3px"}]]
-    [:.draggable-re-frame-feature {:background-color (color :re-frame)}]]])
+    [:.draggable-re-frame-feature {:background-color (color :re-frame)}]
+    [:.draggable-spec {:background-color (color :spec-node)}]]])
 
 (def top-bar
   [:.top-bar {:position :absolute
@@ -261,7 +266,7 @@
               :display :inline-block}]
     [:.collapse-button {:background-color (color :background)}]]
    [:.body {:max-height "300px"
-            :overflow :scroll}
+            :overflow-y :scroll}
     [:&.collapsed {:display :none}]
     [:.references {:padding "5px"}
      [:li

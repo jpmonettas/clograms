@@ -121,8 +121,10 @@
 (defn deserialize-datoms [datoms]
   (keep (fn [[eid a v t add?]]
           (try
-            (let [deserialized-val (if (or (= a :function/source-form)
-                                           (= a :multimethod/source-form))
+            (let [deserialized-val (if (#{:function/source-form
+                                          :multimethod/source-form
+                                          :spec.alpha/source-form
+                                          :fspec.alpha/source-form} a)
                                      (tools-reader/read-string v)
                                      v)]
               [(if add? :db/add :db/retract) eid a deserialized-val])
@@ -160,6 +162,7 @@
      :var/docstring (:var/docstring var)
      :function/source-form (:function/source-form func)
      :function/source-str (:function/source-str func)
+     :fspec.alpha/source-form (:fspec.alpha/source-form (:function/spec.alpha func))
      :function/args (:function/args func)
      :namespace/name (:namespace/name ns)
      :project/name (:project/name proy)}))
@@ -234,6 +237,15 @@
         ns (:namespace/_re-frame-cofxs e)]
     {:id id
      :re-frame.cofx/key (:re-frame.cofx/key e)
+     :project/name (:project/name (:project/_namespaces ns))
+     :namespace/name (:namespace/name ns)}))
+
+(defn spec-entity [datascript-db spec-id]
+  (let [e (d/entity datascript-db spec-id)
+        ns (:namespace/_specs-alpha e)]
+    {:spec/id spec-id
+     :spec.alpha/key (:spec.alpha/key e)
+     :spec.alpha/source-form (:spec.alpha/source-form e)
      :project/name (:project/name (:project/_namespaces ns))
      :namespace/name (:namespace/name ns)}))
 
@@ -338,3 +350,11 @@
               :re-frame-cofx :namespace/re-frame-cofxs))
        (map #(zipmap [:id :re-frame/key :namespace/name :project/name] %))
        (map #(assoc % :entity/type feature-key))))
+
+(defn all-specs [datascript-db]
+  (->> (d/q '[:find ?sid ?sk
+              :in $
+              :where
+              [?sid :spec.alpha/key ?sk]]
+            datascript-db)
+       (map #(zipmap [:spec/id :spec.alpha/key] %))))

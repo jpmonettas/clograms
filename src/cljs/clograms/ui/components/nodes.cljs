@@ -73,7 +73,8 @@
 (defn function-node-component [{:keys [entity] :as node}]
   (let [collapsed (r/atom false)]
    (fn [{:keys [entity] :as node}]
-     (let [var @(re-frame/subscribe [::subs/function-entity (:var/id entity) (::rg/id node)])]
+     (let [var @(re-frame/subscribe [::subs/function-entity (:var/id entity) (::rg/id node)])
+           spec-source (:fspec.alpha/source-str var)]
        [node-wrapper {:node node
                       :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name var))
                                  (menues/set-ns-color-ctx-menu-option (:namespace/name var))
@@ -83,16 +84,20 @@
          [:div.node-body
           [:div.header
            [:div.title
+            [gral-components/collapse-button @collapsed {:on-click #(swap! collapsed not)}]
             [:span.namespace-name (str (:namespace/name var) "/")]
-            [:span.var-name (:var/name var)]]
-           [gral-components/collapse-button @collapsed {:on-click #(swap! collapsed not)}]]
+            [:span.var-name (:var/name var)]]]
           (if @collapsed
             [:ul.fn-args
              (for [args-vec (:function/args var)]
                ^{:key (str args-vec)}
                [:li.args-vec args-vec])]
-            [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
-                          :dangerouslySetInnerHTML {:__html (:function/source-str var)}}])]]]))))
+            [:div
+             (when spec-source
+               [:pre.spec-source {:on-wheel (fn [e] (.stopPropagation e))
+                                  :dangerouslySetInnerHTML {:__html spec-source}}])
+             [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
+                           :dangerouslySetInnerHTML {:__html (:function/source-str var)}}]])]]]))))
 
 (defn multimethod-node-component [{:keys [entity] :as node}]
   (let [expanded (r/atom {})]
@@ -114,9 +119,9 @@
               ^{:key (pr-str (:multimethod/dispatch-val method))}
               [:div
                [:div.header
-                [:div.dispatch-val (pr-str (:multimethod/dispatch-val method))]
                 [gral-components/collapse-button (not (get @expanded (:multimethod/dispatch-val method)))
-                 {:on-click #(swap! expanded update (:multimethod/dispatch-val method) not)}]]
+                 {:on-click #(swap! expanded update (:multimethod/dispatch-val method) not)}]
+                [:div.dispatch-val (pr-str (:multimethod/dispatch-val method))]]
                (when (@expanded (:multimethod/dispatch-val method))
                  [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
                                :dangerouslySetInnerHTML {:__html (:multimethod/source-str method)}}])]))]]]]))))
@@ -168,3 +173,21 @@
        [:div.header
         [:div.title "Re frame co-effect"]]
        [:div (str (:re-frame.cofx/key e))]]]]))
+
+(defn spec-node-component [{:keys [entity] :as node}]
+  (let [e @(re-frame/subscribe [::subs/spec-entity (:spec/id entity)])
+        collapsed (r/atom false)]
+    (fn [{:keys [entity] :as node}]
+      [node-wrapper {:node node
+                     :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
+                                (menues/set-ns-color-ctx-menu-option (:namespace/name e))
+                                (menues/remove-ctx-menu-option node)]}
+       [:div.custom-node.spec-node
+        [:div.node-body
+         [:div.header [:div.title "Spec"]]
+         [:div
+          [gral-components/collapse-button @collapsed {:on-click #(swap! collapsed not)}]
+          [:span (str (:spec.alpha/key e))]]
+         (when-not @collapsed
+           [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
+            (str (:spec.alpha/source-str e))])]]])))

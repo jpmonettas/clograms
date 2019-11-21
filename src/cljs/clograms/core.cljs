@@ -41,6 +41,7 @@
   (re/register-node-component! :clograms/re-frame-event-node nodes/re-frame-event-node-component)
   (re/register-node-component! :clograms/re-frame-fx-node nodes/re-frame-fx-node-component)
   (re/register-node-component! :clograms/re-frame-cofx-node nodes/re-frame-cofx-node-component)
+  (re/register-node-component! :clograms/spec-node nodes/spec-node-component)
   (re-frame/clear-subscription-cache!)
   (reagent/render [main-screen/main-panel]
                   (.getElementById js/document "app")))

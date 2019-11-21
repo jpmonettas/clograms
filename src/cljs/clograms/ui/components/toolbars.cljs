@@ -136,6 +136,16 @@
                                                   :id (:id r)})))}
    [:div.key-name (str (:re-frame/key r))]])
 
+(defn draggable-spec-node [s]
+  [:div.draggable-entity.draggable-spec
+   {:draggable true
+    :on-drag-start (fn [event]
+                     (-> event
+                         .-dataTransfer
+                         (.setData "entity-data" {:entity/type :spec
+                                                  :id (:spec/id s)})))}
+   [:div.key-name (str (:spec.alpha/key s))]])
+
 
 (defn tree-nodes [comp-map childs]
   [:div.childs
@@ -150,6 +160,12 @@
   [:div.tree opts
    [tree-nodes comp-map childs]])
 
+(defn specs-list [all-specs]
+  [:div.specs-list
+   (for [s all-specs]
+     ^{:key (str (:spec/id s))}
+     [draggable-spec-node s])])
+
 (defn side-bar []
   (let [namespace-node (fn [n]
                          [:div.namespace
@@ -158,7 +174,8 @@
         re-frame-subs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-subs])
         re-frame-events @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-event])
         re-frame-fxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-fx])
-        re-frame-cofxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-cofx])]
+        re-frame-cofxs @(re-frame/subscribe [::subs/re-frame-feature-tree :re-frame-cofx])
+        specs @(re-frame/subscribe [::subs/specs])]
     [:div.side-bar.tool-bar
      [:input.search {:on-change (fn [evt]
                                   (re-frame/dispatch [::events/side-bar-set-search (-> evt .-target .-value)]))
@@ -167,6 +184,8 @@
       :right-side-bar
       (cond-> {:project-browser {:title "Projects"
                                  :child [projects-browser]}}
+        (seq specs)         (assoc :specs {:title "Specs"
+                                           :child [specs-list specs]})
         (seq re-frame-subs) (assoc :re-frame-subs {:title "Re-frame subs"
                                                    :child [tree
                                                            {:class :re-frame-feature}
@@ -201,7 +220,7 @@
         [:div.bottom-bar.tool-bar
          [:div.header
           [:span.title title]
-          [gral-components/collapse-button collapsed? {:on-click #(re-frame/dispatch [::events/toggle-bottom-bar-collapse])}]]
+          [gral-components/min-max-button collapsed? {:on-click #(re-frame/dispatch [::events/toggle-bottom-bar-collapse])}]]
          [:div.body {:class (when collapsed? "collapsed")}
           [:ul.references
            (map-indexed
