@@ -178,8 +178,22 @@
                      :font-size "15px"}]
      [:input {:border-radius "0px 3px 3px 0px"}]
 
-     [:.project-name {:margin-left "3px"
-                      :opacity 0.5}]
+     [:.entity-type {:margin-left "5px"}]
+     [:.project-name {:margin-left "3px"}]
+     [:.selector-option
+      [:&.var
+       [:.var-name {:font-weight :bold}]
+       [:.entity-type {:color (color :var-node)}]
+       [:.project-name {:opacity 0.5}]
+       [:.namespace-name {:opacity 0.5}]]
+      [:&.namespace
+       [:.namespace-name {:font-weight :bold}]
+       [:.entity-type {:color (color :namespace-node)}]
+       [:.project-name {:opacity 0.5}]]
+      [:&.project [:.entity-type {:color (color :project-node)}]
+       [:.project-name {:font-weight :bold}]]
+      [:&.spec [:.entity-type {:color (color :spec-node)}]
+       [:.spec-key {:font-weight :bold}]]]
      [:.rc-typeahead {:display :inline-block}
       [:.rc-typeahead-suggestion
        {:background-color (color :tool-bars)}

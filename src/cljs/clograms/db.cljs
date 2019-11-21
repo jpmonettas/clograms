@@ -249,7 +249,7 @@
      :project/name (:project/name (:project/_namespaces ns))
      :namespace/name (:namespace/name ns)}))
 
-(defn all-entities [datascript-db]
+#_(defn all-entities [datascript-db]
   (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fsrcf ?fsrcs
               :in $
               :where
@@ -270,9 +270,22 @@
               :where
               [?pid :project/name ?pname]]
             datascript-db)
-       (map #(zipmap [:project/id :project/name] %))))
+       (map #(zipmap [:project/id :project/name] %))
+       (map #(assoc % :entity/type :project))))
 
-(defn all-namespaces [datascript-db project-id]
+(defn all-namespaces [datascript-db]
+  (->> (d/q '[:find ?pname ?nsid ?nsname
+              :in $
+              :where
+              [?pid :project/namespaces ?nsid]
+              [?pid :project/name ?pname]
+              [?nsid :namespace/name ?nsname]]
+            datascript-db)
+       (map #(zipmap [:project/name :namespace/id :namespace/name] %))
+       (map #(assoc % :entity/type :namespace))))
+
+
+(defn all-namespaces-for-project [datascript-db project-id]
   (->> (d/q '[:find ?pid ?nsid ?nsname
               :in $ ?pid
               :where
@@ -280,9 +293,24 @@
               [?nsid :namespace/name ?nsname]]
             datascript-db
             project-id)
-       (map #(zipmap [:project/id :namespace/id :namespace/name] %))))
+       (map #(zipmap [:project/id :namespace/id :namespace/name] %))
+       (map #(assoc % :entity/type :namespace))))
 
-(defn all-vars
+(defn all-vars [datascript-db]
+  (->> (d/q '[:find ?pname ?nsname ?vid ?vname
+              :in $
+              :where
+              [?pid :project/namespaces ?nsid]
+              [?nsid :namespace/vars ?vid]
+              [?vid :var/name ?vname]
+              [?pid :project/name ?pname]
+              [?nsid :namespace/name ?nsname]]
+            datascript-db)
+       (map (fn [data]
+              (let [var (zipmap [:project/name :namespace/name :var/id :var/name] data)]
+                (assoc var :entity/type :var))))))
+
+(defn all-vars-for-ns
   [datascript-db ns-id]
   (->> (d/q '[:find ?pid ?nsid ?vid ?vname ?vpub ?vline ?fid ?mid
               :in $ ?nsid
@@ -301,7 +329,8 @@
                 (-> var
                     (assoc :var/type (cond
                                        (not= "N/A" (:fn var))    :function
-                                       (not= "N/A" (:multi var)) :multimethod))
+                                       (not= "N/A" (:multi var)) :multimethod)
+                           :entity/type :var)
                     (dissoc :fn :multi)))))))
 
 (defn var-x-refs [datascript-db var-id]
@@ -357,4 +386,5 @@
               :where
               [?sid :spec.alpha/key ?sk]]
             datascript-db)
-       (map #(zipmap [:spec/id :spec.alpha/key] %))))
+       (map #(zipmap [:spec/id :spec.alpha/key] %))
+       (map #(assoc % :entity/type :spec))))

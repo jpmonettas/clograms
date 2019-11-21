@@ -305,9 +305,56 @@ body .app-wrapper .draggable-spec {
   border-radius: 0px 3px 3px 0px;
 }
 
+.top-bar .entity-selector .type-ahead-wrapper .entity-type {
+  margin-left: 5px;
+}
+
 .top-bar .entity-selector .type-ahead-wrapper .project-name {
   margin-left: 3px;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.var .var-name {
+  font-weight: bold;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.var .entity-type {
+  color: #458588;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.var .project-name {
   opacity: 0.5;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.var .namespace-name {
+  opacity: 0.5;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.namespace .namespace-name {
+  font-weight: bold;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.namespace .entity-type {
+  color: #b16286;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.namespace .project-name {
+  opacity: 0.5;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.project .entity-type {
+  color: #689d6a;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.project .project-name {
+  font-weight: bold;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.spec .entity-type {
+  color: #c17055;
+}
+
+.top-bar .entity-selector .type-ahead-wrapper .selector-option.spec .spec-key {
+  font-weight: bold;
 }
 
 .top-bar .entity-selector .type-ahead-wrapper .rc-typeahead {

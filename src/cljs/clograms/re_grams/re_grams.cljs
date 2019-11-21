@@ -80,7 +80,9 @@
                                                                    :y dia-y
                                                                    ;; automatically set after render
                                                                    :w 0 :h 0}
-                                                                  data))]
+                                                                  (dissoc data
+                                                                          :client-x
+                                                                          :client-y)))]
 
     (if (seq ports)
       (reduce #(add-node-port %1 node-id %2) db' ports)

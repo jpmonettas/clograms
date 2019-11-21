@@ -12,9 +12,17 @@
             [pretty-spec.core :as pspec]))
 
 (re-frame/reg-sub
- ::all-entities
+ ::all-searchable-entities
  (fn [{:keys [:datascript/db]} _]
-   (db/all-entities db)))
+   (-> []
+       (into (map (fn [p] (assoc p :search-str (str (:project/name p))))
+                  (db/all-projects db)))
+       (into (map (fn [n] (assoc n :search-str (str (:namespace/name n))))
+                  (db/all-namespaces db)))
+       (into (map (fn [v] (assoc v :search-str (str (:var/name v))))
+                  (db/all-vars db)))
+       (into (map (fn [s] (assoc s :search-str (str (:spec.alpha/key s))))
+                  (db/all-specs db))))))
 
 (re-frame/reg-sub
  ::selected-entity
@@ -73,7 +81,7 @@
 
 (defn namespaces-items [datascript-db pid]
   (when datascript-db
-    (->> (db/all-namespaces datascript-db pid)
+    (->> (db/all-namespaces-for-project datascript-db pid)
          (map #(assoc %
                       :type :namespace
                       :search-name (str (:namespace/name %))))
@@ -81,7 +89,7 @@
 
 (defn vars-items [datascript-db nsid]
   (when datascript-db
-    (->> (db/all-vars datascript-db nsid)
+    (->> (db/all-vars-for-ns datascript-db nsid)
          (map #(assoc %
                       :type :var
                       :search-name (str (:var/name %))))

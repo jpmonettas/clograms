@@ -89,7 +89,7 @@
 
 
 (defn entity-selector []
-  (let [all-entities (re-frame/subscribe [::subs/all-entities])]
+  (let [all-entities (re-frame/subscribe [::subs/all-searchable-entities])]
     [:div.entity-selector
      [:div.type-ahead-wrapper
       [:i.search-icon.zmdi.zmdi-search]
@@ -98,18 +98,34 @@
        :change-on-blur? true
        :data-source (fn [q]
                       (when (> (count q) 2)
-                        (filter #(str/includes? (name (:var/name %)) q) @all-entities)))
+                        (filter #(str/includes? (:search-str %) q) @all-entities)))
        :render-suggestion (fn [e q]
-                            [:span.selector-option
-                             [:span.namespace-name (str (:namespace/name e) "/")]
-                             [:span.var-name (:var/name e)]
-                             [:span.project-name (str "(" (:project/name e) ")")]])
-       :suggestion-to-string (fn [e]
-                               (when (:namespace/name e)
-                                 (str (:namespace/name e) "/" (:var/name e))))
+                            (case (:entity/type e)
+                              :var [:span.selector-option.var
+                                    [:span.namespace-name (str (:namespace/name e) "/")]
+                                    [:span.var-name (:var/name e)]
+                                    [:span.project-name (str "(" (:project/name e) ")")]
+                                    [:span.entity-type "var"]]
+                              :namespace [:span.selector-option.namespace
+                                          [:span.namespace-name (str (:namespace/name e))]
+                                          [:span.project-name (str "(" (:project/name e) ")")]
+                                          [:span.entity-type "namespace"]]
+                              :spec [:span.selector-option.spec
+                                     [:span.spec-key (str (:spec.alpha/key e))]
+                                     [:span.entity-type "spec"]]
+                              :project [:span.selector-option.project
+                                        [:span.project-name (str (:project/name e))]
+                                        [:span.entity-type "project"]]))
+       :suggestion-to-string (fn [e] "")
        :on-change (fn [e]
                     (when (map? e)
-                      (re-frame/dispatch [::events/add-entity-to-diagram :var (:var/id e)])))]]]))
+                      (re-frame/dispatch [::events/add-entity-to-diagram
+                                          (:entity/type e)
+                                          (case (:entity/type e)
+                                            :var (:var/id e)
+                                            :spec (:spec/id e)
+                                            :namespace (:namespace/id e)
+                                            :project (:project/id e))])))]]]))
 
 (defn color-selector []
   (let [selected-color @(re-frame/subscribe [::subs/selected-color])]
