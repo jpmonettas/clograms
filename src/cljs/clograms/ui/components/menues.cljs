@@ -3,7 +3,7 @@
             [clograms.events :as events]
             [clograms.re-grams.re-grams :as rg]))
 
-(defn remove-ctx-menu-option [node]
+(defn remove-entity-ctx-menu-option [node]
   {:label "Remove"
    :dispatch [::events/remove-entity-from-diagram (::rg/id node)]})
 
@@ -33,3 +33,7 @@
                         (re-frame/dispatch dispatch)
                         (re-frame/dispatch [::events/hide-context-menu]))}
        label])]])
+
+(defn remove-link-ctx-menu-option [link]
+  {:label "Remove"
+   :dispatch [::rg/remove-link (::rg/id link)]})

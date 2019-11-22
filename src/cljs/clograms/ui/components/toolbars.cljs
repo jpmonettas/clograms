@@ -6,6 +6,7 @@
             [clojure.string :as str]
             [re-com.core :as re-com]
             [clograms.db :as db]
+            [clograms.re-grams.re-grams :as rg]
             [clograms.ui.components.general :as gral-components]))
 
 (defn draggable-project [project]
@@ -136,11 +137,22 @@
                                :class (when (= c selected-color) "selected")
                                :on-click #(re-frame/dispatch [::events/select-color c])}])]))
 
+(defn link-arrows-selector []
+  (let [{:keys [arrow-start? arrow-end?] :as lconf} @(re-frame/subscribe [::rg/link-config])]
+    [:div.link-arrows-selector
+     [:span.button {:class (when arrow-start? "selected")
+                    :on-click #(re-frame/dispatch [::rg/set-link-config (update lconf :arrow-start? not)])}
+      [:i.zmdi.zmdi-arrow-left]]
+     [:span.button {:class (when arrow-end? "selected")
+                    :on-click #(re-frame/dispatch [::rg/set-link-config (update lconf :arrow-end? not)])}
+      [:i.zmdi.zmdi-arrow-right]]]))
+
 (defn top-bar []
   [:div.top-bar.tool-bar
    [:i.zmdi.zmdi-floppy.save {:on-click #(re-frame/dispatch [::events/save-diagram])}]
    [entity-selector]
-   [color-selector]])
+   [color-selector]
+   [link-arrows-selector]])
 
 (defn draggable-re-frame-node [r]
   [:div.draggable-entity.draggable-re-frame-feature

@@ -46,7 +46,7 @@
   (let [project @(re-frame/subscribe [::subs/project-entity (:project/id entity)])]
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name project))
-                              (menues/remove-ctx-menu-option node)]}
+                              (menues/remove-entity-ctx-menu-option node)]}
      [:div.project-node.custom-node
       [:div.node-body.project-name (str (:project/name project))]]]))
 
@@ -57,7 +57,7 @@
        [node-wrapper {:node node
                       :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name ns))
                                  (menues/set-ns-color-ctx-menu-option (:namespace/name ns))
-                                 (menues/remove-ctx-menu-option node)]}
+                                 (menues/remove-entity-ctx-menu-option node)]}
         [:div.namespace-node.custom-node
          [:div.node-body
           [:div.header
@@ -79,7 +79,7 @@
                       :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name var))
                                  (menues/set-ns-color-ctx-menu-option (:namespace/name var))
                                  (menues/find-references (:var/id entity) (::rg/id node))
-                                 (menues/remove-ctx-menu-option node)]}
+                                 (menues/remove-entity-ctx-menu-option node)]}
         [:div.var-node.custom-node
          [:div.node-body
           [:div.header
@@ -106,7 +106,7 @@
        [node-wrapper {:node node
                       :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name mm))
                                  (menues/set-ns-color-ctx-menu-option (:namespace/name mm))
-                                 (menues/remove-ctx-menu-option node)]}
+                                 (menues/remove-entity-ctx-menu-option node)]}
         [:div.var-node.custom-node
          [:div.node-body
           [:div.header
@@ -131,7 +131,7 @@
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name s))
                               (menues/set-ns-color-ctx-menu-option (:namespace/name s))
-                              (menues/remove-ctx-menu-option node)]}
+                              (menues/remove-entity-ctx-menu-option node)]}
      [:div.custom-node.re-frame-node
       [:div.node-body
        [:div.header
@@ -143,7 +143,7 @@
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
                               (menues/set-ns-color-ctx-menu-option (:namespace/name e))
-                              (menues/remove-ctx-menu-option node)]}
+                              (menues/remove-entity-ctx-menu-option node)]}
      [:div.custom-node.re-frame-node
       [:div.node-body
        [:div.header
@@ -155,7 +155,7 @@
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
                               (menues/set-ns-color-ctx-menu-option (:namespace/name e))
-                              (menues/remove-ctx-menu-option node)]}
+                              (menues/remove-entity-ctx-menu-option node)]}
      [:div.custom-node.re-frame-node
       [:div.node-body
        [:div.header
@@ -167,7 +167,7 @@
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
                               (menues/set-ns-color-ctx-menu-option (:namespace/name e))
-                              (menues/remove-ctx-menu-option node)]}
+                              (menues/remove-entity-ctx-menu-option node)]}
      [:div.custom-node.re-frame-node
       [:div.node-body
        [:div.header
@@ -181,7 +181,7 @@
       [node-wrapper {:node node
                      :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
                                 (menues/set-ns-color-ctx-menu-option (:namespace/name e))
-                                (menues/remove-ctx-menu-option node)]}
+                                (menues/remove-entity-ctx-menu-option node)]}
        [:div.custom-node.spec-node
         [:div.node-body
          [:div.header [:div.title "Spec"]]

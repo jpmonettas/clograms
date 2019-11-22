@@ -8,7 +8,7 @@
             :red "#cc241d"
 
             :code-background "#a89984"
-            :selection "#665c54"
+            :selection "#5373A2"
             :node-selection "#fb4934"
             :tool-bars "#3c3836"
             :background "#504945"
@@ -207,7 +207,18 @@
     [:.selectable-color {:display :inline-block
                          :width "30px"
                          :height "100%"}
-     [:&.selected {:border "1px solid orange"}]]]])
+     [:&.selected {:border "1px solid orange"}]]]
+
+   [:.link-arrows-selector {:overflow :hidden
+                            :border-radius border-radius
+                            :height "23px"
+                            :margin-left "5px"
+                            :background-color (color :background)}
+    [:.button {:padding "5px"
+               :margin-top "3px"}
+     [:&.selected {:background-color (color :selection)}]
+     [:i {:font-size "15px"
+          :margin-top "5px"}]]]])
 
 (def side-bar
   [:.side-bar {:position :absolute

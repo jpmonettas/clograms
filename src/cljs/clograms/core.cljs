@@ -4,6 +4,7 @@
             [clograms.events :as events]
             [clograms.ui.screens.main :as main-screen]
             [clograms.ui.components.nodes :as nodes]
+            [clograms.ui.components.links :as links]
             [clograms.config :as config]
             [clograms.re-grams.re-grams :as re]
             [cljs.core.async :as async]
@@ -42,6 +43,7 @@
   (re/register-node-component! :clograms/re-frame-fx-node nodes/re-frame-fx-node-component)
   (re/register-node-component! :clograms/re-frame-cofx-node nodes/re-frame-cofx-node-component)
   (re/register-node-component! :clograms/spec-node nodes/spec-node-component)
+  (re/register-link-component! :clograms/line-link links/line-link-component)
   (re-frame/clear-subscription-cache!)
   (reagent/render [main-screen/main-panel]
                   (.getElementById js/document "app")))

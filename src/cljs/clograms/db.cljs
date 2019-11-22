@@ -103,16 +103,16 @@
                          "#afbc4f"})
 
 (def default-db
-  (merge
-   {:side-bar {:query ""}
-    :bottom-bar {:collapsed? true}
-    :projects-browser {:level 0
-                       :selected-project nil
-                       :selected-namespace nil}
-    :ctx-menu nil
-    :selected-color (first selectable-colors)
-    :loading? true}
-   (rg/initial-db)))
+  (-> (rg/initial-db)
+      (rg/set-link-type :clograms/line-link)
+      (merge {:side-bar {:query ""}
+              :bottom-bar {:collapsed? true}
+              :projects-browser {:level 0
+                                 :selected-project nil
+                                 :selected-namespace nil}
+              :ctx-menu nil
+              :selected-color (first selectable-colors)
+              :loading? true})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Datascript DB                                                               ;;

@@ -6,41 +6,16 @@
             [clojure.core.matrix :as matrix]
             [re-frame.core :refer [dispatch reg-event-db reg-event-fx reg-sub subscribe]]))
 
-;; Schema
-#_{:nodes {"nid1" {::id "nid1"
-                   :diagram.node/type :custom-node-1
-                   :x 20
-                   :y 20
-                   :ports {"pid1" {::id "pid1"
-                                   :diagram.port/type :custom-port1}
-                           "pid2" {::id "pid2"
-                                   :diagram.port/type :custom-port1}}}
-           "nid2" {::id "nid2"
-                   :diagram.node/type :custom-node-2
-                   :x 510
-                   :y 510
-                   :ports {"pid3" {::id "pid3"
-                                   :diagram.port/type :custom-port1}}}
-           }
-   ;; :links {"lid1" {::id "lid1"
-   ;;                 :from-port ["nid1" "pid2"]
-   ;;                 :to-port ["nid2" "pid3"]}}
-
-   :scale 1
-   :translate [0 0]
-   :grab {:cli-origin [0 0]
-          :cli-current [10 10]
-          :grab-object {:diagram.object/type :node
-                        ::id "nid1"
-                        :start-pos [100 100]}}}
-
 (defn initial-db []
   {::diagram {:nodes {}
               :links {}
+              :link-config {:arrow-start? false
+                            :arrow-end? true}
               :scale 1
               :translate [0 0]}})
 
 (defonce node-components (atom {}))
+(defonce link-components (atom {}))
 
 (defn client-coord->dia-coord [{:keys [translate scale]} [client-x client-y]]
   (let [[tx ty] translate]
@@ -113,10 +88,23 @@
   (:ports node))
 
 (defn add-link [db [from-node from-port :as from] [to-node to-port :as to]]
-  (let [link-id (gen-random-id)]
+  (let [link-id (gen-random-id)
+        {:keys [:arrow-start? :arrow-end? :diagram.link/type]} (get-in db [::diagram :link-config])]
     (update-in db [::diagram :links] assoc link-id {::id link-id
                                                     :from-port from
-                                                    :to-port to})))
+                                                    :to-port to
+                                                    :arrow-start? arrow-start?
+                                                    :arrow-end? arrow-end?
+                                                    :diagram.link/type type})))
+
+(defn set-link-type [db link-type]
+  (assoc-in db [::diagram :link-config :diagram.link/type] link-type))
+
+(defn remove-link [db link-id]
+  (update-in db [::diagram :links] dissoc link-id))
+
+(defn set-link-config [db link-config]
+  (assoc-in db [::diagram :link-config] link-config))
 
 ;;;;;;;;;;
 ;; Port ;;
@@ -159,7 +147,7 @@
                                      (dispatch [::grab {:diagram.object/type :link
                                                         :tmp-link-from [node-id (::id p)]} [(.-clientX evt) (.-clientY evt)]]))
                     :on-mouse-up (fn [evt]
-                                   (dispatch [::add-link [node-id (::id p)] (get-in @grab-sub [:grab-object :tmp-link-from])]))}
+                                   (dispatch [::add-link (get-in @grab-sub [:grab-object :tmp-link-from]) [node-id (::id p)]]))}
 
          [port-component p]])})))
 
@@ -287,14 +275,28 @@
                          :scale new-scale)
                   dia))))))
 
+(defn line-link [{:keys [arrow-start? arrow-end? x1 y1 x2 y2]}]
+  [:line (cond-> {:x1 x1 :y1 y1 :x2 x2 :y2 y2
+                  :stroke :gray
+                  :stroke-width 3}
+           arrow-start?  (assoc :marker-start "url(#arrow-start)")
+           arrow-end?    (assoc :marker-end "url(#arrow-end)"))])
+
 (defn link-curve-string [[[fpx fpy] & points]]
   (gstring/format "M%f %f C%s" fpx fpy (str/join "," (map #(str/join " " %) points))))
+
+(defn curve-link [{:keys [x1 y1 x2 y2 arrow-start? arrow-end?]}]
+  [:path {:stroke :gray
+          :fill :none
+          :stroke-width 3
+          :d (link-curve-string [[x1 y1] [(- x1 50) y1] [(+ x2 50) y2] [x2 y2]])}])
 
 (defn translate-diagram [db to]
   (assoc-in db [::diagram :translate] to))
 
 (defn link [nodes {:keys [from-port to-port]  :as l}]
-  (let [center (fn [{:keys [x y w h]}] (when (and x y w h)
+  (let [link-component (get @link-components (:diagram.link/type l) line-link)
+        center (fn [{:keys [x y w h]}] (when (and x y w h)
                                          [(+ x (quot w 2)) (+ y (quot h 2))]))
         [from-n from-p] from-port
         [to-n to-p] to-port
@@ -304,16 +306,23 @@
         y2 (or y2 (:to-y l))]
     (when (and x1 y1) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
       [:g
-       [:path {:stroke :gray
-               :fill :none
-               :stroke-width 3
-               :d (link-curve-string [[x1 y1] [(- x1 50) y1] [(+ x2 50) y2] [x2 y2]])}]])))
+       [link-component {:x1 x1 :y1 y1 :x2 x2 :y2 y2
+                        ::id (::id l)
+                        :arrow-start? (:arrow-start? l)
+                        :arrow-end?   (:arrow-end? l)}]])))
+
+(defn arrow-markers []
+  [:defs
+   [:marker {:id "arrow-end" :marker-width 10 :marker-height 10 :ref-x 5 :ref-y 2 :orient "auto" :marker-units "strokeWidth"}
+    [:path {:d "M0,0 L0,4 L6,2 z" :fill "gray"}]]
+   [:marker {:id "arrow-start" :marker-width 10 :marker-height 10 :ref-x 0 :ref-y 2 :orient "auto" :marker-units "strokeWidth"}
+    [:path {:d "M0,2 L6,4 L6,0 z" :fill "gray"}]]])
 
 (defn diagram [dia]
   (r/create-class
    {:component-did-mount (fn [this])
     :reagent-render (fn [dia]
-                      (let [{:keys [nodes links grab translate scale scale-origin]} dia
+                      (let [{:keys [nodes links link-config grab translate scale scale-origin]} dia
                             [tx ty] translate]
                         [:div.diagram-layer {:style {:overflow :hidden}
                                                :on-mouse-down (fn [evt]
@@ -335,6 +344,7 @@
                                                       ;; :background "#e2acac"
                                                       }}
                           [:svg.links {:style {:overflow :visible}}
+                           [arrow-markers]
                            (for [l (vals links)]
                              ^{:key (::id l)}
                              [link nodes l])
@@ -343,7 +353,8 @@
                              [link nodes (let [[current-x current-y] (client-coord->dia-coord {:translate translate
                                                                                                :scale scale}
                                                                                               (:cli-current grab))]
-                                           {:from-port lf :to-x current-x :to-y current-y})])]
+                                           (merge {:from-port lf :to-x current-x :to-y current-y}
+                                                  link-config))])]
                           [:div.nodes
                            (doall (for [n (vals nodes)]
                                     ^{:key (::id n)}
@@ -351,6 +362,9 @@
 
 (defn register-node-component! [node-type component-fn]
   (swap! node-components assoc node-type component-fn))
+
+(defn register-link-component! [link-type component-fn]
+  (swap! link-components assoc link-type component-fn))
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Subscriptions ;;
@@ -368,7 +382,7 @@
 (reg-sub ::translate (fn [db _] (get-in db [::diagram :translate])))
 (reg-sub ::scale (fn [db _] (get-in db [::diagram :scale])))
 (reg-sub ::selected-node-id (fn [db _] (get-in db [::diagram :selected-node-id])))
-
+(reg-sub ::link-config (fn [db _] (get-in db [::diagram :link-config])))
 ;;;;;;;;;;;;;
 ;; Events  ;;
 ;;;;;;;;;;;;;
@@ -388,6 +402,8 @@
 (reg-event-db ::zoom (fn [db [_ delta cli-coords]] (zoom db delta cli-coords)))
 (reg-event-db ::translate-diagram (fn [db to] (translate-diagram db to)))
 (reg-event-db ::add-link (fn [db [_ from-port to-port]] (add-link db from-port to-port)))
+(reg-event-db ::set-link-config (fn [db [_ link-config]] (set-link-config db link-config)))
+(reg-event-db ::remove-link (fn [db [_ link-id]] (remove-link db link-id)))
 (reg-event-db ::add-node (fn [db [_ node ports]] (add-node db node ports)))
 (reg-event-db ::remove-node (fn [db [_ node-id]] (remove-node db node-id)))
 (reg-event-db ::add-node-port (fn [db [_ node-id port]] (add-node-port db node-id port)))

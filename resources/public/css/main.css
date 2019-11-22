@@ -190,7 +190,7 @@ body .app-wrapper .context-menu ul li {
 }
 
 body .app-wrapper .context-menu ul li:hover {
-  background-color: #665c54;
+  background-color: #5373A2;
 }
 
 body .app-wrapper ul {
@@ -366,7 +366,7 @@ body .app-wrapper .draggable-spec {
 }
 
 .top-bar .entity-selector .type-ahead-wrapper .rc-typeahead .rc-typeahead-suggestion.active {
-  background-color: #665c54;
+  background-color: #5373A2;
 }
 
 .top-bar .color-selector {
@@ -385,6 +385,28 @@ body .app-wrapper .draggable-spec {
 
 .top-bar .color-selector .selectable-color.selected {
   border: 1px solid orange;
+}
+
+.top-bar .link-arrows-selector {
+  overflow: hidden;
+  border-radius: 3px;
+  height: 23px;
+  margin-left: 5px;
+  background-color: #504945;
+}
+
+.top-bar .link-arrows-selector .button {
+  padding: 5px;
+  margin-top: 3px;
+}
+
+.top-bar .link-arrows-selector .button.selected {
+  background-color: #5373A2;
+}
+
+.top-bar .link-arrows-selector .button i {
+  font-size: 15px;
+  margin-top: 5px;
 }
 
 .side-bar {

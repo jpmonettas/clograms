@@ -6,6 +6,7 @@
 (s/def ::rg/id string?)
 (s/def :diagram.node/type (s/nilable keyword?))
 (s/def :diagram.port/type (s/nilable keyword?))
+(s/def :diagram.link/type (s/nilable keyword?))
 
 (s/def ::client-x number?)
 (s/def ::client-y number?)
@@ -36,9 +37,15 @@
 (s/def ::to-port (s/tuple ::rg/id ::rg/id))
 (s/def ::tmp-link-from (s/tuple ::rg/id ::rg/id))
 
-(s/def ::link (s/keys :req [::rg/id]
+(s/def ::arrow-start? boolean?)
+(s/def ::arrow-end? boolean?)
+
+(s/def ::link (s/keys :req [::rg/id
+                            :diagram.link/type]
                       :req-un [::from-port
-                               ::to-port]))
+                               ::to-port]
+                      :opt-un [::arrow-start?
+                               ::arrow-end?]))
 
 (s/def ::coord (s/tuple number? number?))
 
@@ -64,9 +71,14 @@
 
 (s/def ::selected-node-id ::rg/id)
 
+(s/def ::link-config (s/keys :req [:diagram.link/type]
+                             :req-un [::arrow-start?
+                                      ::arrow-end?]))
+
 (s/def ::rg/diagram (s/keys :req-un [::nodes
                                      ::links
                                      ::scale
-                                     ::translate]
+                                     ::translate
+                                     ::link-config]
                             :opt-un [::grab
                                      ::selected-node-id]))
