@@ -7,6 +7,10 @@
   {:label "Remove"
    :dispatch [::events/remove-entity-from-diagram (::rg/id node)]})
 
+(defn remove-node-ctx-menu-option [node]
+  {:label "Remove"
+   :dispatch [::rg/remove-node (::rg/id node)]})
+
 (defn set-ns-color-ctx-menu-option [ns-name]
   {:label (str "Set " ns-name " namespace color to selected")
    :dispatch [::events/set-namespace-color ns-name]})
