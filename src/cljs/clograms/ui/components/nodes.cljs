@@ -194,3 +194,36 @@
          (when-not @collapsed
            [:pre.source {:on-wheel (fn [e] (.stopPropagation e))}
             (str (:spec.alpha/source-str e))])]]])))
+
+(defn circle-node-component [node]
+  (let [cx (+ (:x node) (quot (:w node) 2))
+        cy (+ (:y node) (quot (:h node) 2))]
+   [:g
+    [:circle {:cx cx
+              :cy cy
+              :r (quot (max (:w node) (:h node)) 2)}]
+    [:text {:x cx :y cy
+            :text-anchor :middle
+            :stroke :red} "Some text"]]))
+
+(defn rectangle-node-component [node]
+  [:g
+   [:rect {:x (:x node) :y (:y node) :width (:w node) :height (:h node) :rx 3}]
+   [:text {:x (+ (:x node) (quot (:w node) 2)) :y (+ (:y node) (quot (:h node) 2))
+           :text-anchor :middle
+           :stroke :red}
+    "Some text"]])
+
+(defn group-node-component [node]
+  [:g
+   [:rect {:x (:x node)
+           :y (:y node)
+           :width (:w node)
+           :height (:h node)
+           :stroke :grey
+           :stroke-width 2
+           :fill :none
+           :rx 3}]
+   [:text {:x (+ 5 (:x node)) :y (+ (:y node) 20)
+           :stroke :grey}
+    "Some text"]])

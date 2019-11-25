@@ -12,7 +12,8 @@
               :link-config {:arrow-start? false
                             :arrow-end? true}
               :scale 1
-              :translate [0 0]}})
+              :translate [0 0]
+              }})
 
 (defonce node-components (atom {}))
 (defonce link-components (atom {}))
@@ -128,7 +129,7 @@
 (defn port [node p]
   (let [grab-sub (subscribe [::grab])
         node-id (::id node)
-        port-component (get @node-components (:diagram.port/type p) default-port)
+        port-component default-port
         update-after-render (fn [p-cmp]
                               (let [dn (r/dom-node p-cmp)
                                     brect (.getBoundingClientRect dn)]
@@ -192,8 +193,47 @@
   [:div.debug-bar
    [:span (gstring/format "translate: %s, scale: %1.3f" translate scale)]])
 
-(defn node [n]
-  (let [node-component (get @node-components (:diagram.node/type n) default-node)
+(defn build-node-click-handler [n]
+  (fn [evt] (dispatch [::select-node (::id n)])))
+
+(defn build-node-mouse-down-handler [n]
+  (fn [evt]
+    (.stopPropagation evt)
+    ;; this makes things like text areas inside nodes unable to get focus
+    #_(.preventDefault evt)
+    (when (= left-button (.-buttons evt))
+      (dispatch [::grab {:diagram.object/type :node
+                         ::id (::id n)
+                         :start-pos [(:x n) (:y n)]}
+                 [(.-clientX evt) (.-clientY evt)]]))))
+
+(defn build-svg-node-resizer-handler [n]
+  (fn [evt]
+    (.stopPropagation evt)
+    (when (= left-button (.-buttons evt))
+      (dispatch [::grab {:diagram.object/type :node-resizer
+                         ::id (::id n)
+                         :start-pos [(:x n) (:y n)]
+                         :start-size [(:w n) (:h n)]}
+                 [(.-clientX evt) (.-clientY evt)]]))))
+
+(defn svg-node [n]
+  (let [[_ node-component] (get @node-components (:diagram.node/type n) default-node)
+        selected-node-id (subscribe [::selected-node-id])]
+    [:g {:class (when (= @selected-node-id (::id n)) "selected")
+         :on-click (build-node-click-handler n)
+         :on-mouse-down (build-node-mouse-down-handler n)}
+     [node-component n]
+     [:circle.resizer {:cx (+ (:x n) (:w n))
+                       :cy (+ (:y n) (:h n))
+                       :r 10
+                       :stroke :transparent
+                       :fill :black
+                       :style {:cursor :nwse-resize}
+                       :on-mouse-down (build-svg-node-resizer-handler n)}]]))
+
+(defn div-node [n]
+  (let [[_ node-component] (get @node-components (:diagram.node/type n) default-node)
         selected-node-id (subscribe [::selected-node-id])
         update-after-render (fn [n-cmp]
                               (let [dn (r/dom-node n-cmp)
@@ -206,16 +246,8 @@
       :reagent-render
       (fn [n]
         [:div.node {:class (when (= @selected-node-id (::id n)) "selected")
-                    :on-click (fn [evt] (dispatch [::select-node (::id n)]))
-                    :on-mouse-down (fn [evt]
-                                     (.stopPropagation evt)
-                                       ;; this makes things like text areas inside nodes unable to get focus
-                                     #_(.preventDefault evt)
-                                     (when (= left-button (.-buttons evt))
-                                       (dispatch [::grab {:diagram.object/type :node
-                                                          ::id (::id n)
-                                                          :start-pos [(:x n) (:y n)]}
-                                                  [(.-clientX evt) (.-clientY evt)]])))
+                    :on-click (build-node-click-handler n)
+                    :on-mouse-down (build-node-mouse-down-handler n)
                     :style {:position :absolute
                             :top (:y n)
                             :left (:x n)}}
@@ -243,6 +275,17 @@
                 (-> db'
                     (assoc-in [::diagram :nodes (::id grab-object) :x] obj-end-x)
                     (assoc-in [::diagram :nodes (::id grab-object) :y] obj-end-y)))
+        ;; TODO: refactor this out to displacement-vector fn
+        :node-resizer (let [[current-dia-x current-dia-y] (client-coord->dia-coord (::diagram db) current-cli-coord)
+                            [start-dia-x start-dia-y] (client-coord->dia-coord (::diagram db) cli-origin)
+                            drag-x (- current-dia-x start-dia-x)
+                            drag-y (- current-dia-y start-dia-y)
+                            [obj-start-width obj-start-height] (:start-size grab-object)
+                            end-width (+ obj-start-width drag-x)
+                            end-height (+ obj-start-height drag-y)]
+                        (-> db'
+                            (assoc-in [::diagram :nodes (::id grab-object) :w] end-width)
+                            (assoc-in [::diagram :nodes (::id grab-object) :h] end-height)))
         :diagram (let [drag-x (- cli-x grab-start-x)
                        drag-y (- cli-y grab-start-y)
                        obj-end-x (+ obj-start-x drag-x)
@@ -323,7 +366,9 @@
    {:component-did-mount (fn [this])
     :reagent-render (fn [dia]
                       (let [{:keys [nodes links link-config grab translate scale scale-origin]} dia
-                            [tx ty] translate]
+                            [tx ty] translate
+                            div-nodes (filter #(= (first (get @node-components (:diagram.node/type %))) :div) (vals nodes))
+                            svg-nodes (filter #(= (first (get @node-components (:diagram.node/type %))) :svg) (vals nodes))]
                         [:div.diagram-layer {:style {:overflow :hidden}
                                                :on-mouse-down (fn [evt]
                                                                 (.stopPropagation evt)
@@ -343,25 +388,34 @@
                                                       ;; For debugging
                                                       ;; :background "#e2acac"
                                                       }}
-                          [:svg.links {:style {:overflow :visible}}
+                          [:svg {:style {:overflow :visible}}
                            [arrow-markers]
+
+                           ;; links
                            (for [l (vals links)]
                              ^{:key (::id l)}
                              [link nodes l])
 
+                           ;; current link (a temp link while drawing it)
                            (when-let [lf (get-in grab [:grab-object :tmp-link-from])]
                              [link nodes (let [[current-x current-y] (client-coord->dia-coord {:translate translate
                                                                                                :scale scale}
                                                                                               (:cli-current grab))]
                                            (merge {:from-port lf :to-x current-x :to-y current-y}
-                                                  link-config))])]
-                          [:div.nodes
-                           (doall (for [n (vals nodes)]
-                                    ^{:key (::id n)}
-                                    [node n]))]]]))}))
+                                                  link-config))])
 
-(defn register-node-component! [node-type component-fn]
-  (swap! node-components assoc node-type component-fn))
+                           ;; svg nodes
+                           (for [n svg-nodes]
+                             ^{:key (::id n)}
+                             [svg-node n])]
+
+                          [:div.nodes
+                           (doall (for [n div-nodes]
+                                    ^{:key (::id n)}
+                                    [div-node n]))]]]))}))
+
+(defn register-node-component! [node-type [node-graph-type component-fn]]
+  (swap! node-components assoc node-type [node-graph-type component-fn]))
 
 (defn register-link-component! [link-type component-fn]
   (swap! link-components assoc link-type component-fn))

@@ -11,11 +11,23 @@
   (let [dia @(re-frame/subscribe [::rg/diagram])]
     [:div.diagram-wrapper
      {:on-drop (fn [evt]
-                 (let [{:keys [:entity/type :id :link-to]} (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data"))))]
-                   (re-frame/dispatch [::events/add-entity-to-diagram type id
-                                       {:link-to-node-id link-to
-                                        :client-x (.-clientX evt)
-                                        :client-y (.-clientY evt)}])))
+                 (let [{:keys [:entity/type :id :link-to]} (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "entity-data"))))
+                       shape (-> (cljs.reader/read-string (-> evt .-dataTransfer (.getData "shape"))))]
+                   (cond
+                     ;; it is a shape
+                     shape
+                     (re-frame/dispatch [::rg/add-node {:diagram.node/type (:type shape)
+                                                        :w (:w shape)
+                                                        :h (:h shape)
+                                                        :client-x (.-clientX evt)
+                                                        :client-y (.-clientY evt)}])
+
+                     ;; it is a entity
+                     :else
+                     (re-frame/dispatch [::events/add-entity-to-diagram type id
+                                         {:link-to-node-id link-to
+                                          :client-x (.-clientX evt)
+                                          :client-y (.-clientY evt)}]))))
       :on-drag-over (fn [evt ] (.preventDefault evt))
       :on-click (fn [evt]
                   (re-frame/dispatch [::events/hide-context-menu]))}

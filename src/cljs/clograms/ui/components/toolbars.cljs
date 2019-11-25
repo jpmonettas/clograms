@@ -194,6 +194,26 @@
      ^{:key (str (:spec/id s))}
      [draggable-spec-node s])])
 
+(defn shapes-draggables []
+  (let [drag-map (fn [shape-type]
+                   {:draggable true
+                    :on-drag-start (fn [event]
+                                     (-> event
+                                         .-dataTransfer
+                                         (.setData "shape" {:type shape-type
+                                                            :w 200
+                                                            :h 200})))})]
+    [:div
+     [:div.draggable-shape (drag-map :clograms/rectangle-node)
+      [:svg {:width 30 :height 30}
+       [:rect (merge {:width 30 :height 30})]]]
+     [:div.draggable-shape (drag-map :clograms/circle-node)
+      [:svg {:width 30 :height 30}
+       [:circle {:r 15 :cx 15 :cy 15}]]]
+     [:div.draggable-shape (drag-map :clograms/group-node)
+      [:svg {:width 30 :height 30}
+       [:rect {:width 30 :height 30 :fill :transparent :stroke :grey}]]]]))
+
 (defn side-bar []
   (let [namespace-node (fn [n]
                          [:div.namespace
@@ -210,7 +230,9 @@
                      :value @(re-frame/subscribe [::subs/side-bar-search])}]
      [gral-components/accordion
       :right-side-bar
-      (cond-> {:project-browser {:title "Projects"
+      (cond-> {:shapes {:title "Shapes"
+                        :child [shapes-draggables]}
+               :project-browser {:title "Projects, Namespaces & Vars"
                                  :child [projects-browser]}}
         (seq specs)         (assoc :specs {:title "Specs"
                                            :child [specs-list specs]})

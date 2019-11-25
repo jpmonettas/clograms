@@ -8,7 +8,7 @@
             :red "#cc241d"
 
             :code-background "#a89984"
-            :selection "#5373A2"
+            :selection "#5076B2"
             :node-selection "#fb4934"
             :tool-bars "#3c3836"
             :background "#504945"

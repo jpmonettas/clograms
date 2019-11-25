@@ -2,7 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [clograms.re-grams.re-grams :as rg]))
 
-(s/def :diagram.object/type #{:node :link :diagram})
+(s/def :diagram.object/type #{:node :link :diagram :node-resizer})
 (s/def ::rg/id string?)
 (s/def :diagram.node/type (s/nilable keyword?))
 (s/def :diagram.port/type (s/nilable keyword?))
@@ -59,9 +59,12 @@
 (s/def ::cli-origin ::coord)
 (s/def ::cli-current ::coord)
 (s/def ::start-pos ::coord)
+(s/def ::start-size (s/tuple number? number?))
+
 (s/def ::grab-object (s/keys :req [:diagram.object/type]
                              :opt [::rg/id]
-                             :req-un [::start-pos]
+                             :req-un [::start-pos
+                                      ::start-size]
                              :opt-un [::tmp-link-from]))
 
 (s/def ::grab (s/nilable
