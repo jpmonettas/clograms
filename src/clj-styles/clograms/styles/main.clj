@@ -78,7 +78,7 @@
                      :border :unset
                      :background-color (color :main-font)}]
      [:.header {}
-      [:.title {:whitespace :nowrap}]
+      [:.title {:white-space :nowrap}]
       [:.dispatch-val {:display :inline-block
                        :white-space :nowrap
                        :font-size "12px"}]]]

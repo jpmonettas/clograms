@@ -48,7 +48,10 @@
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name project))
                               (menues/remove-entity-ctx-menu-option node)]}
      [:div.project-node.custom-node
-      [:div.node-body.project-name (str (:project/name project))]]]))
+      [:div.node-body
+       [:div.header
+        [:div.title
+         [:div.project-name (str (:project/name project))]]]]]]))
 
 (defn namespace-node-component [{:keys [entity] :as node}]
   (let [collapsed (r/atom false)]

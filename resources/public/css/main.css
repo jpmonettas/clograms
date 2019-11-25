@@ -81,7 +81,7 @@
 }
 
 .diagram-wrapper .diagram-layer .node-body .header .title {
-  whitespace: nowrap;
+  white-space: nowrap;
 }
 
 .diagram-wrapper .diagram-layer .node-body .header .dispatch-val {
