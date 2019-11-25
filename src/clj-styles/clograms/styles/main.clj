@@ -132,6 +132,8 @@
     [:.project-name {:whitespace :nowrap}]
     [:.namespace-name {}]
     [:.var-name {}]
+    [:.draggable-shape {:display :inline-block
+                        :margin "5px"}]
     [:.draggable-entity
      {:padding "4px"
       :border-radius border-radius

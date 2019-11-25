@@ -210,6 +210,11 @@ body .app-wrapper .var-name {
 
 }
 
+body .app-wrapper .draggable-shape {
+  display: inline-block;
+  margin: 5px;
+}
+
 body .app-wrapper .draggable-entity {
   padding: 4px;
   border-radius: 3px;

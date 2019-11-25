@@ -206,13 +206,13 @@
     [:div
      [:div.draggable-shape (drag-map :clograms/rectangle-node)
       [:svg {:width 30 :height 30}
-       [:rect (merge {:width 30 :height 30})]]]
+       [:rect (merge {:width 30 :height 30 :rx 3})]]]
      [:div.draggable-shape (drag-map :clograms/circle-node)
       [:svg {:width 30 :height 30}
        [:circle {:r 15 :cx 15 :cy 15}]]]
      [:div.draggable-shape (drag-map :clograms/group-node)
       [:svg {:width 30 :height 30}
-       [:rect {:width 30 :height 30 :fill :transparent :stroke :grey}]]]]))
+       [:rect {:width 30 :height 30 :fill :transparent :stroke :grey :rx 3}]]]]))
 
 (defn side-bar []
   (let [namespace-node (fn [n]
