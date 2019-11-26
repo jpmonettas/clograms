@@ -11,6 +11,10 @@
   {:label "Remove"
    :dispatch [::rg/remove-node (::rg/id node)]})
 
+(defn edit-node-label-ctx-menu-option [node]
+  {:label "Edit text"
+   :dispatch [:text-edit-modal/create [::rg/set-node-label (::rg/id node)]]})
+
 (defn set-ns-color-ctx-menu-option [ns-name]
   {:label (str "Set " ns-name " namespace color to selected")
    :dispatch [::events/set-namespace-color ns-name]})
@@ -22,6 +26,14 @@
 (defn find-references [var-id node-id]
   {:label "Find references"
    :dispatch [::events/find-var-references var-id node-id]})
+
+(defn edit-link-text-ctx-menu-option [link]
+  {:label "Edit text"
+   :dispatch [:text-edit-modal/create [::rg/set-link-label (::rg/id link)]]})
+
+(defn remove-link-ctx-menu-option [link]
+  {:label "Remove"
+   :dispatch [::rg/remove-link (::rg/id link)]})
 
 
 (defn context-menu [{:keys [x y menu]}]
@@ -37,7 +49,3 @@
                         (re-frame/dispatch dispatch)
                         (re-frame/dispatch [::events/hide-context-menu]))}
        label])]])
-
-(defn remove-link-ctx-menu-option [link]
-  {:label "Remove"
-   :dispatch [::rg/remove-link (::rg/id link)]})

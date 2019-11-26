@@ -208,42 +208,41 @@
                                :menu ctx-menu}])))}
    child])
 
+(defn shape-menu [node]
+  [(menues/remove-node-ctx-menu-option node)
+   (menues/edit-node-label-ctx-menu-option node)])
+
 (defn circle-node-component [node]
   (let [cx (+ (:x node) (quot (:w node) 2))
         cy (+ (:y node) (quot (:h node) 2))]
     [shape-wrapper
-     {:ctx-menu [(menues/remove-node-ctx-menu-option node)]
-      :child [:g
+     {:ctx-menu (shape-menu node)
+      :child [:g.circle-shape
               [:circle {:cx cx
                         :cy cy
                         :r (quot (max (:w node) (:h node)) 2)}]
               [:text {:x cx :y cy
-                      :text-anchor :middle
-                      :stroke :red} "Some text"]]}]))
+                      :text-anchor :middle}
+               (:label node) ]]}]))
 
 (defn rectangle-node-component [node]
   [shape-wrapper
-   {:ctx-menu [(menues/remove-node-ctx-menu-option node)]
-    :child [:g
+   {:ctx-menu (shape-menu node)
+    :child [:g.rectangle-shape
             [:rect {:x (:x node) :y (:y node) :width (:w node) :height (:h node) :rx 3}]
             [:text {:x (+ (:x node) (quot (:w node) 2)) :y (+ (:y node) (quot (:h node) 2))
-                    :text-anchor :middle
-                    :stroke :red}
-             "Some text"]]}])
+                    :text-anchor :middle}
+             (:label node)]]}])
 
 (defn group-node-component [node]
   [shape-wrapper
-   {:ctx-menu [(menues/remove-node-ctx-menu-option node)]
+   {:ctx-menu (shape-menu node)
     :child
-    [:g
+    [:g.group-shape
      [:rect {:x (:x node)
              :y (:y node)
              :width (:w node)
              :height (:h node)
-             :stroke :grey
-             :stroke-width 2
-             :fill :none
              :rx 3}]
-     [:text {:x (+ 5 (:x node)) :y (+ (:y node) 20)
-             :stroke :grey}
-      "Some text"]]}])
+     [:text {:x (+ 5 (:x node)) :y (+ (:y node) 20)}
+      (or (:label node) "<group title>") ]]}])

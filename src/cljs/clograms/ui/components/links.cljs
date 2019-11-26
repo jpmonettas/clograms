@@ -14,5 +14,6 @@
                              [::events/show-context-menu
                               {:x x
                                :y y
-                               :menu [(menues/remove-link-ctx-menu-option link)]}])))}
+                               :menu [(menues/remove-link-ctx-menu-option link)
+                                      (menues/edit-link-text-ctx-menu-option link)]}])))}
    [rg/line-link link]])

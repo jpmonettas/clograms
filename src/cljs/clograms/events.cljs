@@ -68,7 +68,14 @@
                                                                                             :project/colors
                                                                                             :namespace/colors
                                                                                             :node/comments]))))
-(re-frame/reg-event-db :accordion/activate-item [] (fn [db [_ accordion-id item-id]] (components-db/accordion-activate-item db accordion-id item-id)))
+(re-frame/reg-event-db :accordion/activate-item [inter-check] (fn [db [_ accordion-id item-id]] (components-db/accordion-activate-item db accordion-id item-id)))
+
+(re-frame/reg-event-db :text-edit-modal/create [inter-check] (fn [db [_ event]] (components-db/text-edit-modal-create db event)))
+
+(re-frame/reg-event-fx :text-edit-modal/set [inter-check]
+                       (fn [{:keys [db]} [_ event]]
+                         {:db (components-db/text-edit-modal-kill db)
+                          :dispatch event}))
 
 
 (comment

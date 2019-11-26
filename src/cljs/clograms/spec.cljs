@@ -73,7 +73,11 @@
 
 (s/def :components.general/accordion (s/keys :opt-un [:accordion/active-item]))
 
-(s/def :clograms.ui.components/general (s/keys :opt-un [:components.general/accordion]))
+(s/def :components.general.text-edit-modal/on-text-set-event vector?)
+
+(s/def :components.general/text-edit-modal (s/keys :req-un [:components.general.text-edit-modal/on-text-set-event]))
+(s/def :clograms.ui.components/general (s/keys :opt-un [:components.general/accordion
+                                                        :components.general/text-edit-modal]))
 
 (s/def ::db (s/keys :req [::rg/diagram]
                     :opt [:datascript/db

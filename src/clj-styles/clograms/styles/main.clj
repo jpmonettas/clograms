@@ -19,6 +19,7 @@
             :re-frame "#896dad"
             :spec-node "#c17055"
             :main-font "#eee"
+            :shape "#336699"
             })
 
 (def border-radius "3px")
@@ -101,6 +102,21 @@
      [:.var-name {:font-weight :bold}]]
     [:.re-frame-node {:background-color (color :re-frame)}]
     [:.spec-node {:background-color (color :spec-node)}]]])
+(def svg-shapes
+  [:svg
+   [:.resizer {:cursor :nwse-resize
+               :stroke :transparent
+               :fill :transparent}]
+   [:.group-shape {:stroke :grey
+                   :stroke-width 2
+                   :fill :transparent}
+    [:text {:stroke :none :fill (color :main-font)}]]
+   [:.rectangle-shape {:stroke :none
+                       :fill (color :shape)}
+    [:text {:stroke :none :fill (color :main-font)}]]
+   [:.circle-shape {:stroke :none
+                    :fill (color :shape)}
+    [:text {:stroke :none :fill (color :main-font)}]]])
 
 (def general
   [:body {:background-color (str (color :background) " !important")
@@ -260,14 +276,16 @@
     [:.header {:font-weight :bold
                :margin-left "5px"}]]])
 
+(def overlay-styles {:width "100%"
+                     :height "100%"
+                     :position :absolute
+                     :display :flex
+                     :align-items :center
+                     :justify-content :center
+                     :z-index 1000})
+
 (def loading-spinner
-  [[:.loading-overlay {:width "100%"
-                       :height "100%"
-                       :position :absolute
-                       :display :flex
-                       :align-items :center
-                       :justify-content :center
-                       :z-index 1000}
+  [[:.loading-overlay overlay-styles
     [:.spinner-outer {:width "104px"
                       :height "104px"
                       :z-index 5}
@@ -285,6 +303,12 @@
        :top "-36px"
        :position :relative}]]]
    (at-keyframes :rotate [:to {:transform "rotate(360deg)"}])])
+
+(def text-edit-modal
+  [:.modal-overlay overlay-styles
+   [:.text-edit-modal {:padding "15px"
+                       :background-color (color :tool-bars)}
+    [:input {:width "200px"}]]])
 
 (def bottom-bar
   [:.bottom-bar {:position :absolute
@@ -335,11 +359,13 @@
 (def ^:garden main
   (list
    diagram
+   svg-shapes
    general
    top-bar
    side-bar
    bottom-bar
    loading-spinner
+   text-edit-modal
    debug
 
    ;; components

@@ -23,6 +23,8 @@
                                ::x
                                ::y]))
 
+(s/def ::label string?)
+
 (s/def ::node (s/keys :req [::rg/id
                             :diagram.node/type]
                       :req-un [::w
@@ -31,7 +33,8 @@
                                ::y]
                       :opt-un [::ports
                                ::client-x
-                               ::client-y]))
+                               ::client-y
+                               ::label]))
 
 (s/def ::from-port (s/tuple ::rg/id ::rg/id))
 (s/def ::to-port (s/tuple ::rg/id ::rg/id))
@@ -45,7 +48,8 @@
                       :req-un [::from-port
                                ::to-port]
                       :opt-un [::arrow-start?
-                               ::arrow-end?]))
+                               ::arrow-end?
+                               ::label]))
 
 (s/def ::coord (s/tuple number? number?))
 
@@ -63,9 +67,9 @@
 
 (s/def ::grab-object (s/keys :req [:diagram.object/type]
                              :opt [::rg/id]
-                             :req-un [::start-pos
-                                      ::start-size]
-                             :opt-un [::tmp-link-from]))
+                             :req-un [::start-pos]
+                             :opt-un [::tmp-link-from
+                                      ::start-size]))
 
 (s/def ::grab (s/nilable
                (s/keys :req-un [::cli-origin

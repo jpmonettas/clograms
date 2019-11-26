@@ -142,6 +142,43 @@
   background-color: #c17055;
 }
 
+svg .resizer {
+  cursor: nwse-resize;
+  stroke: transparent;
+  fill: transparent;
+}
+
+svg .group-shape {
+  stroke: grey;
+  stroke-width: 2;
+  fill: transparent;
+}
+
+svg .group-shape text {
+  stroke: none;
+  fill: #eee;
+}
+
+svg .rectangle-shape {
+  stroke: none;
+  fill: #336699;
+}
+
+svg .rectangle-shape text {
+  stroke: none;
+  fill: #eee;
+}
+
+svg .circle-shape {
+  stroke: none;
+  fill: #336699;
+}
+
+svg .circle-shape text {
+  stroke: none;
+  fill: #eee;
+}
+
 body {
   background-color: #504945 !important;
   color: #eee !important;
@@ -572,6 +609,25 @@ body .app-wrapper .draggable-spec {
     transform: rotate(360deg);
   }
 
+}
+
+.modal-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay .text-edit-modal {
+  padding: 15px;
+  background-color: #3c3836;
+}
+
+.modal-overlay .text-edit-modal input {
+  width: 200px;
 }
 
 .node-debug {

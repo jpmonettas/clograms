@@ -203,18 +203,18 @@
                                      (-> event
                                          .-dataTransfer
                                          (.setData "shape" {:type shape-type
-                                                            :w 200
-                                                            :h 200})))})]
+                                                            :w 80
+                                                            :h 80})))})]
     [:div
      [:div.draggable-shape (drag-map :clograms/rectangle-node)
       [:svg {:width 30 :height 30}
-       [:rect (merge {:width 30 :height 30 :rx 3})]]]
+       [:rect.rectangle-shape (merge {:width 30 :height 30 :rx 3})]]]
      [:div.draggable-shape (drag-map :clograms/circle-node)
       [:svg {:width 30 :height 30}
-       [:circle {:r 15 :cx 15 :cy 15}]]]
+       [:circle.circle-shape {:r 15 :cx 15 :cy 15}]]]
      [:div.draggable-shape (drag-map :clograms/group-node)
       [:svg {:width 30 :height 30}
-       [:rect {:width 30 :height 30 :fill :transparent :stroke :grey :rx 3}]]]]))
+       [:rect.group-shape {:width 30 :height 30 :rx 3}]]]]))
 
 (defn side-bar []
   (let [namespace-node (fn [n]

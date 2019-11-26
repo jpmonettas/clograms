@@ -85,6 +85,10 @@
 (defn select-node [db node-id]
   (assoc-in db [::diagram :selected-node-id] node-id))
 
+(defn set-node-label [db node-id label]
+  (prn "Setting " node-id "- > " label)
+  (assoc-in db [::diagram :nodes node-id :label] label))
+
 (defn node-ports [node]
   (:ports node))
 
@@ -100,6 +104,9 @@
 
 (defn set-link-type [db link-type]
   (assoc-in db [::diagram :link-config :diagram.link/type] link-type))
+
+(defn set-link-label [db link-id label]
+  (assoc-in db [::diagram :links link-id :label] label))
 
 (defn remove-link [db link-id]
   (update-in db [::diagram :links] dissoc link-id))
@@ -220,16 +227,13 @@
 (defn svg-node [n]
   (let [[_ node-component] (get @node-components (:diagram.node/type n) default-node)
         selected-node-id (subscribe [::selected-node-id])]
-    [:g {:class (when (= @selected-node-id (::id n)) "selected")
-         :on-click (build-node-click-handler n)
-         :on-mouse-down (build-node-mouse-down-handler n)}
+    [:g.svg-node {:class (when (= @selected-node-id (::id n)) "selected")
+                  :on-click (build-node-click-handler n)
+                  :on-mouse-down (build-node-mouse-down-handler n)}
      [node-component n]
      [:circle.resizer {:cx (+ (:x n) (:w n))
                        :cy (+ (:y n) (:h n))
-                       :r 10
-                       :stroke :transparent
-                       :fill :black
-                       :style {:cursor :nwse-resize}
+                       :r 20
                        :on-mouse-down (build-svg-node-resizer-handler n)}]]))
 
 (defn div-node [n]
@@ -319,11 +323,12 @@
                   dia))))))
 
 (defn line-link [{:keys [arrow-start? arrow-end? x1 y1 x2 y2]}]
-  [:line (cond-> {:x1 x1 :y1 y1 :x2 x2 :y2 y2
-                  :stroke :gray
-                  :stroke-width 3}
-           arrow-start?  (assoc :marker-start "url(#arrow-start)")
-           arrow-end?    (assoc :marker-end "url(#arrow-end)"))])
+  [:g
+   [:line (cond-> {:x1 x1 :y1 y1 :x2 x2 :y2 y2
+                   :stroke :gray
+                   :stroke-width 3}
+            arrow-start?  (assoc :marker-start "url(#arrow-start)")
+            arrow-end?    (assoc :marker-end "url(#arrow-end)"))]])
 
 (defn link-curve-string [[[fpx fpy] & points]]
   (gstring/format "M%f %f C%s" fpx fpy (str/join "," (map #(str/join " " %) points))))
@@ -338,21 +343,32 @@
   (assoc-in db [::diagram :translate] to))
 
 (defn link [nodes {:keys [from-port to-port]  :as l}]
-  (let [link-component (get @link-components (:diagram.link/type l) line-link)
+  (let [text-y-gap -7 ;; this is so the text doesn't shows oevr the link
+        link-component (get @link-components (:diagram.link/type l) line-link)
         center (fn [{:keys [x y w h]}] (when (and x y w h)
-                                         [(+ x (quot w 2)) (+ y (quot h 2))]))
-        [from-n from-p] from-port
-        [to-n to-p] to-port
-        [x1 y1] (center (get-in nodes [from-n :ports from-p]))
-        [x2 y2] (center (get-in nodes [to-n :ports to-p]))
-        x2 (or x2 (:to-x l))
-        y2 (or y2 (:to-y l))]
-    (when (and x1 y1) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
-      [:g
-       [link-component {:x1 x1 :y1 y1 :x2 x2 :y2 y2
-                        ::id (::id l)
-                        :arrow-start? (:arrow-start? l)
-                        :arrow-end?   (:arrow-end? l)}]])))
+                                         [(+ x (quot w 2)) (+ y (quot h 2))]))]
+   (fn [nodes {:keys [from-port to-port]  :as l}]
+     (let [[from-n from-p] from-port
+           [to-n to-p] to-port
+           [x1 y1] (center (get-in nodes [from-n :ports from-p]))
+           [x2 y2] (center (get-in nodes [to-n :ports to-p]))
+           x2 (or x2 (:to-x l))
+           y2 (or y2 (:to-y l))
+           link-center-x (+ x1 (quot (- x2 x1) 2))
+           link-center-y (+ y1 (quot (- y2 y1) 2) text-y-gap)]
+       (when (and x1 y1) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
+         [:g
+          (when-not (str/blank? (:label l))
+            [:text {:text-anchor :middle
+                    :stroke :none
+                    :fill :grey
+                    :x link-center-x
+                    :y link-center-y}
+             (:label l)])
+          [link-component {:x1 x1 :y1 y1 :x2 x2 :y2 y2
+                           ::id (::id l)
+                           :arrow-start? (:arrow-start? l)
+                           :arrow-end?   (:arrow-end? l)}]])))))
 
 (defn arrow-markers []
   [:defs
@@ -457,8 +473,10 @@
 (reg-event-db ::translate-diagram (fn [db to] (translate-diagram db to)))
 (reg-event-db ::add-link (fn [db [_ from-port to-port]] (add-link db from-port to-port)))
 (reg-event-db ::set-link-config (fn [db [_ link-config]] (set-link-config db link-config)))
+(reg-event-db ::set-link-label (fn [db [_ link-id label]] (set-link-label db link-id label)))
 (reg-event-db ::remove-link (fn [db [_ link-id]] (remove-link db link-id)))
 (reg-event-db ::add-node (fn [db [_ node ports]] (add-node db node ports)))
+(reg-event-db ::set-node-label (fn [db [_ node-id label]] (set-node-label db node-id label)))
 (reg-event-db ::remove-node (fn [db [_ node-id]] (remove-node db node-id)))
 (reg-event-db ::add-node-port (fn [db [_ node-id port]] (add-node-port db node-id port)))
 (reg-event-fx ::select-node (fn [{:keys [db]} [_ node-id]]

@@ -344,3 +344,8 @@
  ::node-comment
  (fn [db [_ node-id]]
    (db/node-comment db node-id)))
+
+(re-frame/reg-sub
+ :text-edit-modal/event
+ (fn [db [_]]
+   (components-db/text-edit-modal-event db)))

@@ -1,5 +1,6 @@
 (ns clograms.ui.components.general
-  (:require [re-frame.core :refer [subscribe dispatch]]))
+  (:require [re-frame.core :refer [subscribe dispatch dispatch]]
+            [reagent.core :as r]))
 
 (defn loading-spinner []
   [:div.loading-overlay
@@ -43,3 +44,14 @@
 (defn min-max-button [collapsed? {:keys [on-click]}]
   [:i.collapse-button.zmdi {:on-click on-click
                             :class (if collapsed? "zmdi-window-maximize" "zmdi-window-minimize")}])
+
+(defn text-edit-modal [on-text-set-event]
+  (let [text (r/atom "")]
+    (fn [on-text-set-event]
+      [:div.modal-overlay
+       [:div.text-edit-modal
+        [:input {:value @text
+                 :on-change (fn [evt] (reset! text (.. evt -target -value)))
+                 :on-key-down (fn [evt]
+                                (when (and (= 13 (.-keyCode evt))
+                                           (dispatch [:text-edit-modal/set (conj on-text-set-event @text)]))))}]]])))

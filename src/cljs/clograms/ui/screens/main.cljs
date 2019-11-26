@@ -38,11 +38,15 @@
         loading? @(re-frame/subscribe [::subs/loading?])]
     [:div
      (if loading?
+
        [general-components/loading-spinner]
+
        [:div.app-wrapper {:class (when loading? "loading")}
         (when ctx-menu [menues/context-menu ctx-menu])
         [toolbars/top-bar]
         [toolbars/side-bar]
         (when (:title @(re-frame/subscribe [::subs/bottom-bar]))
           [toolbars/bottom-bar])
+        (when-let [modal-event @(re-frame/subscribe [:text-edit-modal/event])]
+          [general-components/text-edit-modal modal-event])
         [diagram]])]))
