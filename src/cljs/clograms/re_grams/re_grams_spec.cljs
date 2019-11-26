@@ -5,7 +5,6 @@
 (s/def :diagram.object/type #{:node :link :diagram :node-resizer})
 (s/def ::rg/id string?)
 (s/def :diagram.node/type (s/nilable keyword?))
-(s/def :diagram.port/type (s/nilable keyword?))
 (s/def :diagram.link/type (s/nilable keyword?))
 
 (s/def ::client-x number?)
@@ -16,12 +15,13 @@
 (s/def ::x number?)
 (s/def ::y number?)
 
-(s/def ::port (s/keys :req [::rg/id
-                            :diagram.port/type]
+(s/def :diagram.port/id (s/and int? #(<= 0 % 7)))
+(s/def ::port (s/keys :req []
                       :req-un [::w
                                ::h
                                ::x
-                               ::y]))
+                               ::y
+                               :diagram.port/id]))
 
 (s/def ::label string?)
 
@@ -36,9 +36,9 @@
                                ::client-y
                                ::label]))
 
-(s/def ::from-port (s/tuple ::rg/id ::rg/id))
-(s/def ::to-port (s/tuple ::rg/id ::rg/id))
-(s/def ::tmp-link-from (s/tuple ::rg/id ::rg/id))
+(s/def ::from-port (s/tuple ::rg/id :diagram.port/id))
+(s/def ::to-port (s/tuple ::rg/id :diagram.port/id))
+(s/def ::tmp-link-from (s/tuple ::rg/id :diagram.port/id))
 
 (s/def ::arrow-start? boolean?)
 (s/def ::arrow-end? boolean?)
@@ -53,7 +53,7 @@
 
 (s/def ::coord (s/tuple number? number?))
 
-(s/def ::ports (s/map-of string? ::port))
+(s/def ::ports (s/map-of :diagram.port/id ::port))
 (s/def ::nodes (s/map-of string? ::node))
 (s/def ::links (s/map-of string? ::link))
 

@@ -22,23 +22,79 @@
   align-items: center;
 }
 
-.diagram-wrapper .diagram-layer .port {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin: 5px;
+.diagram-wrapper .diagram-layer .node.selected .port-inner {
+  background-color: yellow;
+}
+
+.diagram-wrapper .diagram-layer .node:hover .port-inner {
+  background-color: yellow !important;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 15px;
+  height: 15px;
   border-radius: 3px;
-  background-color: #3c3836;
   color: transparent;
 }
 
-.diagram-wrapper .diagram-layer .port:hover {
-  background-color: yellow !important;
+.diagram-wrapper .diagram-layer .node .div-port:hover {
   cursor: crosshair;
 }
 
-.diagram-wrapper .diagram-layer .node.selected .port {
-  background-color: yellow;
+.diagram-wrapper .diagram-layer .node .div-port.port-0 {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port.port-1 {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port.port-2 {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port.port-3 {
+  position: absolute;
+  top: 50%;
+  right: -10px;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port.port-4 {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port.port-5 {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port.port-6 {
+  position: absolute;
+  bottom: -10px;
+  left: -10px;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port.port-7 {
+  position: absolute;
+  top: 50%;
+  left: -10px;
+}
+
+.diagram-wrapper .diagram-layer .node .div-port .port-inner {
+  width: 5px;
+  height: 5px;
 }
 
 .diagram-wrapper .diagram-layer .node .node-wrapper {
@@ -146,6 +202,19 @@ svg .resizer {
   cursor: nwse-resize;
   stroke: transparent;
   fill: transparent;
+}
+
+svg .svg-node:hover .svg-port {
+  fill: yellow;
+}
+
+svg .svg-node .svg-port {
+  z-index: 100;
+  fill: transparent;
+}
+
+svg .svg-node .svg-port:hover {
+  cursor: crosshair;
 }
 
 svg .group-shape {

@@ -35,6 +35,8 @@
                  :bottom "-50px"
                  :left "10px"}]])
 
+(def port-fix "-10px")
+
 (def diagram
   [:.diagram-wrapper {:width "100%"
                       :height "100%"
@@ -48,17 +50,40 @@
                     :border-radius border-radius
                     :display :flex
                     :align-items :center}]
-    [:.port {:display :inline-block
-             :width "10px"
-             :height "10px"
-             :margin "5px"
-             :border-radius border-radius
-             :background-color (color :tool-bars)
-             :color :transparent}
-     [:&:hover {:background-color (str "yellow !important")
-                :cursor :crosshair}]]
-    [:.node [:&.selected [:.port {:background-color :yellow}]]
+    [:.node [:&.selected [:.port-inner {:background-color :yellow}]]
+     [:&:hover [:.port-inner
+                {:background-color (str "yellow !important")}]]
+
+     [:.div-port {:display :flex
+                  :justify-content :center
+                  :align-items :center
+                  :width "15px"
+                  :height "15px"
+                  :border-radius border-radius
+                  :color :transparent}
+      [:&:hover {:cursor :crosshair}]
+      [:&.port-0 {:position :absolute
+                  :top port-fix :left port-fix}]
+      [:&.port-1 {:position :absolute
+                  :top port-fix :left "50%"}]
+      [:&.port-2 {:position :absolute
+                  :top port-fix :right port-fix}]
+      [:&.port-3 {:position :absolute
+                  :top "50%" :right port-fix}]
+      [:&.port-4 {:position :absolute
+                  :bottom port-fix :right port-fix}]
+      [:&.port-5 {:position :absolute
+                  :bottom port-fix :left "50%"}]
+      [:&.port-6 {:position :absolute
+                  :bottom port-fix :left port-fix}]
+      [:&.port-7 {:position :absolute
+                  :top "50%" :left port-fix}]
+      [:.port-inner {:width "5px"
+                     :height "5px"}]]
+
      [:.node-wrapper {}
+
+
       [:.node-comment {:position :absolute
                        :opacity 0.5
                        :border-radius border-radius
@@ -107,6 +132,12 @@
    [:.resizer {:cursor :nwse-resize
                :stroke :transparent
                :fill :transparent}]
+
+   [:.svg-node
+    [:&:hover [:.svg-port {:fill "yellow"}]]
+    [:.svg-port {:z-index 100
+                 :fill :transparent}
+     [:&:hover {:cursor :crosshair}]]]
    [:.group-shape {:stroke :grey
                    :stroke-width 2
                    :fill :transparent}

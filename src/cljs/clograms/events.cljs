@@ -24,7 +24,7 @@
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
   [a-spec db]
-  (when-not (s/valid? a-spec db)
+  #_(when-not (s/valid? a-spec db)
     (throw (js/Error. (str "spec check failed: " (expound/expound-str a-spec db))))))
 
 ;; now we create an interceptor using `after`

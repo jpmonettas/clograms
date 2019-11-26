@@ -38,31 +38,25 @@
 
 (defn gen-random-id [] (str (random-uuid)))
 
-(defn add-node-port [db node-id {:keys [::id]:as port}]
-  (let [port-id (or id (gen-random-id))]
-    (update-in db [::diagram :nodes node-id :ports] assoc port-id (merge {::id port-id
-                                                                          ;; automatically set after render
-                                                                          :x 0 :y 0 :w 0 :h 0}
-                                                                         port))))
-
-(defn add-node [db {:keys [:client-x :client-y :x :y ::id] :as data} & [ports]]
+(defn add-node [db {:keys [:client-x :client-y :x :y :w :h ::id] :as data}]
   (let [node-id (or id (gen-random-id))
         [dia-x dia-y] (cond
                         (and x y) [x y]
                         (and client-x client-y) (client-coord->dia-coord (::diagram db) [client-x client-y])
-                        :else (client-coord->dia-coord (::diagram db) [500 500]))
-        db' (update-in db [::diagram :nodes] assoc node-id (merge {::id node-id
-                                                                   :x dia-x
-                                                                   :y dia-y
-                                                                   ;; automatically set after render
-                                                                   :w 0 :h 0}
-                                                                  (dissoc data
-                                                                          :client-x
-                                                                          :client-y)))]
-
-    (if (seq ports)
-      (reduce #(add-node-port %1 node-id %2) db' ports)
-      db')))
+                        :else (client-coord->dia-coord (::diagram db) [500 500]))]
+    (-> db
+        (update-in [::diagram :nodes] assoc node-id (merge {::id node-id
+                                                            :x dia-x
+                                                            :y dia-y
+                                                            ;; automatically set after render
+                                                            :w 0 :h 0
+                                                            :ports (->> (range 0 8)
+                                                                        (map (fn [pid]
+                                                                               [pid {:id pid :w 0 :h 0 :x 0 :y 0}]))
+                                                                        (into {}))}
+                                                           (dissoc data
+                                                                   :client-x
+                                                                   :client-y))))))
 
 (defn remove-node [db node-id]
   (-> db
@@ -118,10 +112,6 @@
 ;; Port ;;
 ;;;;;;;;;;
 
-(defn default-port [props]
-  [:div.default-port {:style {:width "10px"
-                              :height "10px"}}])
-
 (defn set-port-dimensions [db node-id port-id {:keys [w h client-x client-y]}]
   (let [[x y] (client-coord->dia-coord (::diagram db) [client-x client-y])
         scale (get-in db [::diagram :scale])]
@@ -133,31 +123,37 @@
                        :x x
                        :y y)))))
 
+(def svg-port-side 7)
+
 (defn port [node p]
-  (let [grab-sub (subscribe [::grab])
+  (let [[node-graph-type] (get @node-components (:diagram.node/type node))
+        grab-sub (subscribe [::grab])
         node-id (::id node)
-        port-component default-port
         update-after-render (fn [p-cmp]
                               (let [dn (r/dom-node p-cmp)
                                     brect (.getBoundingClientRect dn)]
-                                (dispatch [::set-port-dimensions node-id (::id p) {:w (.-width brect)
-                                                                                   :h (.-height brect)
-                                                                                   :client-x (.-x brect)
-                                                                                   :client-y (.-y brect)}])))]
+                                (dispatch [::set-port-dimensions node-id (:id p) {:w (.-width brect)
+                                                                                  :h (.-height brect)
+                                                                                  :client-x (.-x brect)
+                                                                                  :client-y (.-y brect)}])))]
     (r/create-class
      {:component-did-mount (fn [this] (update-after-render this))
       :component-did-update (fn [this] (update-after-render this))
       :reagent-render
       (fn [node p]
-        [:div.port {:on-mouse-down (fn [evt]
-                                     (.stopPropagation evt)
-                                     (.preventDefault evt)
-                                     (dispatch [::grab {:diagram.object/type :link
-                                                        :tmp-link-from [node-id (::id p)]} [(.-clientX evt) (.-clientY evt)]]))
-                    :on-mouse-up (fn [evt]
-                                   (dispatch [::add-link (get-in @grab-sub [:grab-object :tmp-link-from]) [node-id (::id p)]]))}
+        (let [props-map {:class (str "port-" (:id p))
+                         :on-mouse-down (fn [evt]
+                                          (.stopPropagation evt)
+                                          (.preventDefault evt)
+                                          (dispatch [::grab {:diagram.object/type :link
+                                                             :tmp-link-from [node-id (:id p)]} [(.-clientX evt) (.-clientY evt)]]))
+                         :on-mouse-up (fn [evt]
+                                        (dispatch [::add-link (get-in @grab-sub [:grab-object :tmp-link-from]) [node-id (:id p)]]))} ]
+         (case node-graph-type
+           :div [:div.div-port props-map [:div.port-inner]]
+           :svg [:rect.svg-port (merge props-map p {:width svg-port-side :height svg-port-side})])
 
-         [port-component p]])})))
+         ))})))
 
 ;;;;;;;;;;
 ;; Node ;;
@@ -224,15 +220,34 @@
                          :start-size [(:w n) (:h n)]}
                  [(.-clientX evt) (.-clientY evt)]]))))
 
+(defn port-position [node port-id]
+  (let [[nx ny nw nh] ((juxt :x :y :w :h) node)
+        fix (- svg-port-side)]
+    (get {0 {:x fix         :y fix}
+          1 {:x (quot nw 2) :y fix}
+          2 {:x nw          :y fix}
+          3 {:x nw          :y (quot nh 2)}
+          4 {:x nw          :y nh}
+          5 {:x (quot nw 2) :y nh}
+          6 {:x fix         :y nh}
+          7 {:x fix         :y (quot nh 2)}}
+               port-id)))
+
 (defn svg-node [n]
   (let [[_ node-component] (get @node-components (:diagram.node/type n) default-node)
         selected-node-id (subscribe [::selected-node-id])]
-    [:g.svg-node {:class (when (= @selected-node-id (::id n)) "selected")
-                  :on-click (build-node-click-handler n)
-                  :on-mouse-down (build-node-mouse-down-handler n)}
+    [:g.svg-node.node {:class (when (= @selected-node-id (::id n)) "selected")
+                       :on-click (build-node-click-handler n)
+                       :on-mouse-down (build-node-mouse-down-handler n)
+                       :transform (gstring/format "translate(%d,%d)" (:x n) (:y n))}
+
+     (for [p (vals (:ports n))]
+       ^{:key (:id p)}
+       [port n (merge p (port-position n (:id p)))])
+
      [node-component n]
-     [:circle.resizer {:cx (+ (:x n) (:w n))
-                       :cy (+ (:y n) (:h n))
+     [:circle.resizer {:cx (:w n)
+                       :cy (:h n)
                        :r 20
                        :on-mouse-down (build-svg-node-resizer-handler n)}]]))
 
@@ -256,11 +271,11 @@
                             :top (:y n)
                             :left (:x n)}}
          (when debug [node-debug n])
-         [:div.ports {:style {:display :flex
-                              :justify-content :space-between}}
-          (for [p (vals (:ports n))]
-            ^{:key (::id p)}
-            [port n p])]
+
+         (for [p (vals (:ports n))]
+           ^{:key (:id p)}
+           [port n p])
+
          [node-component n]])})))
 
 (defn drag [db current-cli-coord]
@@ -475,10 +490,9 @@
 (reg-event-db ::set-link-config (fn [db [_ link-config]] (set-link-config db link-config)))
 (reg-event-db ::set-link-label (fn [db [_ link-id label]] (set-link-label db link-id label)))
 (reg-event-db ::remove-link (fn [db [_ link-id]] (remove-link db link-id)))
-(reg-event-db ::add-node (fn [db [_ node ports]] (add-node db node ports)))
+(reg-event-db ::add-node (fn [db [_ node]] (add-node db node)))
 (reg-event-db ::set-node-label (fn [db [_ node-id label]] (set-node-label db node-id label)))
 (reg-event-db ::remove-node (fn [db [_ node-id]] (remove-node db node-id)))
-(reg-event-db ::add-node-port (fn [db [_ node-id port]] (add-node-port db node-id port)))
 (reg-event-fx ::select-node (fn [{:keys [db]} [_ node-id]]
                               (let [db' (select-node db node-id)]
                                 {:db db'

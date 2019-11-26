@@ -18,8 +18,6 @@
 (defn add-entity-to-diagram [db entity-type id {:keys [link-to-port link-to-node-id client-x client-y] :as opts}]
   (println "Adding entity to diagram" entity-type id " link to node " link-to-node-id " and port " link-to-port)
   (let [new-node-id (rg/gen-random-id)
-        port-in-id (rg/gen-random-id)
-        port-out-id (rg/gen-random-id)
         selected-node (rg/selected-node db)
         entity-type (if (= :var entity-type) ;; figure out the concrete type if it is just a :var
                       (:var/type (db/var-entity (:datascript/db db) id))
@@ -28,12 +26,9 @@
                               (let [link-to-port (or link-to-port :first)
                                     link-to-node (or (rg/get-node db link-to-node-id)
                                                      selected-node)
-                                    port-sel-fn (get {:first first :last last} link-to-port)
-                                    port-id (-> (rg/node-ports link-to-node) vals port-sel-fn ::rg/id)
-                                    from [(::rg/id link-to-node) port-id]
-                                    to [new-node-id (if (= :first link-to-port)
-                                                      port-out-id
-                                                      port-in-id)]]
+                                    port-sel-fn (get {:first 7 :last 3} link-to-port)
+                                    from [(::rg/id link-to-node) (port-sel-fn link-to-port)]
+                                    to [new-node-id (port-sel-fn link-to-port)]]
                                 [[::rg/add-link from to]
                                  (if (and client-x client-y)
                                    {:client-x client-x :client-y client-y}
@@ -46,8 +41,7 @@
 
     {:dispatch-n (cond-> [[::rg/add-node (-> (models/build-node entity-type id)
                                              (merge coords)
-                                             (assoc ::rg/id new-node-id))
-                           [{:diagram.port/type nil ::rg/id port-in-id} {:diagram.port/type nil ::rg/id port-out-id}]]]
+                                             (assoc ::rg/id new-node-id))]]
                    link-event  (into [link-event]))}))
 
 (defn remove-entity-from-diagram [db id]
