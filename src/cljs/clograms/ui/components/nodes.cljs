@@ -51,7 +51,8 @@
       [:div.node-body
        [:div.header
         [:div.title
-         [:div.project-name (str (:project/name project))]]]]]]))
+         [:div.project-name (str (:project/name project))]
+         [:div.project-version (:project/version project)]]]]]]))
 
 (defn namespace-node-component [{:keys [entity] :as node}]
   (let [collapsed (r/atom false)]

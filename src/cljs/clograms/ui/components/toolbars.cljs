@@ -20,7 +20,9 @@
                                                   :id (:project/id project)})))
     :on-click (fn [_]
                 (re-frame/dispatch [::events/side-bar-browser-select-project project]))}
-   [:div (str (:project/name project))]])
+   [:div
+    [:span (str (:project/name project) )]
+    [:span.project-version (str "(" (:project/version project) ")")]]])
 
 (defn draggable-namespace [namespace]
   [:div.draggable-namespace.draggable-entity

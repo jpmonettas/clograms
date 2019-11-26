@@ -83,6 +83,8 @@
                        :white-space :nowrap
                        :font-size "12px"}]]]
     [:.project-node {:background-color (color :project-node)}
+     [:.project-version {:text-align :center
+                         :border-top "1px solid"}]
      [:.port {:background-color (color :project-node)}]]
     [:.namespace-node {:background-color (color :namespace-node)}
      [:.port {:background-color (color :namespace-node)}]
@@ -142,7 +144,9 @@
       :font-size "11px"
       :cursor :no-drop}]
     [:.draggable-project {:background-color (color :project-node)}
-     [:&.main-project {:border-width "2px"}]]
+     [:&.main-project {:border-width "2px"}]
+     [:.project-version {:margin-left "5px"
+                         :opacity 0.7}]]
     [:.draggable-namespace {:background-color (color :namespace-node)}]
     [:.draggable-var {:background-color (color :var-node)
                       }

@@ -199,7 +199,8 @@
 (defn project-entity [datascript-db project-id]
   (let [proj (d/entity datascript-db project-id)]
     {:project/id project-id
-     :project/name (:project/name proj)}))
+     :project/name (:project/name proj)
+     :project/version (or (:project/version proj) "UNKNOWN")}))
 
 (defn namespace-entity [datascript-db namespace-id]
   (let [ns (d/entity datascript-db namespace-id)]
@@ -265,12 +266,13 @@
        (map #(zipmap [:project/name :namespace/name :var/name :var/id :function/source-form :function/source-str] %))))
 
 (defn all-projects [datascript-db]
-  (->> (d/q '[:find ?pid ?pname
+  (->> (d/q '[:find ?pid ?pname ?pver
               :in $
               :where
-              [?pid :project/name ?pname]]
+              [?pid :project/name ?pname]
+              [(get-else $ ?pid :project/version "UNKNOWN") ?pver]]
             datascript-db)
-       (map #(zipmap [:project/id :project/name] %))
+       (map #(zipmap [:project/id :project/name :project/version] %))
        (map #(assoc % :entity/type :project))))
 
 (defn all-namespaces [datascript-db]

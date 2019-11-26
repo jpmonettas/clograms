@@ -94,6 +94,11 @@
   background-color: #689d6a;
 }
 
+.diagram-wrapper .diagram-layer .project-node .project-version {
+  text-align: center;
+  border-top: 1px solid;
+}
+
 .diagram-wrapper .diagram-layer .project-node .port {
   background-color: #689d6a;
 }
@@ -230,6 +235,11 @@ body .app-wrapper .draggable-project {
 
 body .app-wrapper .draggable-project.main-project {
   border-width: 2px;
+}
+
+body .app-wrapper .draggable-project .project-version {
+  margin-left: 5px;
+  opacity: 0.7;
 }
 
 body .app-wrapper .draggable-namespace {
