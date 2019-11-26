@@ -49,8 +49,10 @@
     [:.custom-node {:padding "5px"
                     :border-radius border-radius
                     :display :flex
-                    :align-items :center}]
-    [:.node [:&.selected [:.port-inner {:background-color :yellow}]]
+                    :align-items :center
+                    :border "1px solid black"
+                    }]
+    [:.node #_[:&.selected [:.port-inner {:background-color :yellow}]]
      [:&:hover [:.port-inner
                 {:background-color (str "yellow !important")}]]
 
@@ -140,12 +142,12 @@
      [:&:hover {:cursor :crosshair}]]]
    [:.group-shape {:stroke :grey
                    :stroke-width 2
-                   :fill :transparent}
+                   :fill :none}
     [:text {:stroke :none :fill (color :main-font)}]]
-   [:.rectangle-shape {:stroke :none
+   [:.rectangle-shape {:stroke :black
                        :fill (color :shape)}
     [:text {:stroke :none :fill (color :main-font)}]]
-   [:.circle-shape {:stroke :none
+   [:.circle-shape {:stroke :black
                     :fill (color :shape)}
     [:text {:stroke :none :fill (color :main-font)}]]])
 

@@ -20,10 +20,7 @@
   border-radius: 3px;
   display: flex;
   align-items: center;
-}
-
-.diagram-wrapper .diagram-layer .node.selected .port-inner {
-  background-color: yellow;
+  border: 1px solid black;
 }
 
 .diagram-wrapper .diagram-layer .node:hover .port-inner {
@@ -220,7 +217,7 @@ svg .svg-node .svg-port:hover {
 svg .group-shape {
   stroke: grey;
   stroke-width: 2;
-  fill: transparent;
+  fill: none;
 }
 
 svg .group-shape text {
@@ -229,7 +226,7 @@ svg .group-shape text {
 }
 
 svg .rectangle-shape {
-  stroke: none;
+  stroke: black;
   fill: #336699;
 }
 
@@ -239,7 +236,7 @@ svg .rectangle-shape text {
 }
 
 svg .circle-shape {
-  stroke: none;
+  stroke: black;
   fill: #336699;
 }
 

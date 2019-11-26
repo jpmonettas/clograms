@@ -230,7 +230,7 @@
    {:ctx-menu (shape-menu node)
     :child [:g.rectangle-shape.custom-node
             [:rect {:width (:w node) :height (:h node) :rx 3}]
-            [:text {:x (+ (:x node) (quot (:w node) 2)) :y (+ (:y node) (quot (:h node) 2))
+            [:text {:x (quot (:w node) 2) :y (quot (:h node) 2)
                     :text-anchor :middle}
              (:label node)]]}])
 
@@ -242,5 +242,5 @@
      [:rect {:width (:w node)
              :height (:h node)
              :rx 3}]
-     [:text {:x (+ 5 (:x node)) :y (+ (:y node) 20)}
+     [:text {:x 5 :y 20}
       (or (:label node) "<group title>") ]]}])
