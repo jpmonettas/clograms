@@ -285,6 +285,12 @@
                            (update method :multimethod/source-str enhance-source-str var-id (:multimethod/source-form method) node-id)))))))))
 
 (re-frame/reg-sub
+ ::var-entity
+ :<- [::datascript-db]
+ (fn [datascript-db [_ id]]
+   (db/var-entity datascript-db id)))
+
+(re-frame/reg-sub
  ::re-frame-subs-entity
  :<- [::datascript-db]
  (fn [datascript-db [_ id]]
@@ -328,6 +334,9 @@
  (fn [[ds-db proj-colors ns-colors] [_ entity]]
    (let [[proj-name ns-name] (case (:entity/type entity)
                                :function (let [ve (db/var-entity ds-db (:var/id entity))]
+                                           [(:project/name ve)
+                                            (:namespace/name ve)])
+                               :var (let [ve (db/var-entity ds-db (:var/id entity))]
                                            [(:project/name ve)
                                             (:namespace/name ve)])
                                :multimethod (let [ve (db/var-entity ds-db (:var/id entity))]

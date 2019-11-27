@@ -43,7 +43,6 @@
 
                               ;; nothing to link to
                               [nil {:client-x client-x :client-y client-y}])]
-    (prn "LINK" [link-event])
     {:dispatch-n (cond-> [[::rg/add-node (-> (models/build-node entity-type id)
                                              (merge coords)
                                              (assoc ::rg/id new-node-id))]]

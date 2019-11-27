@@ -186,7 +186,8 @@
      :var/docstring (:var/docstring var)
      :var/type (cond
                  (:var/function var) :function
-                 (:var/multi var)    :multimethod)
+                 (:var/multi var)    :multimethod
+                 :else               :var)
      :namespace/name (:namespace/name ns)
      :project/name (:project/name proy)}))
 
@@ -325,7 +326,8 @@
                 (-> var
                     (assoc :var/type (cond
                                        (not= "N/A" (:fn var))    :function
-                                       (not= "N/A" (:multi var)) :multimethod)
+                                       (not= "N/A" (:multi var)) :multimethod
+                                       :else :var)
                            :entity/type :var)
                     (dissoc :fn :multi)))))))
 

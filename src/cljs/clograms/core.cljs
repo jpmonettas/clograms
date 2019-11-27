@@ -37,6 +37,7 @@
   (re/register-node-component! :clograms/project-node        [:div nodes/project-node-component])
   (re/register-node-component! :clograms/namespace-node      [:div nodes/namespace-node-component])
   (re/register-node-component! :clograms/function-node       [:div nodes/function-node-component])
+  (re/register-node-component! :clograms/var-node            [:div nodes/var-node-component])
   (re/register-node-component! :clograms/multimethod-node    [:div nodes/multimethod-node-component])
   (re/register-node-component! :clograms/re-frame-subs-node  [:div nodes/re-frame-subs-node-component])
   (re/register-node-component! :clograms/re-frame-event-node [:div nodes/re-frame-event-node-component])

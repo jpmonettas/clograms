@@ -103,6 +103,20 @@
              [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
                            :dangerouslySetInnerHTML {:__html (:function/source-str var)}}]])]]]))))
 
+(defn var-node-component [{:keys [entity] :as node}]
+  (let [var @(re-frame/subscribe [::subs/var-entity (:var/id entity)])]
+    [node-wrapper {:node node
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name var))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name var))
+                              (menues/find-references (:var/id entity) (::rg/id node))
+                              (menues/remove-entity-ctx-menu-option node)]}
+     [:div.var-node.custom-node
+      [:div.node-body
+       [:div.header
+        [:div.title
+         [:span.namespace-name (str (:namespace/name var) "/")]
+         [:span.var-name (:var/name var)]]]]]]))
+
 (defn multimethod-node-component [{:keys [entity] :as node}]
   (let [expanded (r/atom {})]
    (fn [{:keys [entity] :as node}]

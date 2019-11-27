@@ -28,6 +28,12 @@
             :var/id var-id}
    :diagram.node/type :clograms/multimethod-node})
 
+(defmethod build-node :var
+  [_ var-id]
+  {:entity {:entity/type :var
+            :var/id var-id}
+   :diagram.node/type :clograms/var-node})
+
 (defmethod build-node :re-frame-subs
   [_ id]
   {:entity {:entity/type :re-frame-subs
