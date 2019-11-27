@@ -17,6 +17,6 @@
 
         com.cognitect/transit-clj      {:mvn/version "0.8.319"}
 
-        clindex                        {:mvn/version "0.2.5"}
-        ;;clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
+        clindex                        {:mvn/version "0.3.0"}
+        ;; clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
         }}
