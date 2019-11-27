@@ -55,3 +55,8 @@
                  :on-key-down (fn [evt]
                                 (when (and (= 13 (.-keyCode evt))
                                            (dispatch [:text-edit-modal/set (conj on-text-set-event @text)]))))}]]])))
+
+(defn project-name [project]
+  (if (= (:project/name project) 'clindex/main-project)
+    "Indexed project"
+    (str (:project/name project))))

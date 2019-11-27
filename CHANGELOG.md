@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 
 - Add support for simple var nodes
+- Display main project name nicer
 
 ## 0.1.3 (2019-11-27)
 
