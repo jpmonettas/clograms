@@ -214,7 +214,8 @@
        [:circle.circle-shape {:r 15 :cx 15 :cy 15}]]]
      [:div.draggable-shape (drag-map :clograms/group-node)
       [:svg {:width 30 :height 30}
-       [:rect.group-shape {:width 30 :height 30 :rx 3}]]]]))
+       [:g.group-shape
+        [:rect {:width 30 :height 30 :rx 3}]]]]]))
 
 (defn side-bar []
   (let [namespace-node (fn [n]

@@ -134,15 +134,17 @@
    [:.resizer {:cursor :nwse-resize
                :stroke :transparent
                :fill :transparent}]
-
+   [:.link
+    [:&:hover [:line {:stroke :red}]]]
    [:.svg-node
     [:&:hover [:.svg-port {:fill "yellow"}]]
     [:.svg-port {:z-index 100
                  :fill :transparent}
      [:&:hover {:cursor :crosshair}]]]
-   [:.group-shape {:stroke :grey
-                   :stroke-width 2
-                   :fill :none}
+   [:.group-shape
+    [:rect {:stroke :grey
+            :stroke-width 4
+            :fill :transparent}]
     [:text {:stroke :none :fill (color :main-font)}]]
    [:.rectangle-shape {:stroke :black
                        :fill (color :shape)}

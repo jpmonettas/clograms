@@ -201,6 +201,10 @@ svg .resizer {
   fill: transparent;
 }
 
+svg .link:hover line {
+  stroke: red;
+}
+
 svg .svg-node:hover .svg-port {
   fill: yellow;
 }
@@ -214,10 +218,10 @@ svg .svg-node .svg-port:hover {
   cursor: crosshair;
 }
 
-svg .group-shape {
+svg .group-shape rect {
   stroke: grey;
-  stroke-width: 2;
-  fill: none;
+  stroke-width: 4;
+  fill: transparent;
 }
 
 svg .group-shape text {

@@ -380,10 +380,11 @@
                     :x link-center-x
                     :y link-center-y}
              (:label l)])
-          [link-component {:x1 x1 :y1 y1 :x2 x2 :y2 y2
-                           ::id (::id l)
-                           :arrow-start? (:arrow-start? l)
-                           :arrow-end?   (:arrow-end? l)}]])))))
+          [:g.link
+           [link-component {:x1 x1 :y1 y1 :x2 x2 :y2 y2
+                            ::id (::id l)
+                            :arrow-start? (:arrow-start? l)
+                            :arrow-end?   (:arrow-end? l)}]]])))))
 
 (defn arrow-markers []
   [:defs
@@ -422,11 +423,6 @@
                           [:svg {:style {:overflow :visible}}
                            [arrow-markers]
 
-                           ;; links
-                           (for [l (vals links)]
-                             ^{:key (::id l)}
-                             [link nodes l])
-
                            ;; current link (a temp link while drawing it)
                            (when-let [lf (get-in grab [:grab-object :tmp-link-from])]
                              [link nodes (let [[current-x current-y] (client-coord->dia-coord {:translate translate
@@ -435,10 +431,18 @@
                                            (merge {:from-port lf :to-x current-x :to-y current-y}
                                                   link-config))])
 
+                           ;; ATTENTION !!! : the order matters here, if shapes are rendered after links they will hide them
+
                            ;; svg nodes
                            (for [n svg-nodes]
                              ^{:key (::id n)}
-                             [svg-node n])]
+                             [svg-node n])
+
+                           ;; links
+                           (for [l (vals links)]
+                             ^{:key (::id l)}
+                             [link nodes l])
+]
 
                           [:div.nodes
                            (doall (for [n div-nodes]
