@@ -2,7 +2,9 @@
   (:require [datascript.core :as d]
             [clindex.api :as idx]
             [clindex.schema :as schema]
-            [clograms.index.re-frame :as re-frame-idx]))
+            [clograms.index.re-frame :as re-frame-idx]
+            [cognitect.transit :as transit])
+  (:import [java.io ByteArrayOutputStream]))
 
 (def current-platform (atom nil))
 (def extra-schema
@@ -30,13 +32,17 @@
                          (ws-send-fn :sente/all-users-without-uid [:updates/datoms (prepare-datoms-for-serialization new-datoms)]))}))
 
 (defn- log-db [datascript-db-str]
-  (spit "./datascript-db.edn" datascript-db-str)
+  (spit "./datascript-db.json" datascript-db-str)
   datascript-db-str)
 
 (defn db-edn []
-  (-> {:schema (idx/db-schema)
-       :datoms (-> (idx/db @current-platform)
-                   (d/datoms  :eavt)
-                   prepare-datoms-for-serialization)}
-      pr-str
-      #_(log-db)))
+  (let [edn {:schema (idx/db-schema)
+             :datoms (-> (idx/db @current-platform)
+                         (d/datoms  :eavt)
+                         prepare-datoms-for-serialization)}
+        out (ByteArrayOutputStream.)
+        writer (transit/writer out :json)
+        _ (transit/write writer edn)
+        out-str (.toString out)]
+    (-> out-str
+        log-db)))

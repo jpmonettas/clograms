@@ -2,7 +2,8 @@
   (:require [clograms.re-grams.re-grams :as rg]
             [datascript.core :as d]
             [cljs.tools.reader :as tools-reader]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [cognitect.transit :as transit]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Re-frame DB                                                                 ;;
@@ -118,26 +119,31 @@
 ;; Datascript DB                                                               ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn deserialize-source [src-str]
+  (try
+    (tools-reader/read-string src-str)
+    (catch js/Error e
+      (js/console.warn (str "[Skipping] Couldn't parse source-form " (subs src-str 0 30) "... probably because of reg exp non compatible with JS"))
+      nil)))
+
 (defn deserialize-datoms [datoms]
-  (keep (fn [[eid a v t add?]]
-          (try
-            (let [deserialized-val (if (#{:function/source-form
-                                          :multimethod/source-form
-                                          :spec.alpha/source-form
-                                          :fspec.alpha/source-form} a)
-                                     (tools-reader/read-string v)
-                                     v)]
-              [(if add? :db/add :db/retract) eid a deserialized-val])
-            (catch js/Error e
-              (js/console.warn (str "[Skipping] Couldn't parse source-form for function " eid " probably because of reg exp non compatible with JS")))))
-        datoms))
+  (doall (keep (fn [[eid a v t add?]]
+                 (when-let [deserialized-val (if (#{:function/source-form
+                                                    :multimethod/source-form
+                                                    :spec.alpha/source-form
+                                                    :fspec.alpha/source-form} a)
+                                               (deserialize-source v)
+                                               v)]
+                   [(if add? :db/add :db/retract) eid a deserialized-val]))
+               datoms)))
 
 (defn deserialize-datascript-db [ds-db-str]
   (try
-    (let [{:keys [schema datoms]} (cljs.reader/read-string ds-db-str)
-          datoms' (deserialize-datoms datoms)
+    (let [json-reader (transit/reader :json)
+          {:keys [schema datoms]} (time (transit/read json-reader ds-db-str))
+          datoms' (time (deserialize-datoms datoms))
           conn (d/create-conn schema)]
-      (d/transact! conn datoms')
+      (time (d/transact! conn datoms'))
       (d/db conn))
     (catch js/Error e
       (js/console.error "Couldn't read db" (ex-data e) e))))
