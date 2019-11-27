@@ -4,7 +4,7 @@
             [clograms.re-grams.re-grams :as rg]
             [clograms.db :as db]))
 
-(defn add-var-from-link [var-id from-node-id]
+(defn ^:export add-var-from-link [var-id from-node-id]
   (re-frame/dispatch [:clograms.events/add-entity-to-diagram :var var-id {:link-to-port :last :link-to-node-id from-node-id}]))
 
 (defn auto-place-client-coords [{:keys [x y w h] :as link-to-node} where]

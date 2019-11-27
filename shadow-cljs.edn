@@ -23,4 +23,5 @@
                                    ;; https://github.com/tonsky/datascript/issues/298#issuecomment-492695732
                                    :optimizations :simple}
                 :modules {:main {:init-fn clograms.core/init}}
-                :devtools {:after-load clograms.core/mount-root}}}}
+                :devtools {:after-load clograms.core/mount-root}
+                :release {:compiler-options {:optimizations :simple}}}}}
