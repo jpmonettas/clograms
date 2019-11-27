@@ -15,6 +15,7 @@
                      :y y}]
     auto-coords))
 
+;; TODO: improve this api so it is easier to express how you want to link to new node
 (defn add-entity-to-diagram [db entity-type id {:keys [link-to-port link-to-node-id client-x client-y] :as opts}]
   (println "Adding entity to diagram" entity-type id " link to node " link-to-node-id " and port " link-to-port)
   (let [new-node-id (rg/gen-random-id)
@@ -26,9 +27,13 @@
                               (let [link-to-port (or link-to-port :first)
                                     link-to-node (or (rg/get-node db link-to-node-id)
                                                      selected-node)
-                                    port-sel-fn (get {:first 7 :last 3} link-to-port)
-                                    from [(::rg/id link-to-node) (port-sel-fn link-to-port)]
-                                    to [new-node-id (port-sel-fn link-to-port)]]
+
+                                    [from to] (if (= link-to-port :last)
+                                                ;; asume we go [dst node] -> [new node]
+                                                [[(::rg/id link-to-node) 3] [new-node-id 7]]
+
+                                                ;; asume we go [new node] -> [dst node]
+                                                [[new-node-id 3] [(::rg/id link-to-node) 7]])]
                                 [[::rg/add-link from to]
                                  (if (and client-x client-y)
                                    {:client-x client-x :client-y client-y}
@@ -38,7 +43,7 @@
 
                               ;; nothing to link to
                               [nil {:client-x client-x :client-y client-y}])]
-
+    (prn "LINK" [link-event])
     {:dispatch-n (cond-> [[::rg/add-node (-> (models/build-node entity-type id)
                                              (merge coords)
                                              (assoc ::rg/id new-node-id))]]

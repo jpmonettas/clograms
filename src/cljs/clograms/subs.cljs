@@ -114,7 +114,12 @@
  :<- [::side-bar-search]
  (fn [[items query] [_]]
    (->> items
-        (filter #(str/includes? (:search-name %) query)))))
+        (filter (fn [i]
+                  (if (string? (:search-name i))
+                    (str/includes? (:search-name i) query)
+                    (do
+                      (js/console.warn "Wrong search name for item " i)
+                      nil)))))))
 
 (re-frame/reg-sub
  ::current-var-references

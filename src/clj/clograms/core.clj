@@ -13,12 +13,16 @@
 (defn- prepare-datoms-for-serialization [datoms]
   (->> datoms
        (map (fn [[e a v t add?]]
-              (if (#{:function/source-form
-                     :multimethod/source-form
-                     :spec.alpha/source-form
-                     :fspec.alpha/source-form} a)
-                [e a (binding [*print-meta* true] (pr-str v)) t add?]
-                [e a v t add?])))))
+              [(if add? :db/add :db/retract)
+               e
+               a
+               ;; if it is a srouce value serialize it as a string
+               (if (#{:function/source-form
+                      :multimethod/source-form
+                      :spec.alpha/source-form
+                      :fspec.alpha/source-form} a)
+                 (binding [*print-meta* true] (pr-str v))
+                 v)]))))
 
 (defn re-index-all
   [folder platform ws-send-fn]
@@ -45,4 +49,4 @@
         _ (transit/write writer edn)
         out-str (.toString out)]
     (-> out-str
-        log-db)))
+        #_log-db)))

@@ -126,31 +126,18 @@
       (js/console.warn (str "[Skipping] Couldn't parse source-form " (subs src-str 0 30) "... probably because of reg exp non compatible with JS"))
       nil)))
 
-(defn deserialize-datoms [datoms]
-  (doall (keep (fn [[eid a v t add?]]
-                 (when-let [deserialized-val (if (#{:function/source-form
-                                                    :multimethod/source-form
-                                                    :spec.alpha/source-form
-                                                    :fspec.alpha/source-form} a)
-                                               (deserialize-source v)
-                                               v)]
-                   [(if add? :db/add :db/retract) eid a deserialized-val]))
-               datoms)))
-
 (defn deserialize-datascript-db [ds-db-str]
   (try
     (let [json-reader (transit/reader :json)
-          {:keys [schema datoms]} (time (transit/read json-reader ds-db-str))
-          datoms' (time (deserialize-datoms datoms))
+          {:keys [schema datoms]} (transit/read json-reader ds-db-str)
           conn (d/create-conn schema)]
-      (time (d/transact! conn datoms'))
+      (time (d/transact! conn datoms))
       (d/db conn))
     (catch js/Error e
       (js/console.error "Couldn't read db" (ex-data e) e))))
 
 (defn add-datoms [datascript-db datoms]
-  (let [tx-data (deserialize-datoms datoms)]
-    (d/db-with datascript-db tx-data)))
+  (d/db-with datascript-db datoms))
 
 (defn main-project-id [datascript-db]
   (d/q '[:find ?pid .
@@ -166,9 +153,9 @@
         proy (:project/_namespaces ns)]
     {:var/name (:var/name var)
      :var/docstring (:var/docstring var)
-     :function/source-form (:function/source-form func)
+     :function/source-form (deserialize-source (:function/source-form func))
      :function/source-str (:function/source-str func)
-     :fspec.alpha/source-form (:fspec.alpha/source-form (:function/spec.alpha func))
+     :fspec.alpha/source-form (deserialize-source (:fspec.alpha/source-form (:function/spec.alpha func)))
      :function/args (:function/args func)
      :namespace/name (:namespace/name ns)
      :project/name (:project/name proy)}))
@@ -182,10 +169,11 @@
      :var/docstring (:var/docstring var)
      :multi/dispatch-form (:multi/dispatch-form multi)
      :multi/methods (map (fn [multi-method]
-                           (select-keys multi-method
-                                        [:multimethod/dispatch-val
-                                         :multimethod/source-form
-                                         :multimethod/source-str]))
+                           (-> (select-keys multi-method
+                                            [:multimethod/dispatch-val
+                                             :multimethod/source-form
+                                             :multimethod/source-str])
+                               (update :multimethod/source-form deserialize-source)))
                            (:multi/methods multi))
      :namespace/name (:namespace/name ns)
      :project/name (:project/name proy)}))
@@ -252,7 +240,7 @@
         ns (:namespace/_specs-alpha e)]
     {:spec/id spec-id
      :spec.alpha/key (:spec.alpha/key e)
-     :spec.alpha/source-form (:spec.alpha/source-form e)
+     :spec.alpha/source-form (deserialize-source (:spec.alpha/source-form e))
      :project/name (:project/name (:project/_namespaces ns))
      :namespace/name (:namespace/name ns)}))
 
@@ -343,7 +331,7 @@
 
 (defn var-x-refs [datascript-db var-id]
   (prn "Finding var references for " var-id)
-  (->> (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcf ?fsrcs ?fnvid
+  (->> (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcs ?fnvid
               :in $ ?vid
               :where
               [?nid :namespace/vars ?vid]
@@ -352,7 +340,6 @@
               [?vrid :var-ref/namespace ?vrnid]
               [?vrid :var-ref/in-function ?fnid]
               [?fnvid :var/function ?fnid]
-              [?fnid :function/source-form ?fsrcf]
               [?fnid :function/source-str ?fsrcs]
               [?fnvid :var/name ?in-fn]
               [?vrnid :namespace/name ?vrnsn]
@@ -361,7 +348,7 @@
               [(get-else $ ?fid :file/name "N/A") ?fname]] ;; while we fix the file issue
             datascript-db
             var-id)
-       (map #(zipmap [:project/name :namespace/name :var/name :function/source-form
+       (map #(zipmap [:project/name :namespace/name :var/name
                       :function/source-str :var/id] %))
        (remove #(= (:var/id %) var-id))))
 
