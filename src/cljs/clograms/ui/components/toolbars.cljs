@@ -47,7 +47,9 @@
    [:div
     [:div {:class (str "var " (if (:var/public? var) "public" "private"))}]
     [:span.var-type (case (:var/type var)
+                      :var "(V)"
                       :multimethod "(M)"
+                      :function "(F)"
                       "")]
     [:span.var-name (:var/name var)]]])
 
