@@ -1,17 +1,4 @@
-{:dependencies [[day8.re-frame/http-fx "0.1.6"]
-                [dorothy "0.0.7"]
-                [reagent "0.8.1"]
-                [re-frame "0.10.8"]
-                [datascript "0.17.1"]
-                [re-com "2.5.0"]
-                [zprint "0.4.16"]
-                [net.mikera/core.matrix "0.62.0"]
-                [expound "0.7.2"]
-                [com.taoensso/sente "1.14.0"]
-                [org.clojure/core.async "0.4.500"]
-                [pretty-spec "0.1.3"]
-                [com.cognitect/transit-cljs "0.8.256"]]
- :source-paths ["src/cljs"]
+{:deps true
  :dev-http {9500 "resources/public/"}
  :builds {:app {:output-dir "resources/public/js/"
                 :asset-path "/js"

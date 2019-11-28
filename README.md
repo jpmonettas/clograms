@@ -65,6 +65,8 @@ The current diagrams save functionality is not ideal but you can save and restor
 
 When you click the save button in the ui **Clograms** will create a `diagram.edn` file inside the folder where you are running it from, and will read it every time you load the ui.
 
+You can also save your diagram as a pdf file using the browser print functionality. It will hide all the toolbars so you can print only the diagram.
+
 ## Developers info
 
 ### Build UI
