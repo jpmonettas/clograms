@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- A bunch of style bug fixes
+
 ## 0.1.4 (2019-11-27)
 
 - Add support for simple var nodes

@@ -89,6 +89,9 @@
       [:.node-comment {:position :absolute
                        :opacity 0.5
                        :border-radius border-radius
+                       :color (color :main-font)
+                       :font-family "monospace"
+                       :font-size "0.8em"
                        :background-color (color :tool-bars)
                        :margin-left "5%"
                        :width "90%"}]]]
@@ -105,7 +108,8 @@
                      :max-height "100px"
                      :border :unset
                      :background-color (color :main-font)}]
-     [:.header {}
+     [:.args-vec {:white-space :nowrap}]
+     [:.header {:white-space :nowrap}
       [:.title {:white-space :nowrap}]
       [:.dispatch-val {:display :inline-block
                        :white-space :nowrap
@@ -390,9 +394,16 @@
                       :opacity 0.7}]]]
    ])
 
+(def print
+  (at-media {:print true}
+            [[:.bottom-bar {:display :none}]
+             [:.top-bar    {:display :none}
+              [:i {:display :none}]]
+             [:.side-bar   {:display :none}]]))
 ;; This creates resources/public/css/main.css
 (def ^:garden main
   (list
+   print
    diagram
    svg-shapes
    general
