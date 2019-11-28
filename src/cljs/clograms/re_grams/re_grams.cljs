@@ -202,8 +202,10 @@
 (defn build-node-mouse-down-handler [n]
   (fn [evt]
     (.stopPropagation evt)
-    ;; this makes things like text areas inside nodes unable to get focus
-    #_(.preventDefault evt)
+    (when-not (.. evt -target -attributes -contenteditable)
+      ;; this makes things like text areas inside nodes unable to get focus
+      ;; TODO : also add it when target is a input
+        (.preventDefault evt))
     (when (= left-button (.-buttons evt))
       (dispatch [::grab {:diagram.object/type :node
                          ::id (::id n)
