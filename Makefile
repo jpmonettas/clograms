@@ -12,6 +12,12 @@ pom.xml:
 	clj -Spom
 	mvn versions:set -DnewVersion=$(version)
 
+watch-ui:
+	npx shadow-cljs watch app
+
+watch-css:
+	clj -e "(require '[garden-watcher.core :as gw]) (require '[com.stuartsierra.component :as component]) (component/start (gw/new-garden-watcher '[clograms.styles.main clograms.styles.components]))"
+
 release-ui: clean
 	npx shadow-cljs release app
 

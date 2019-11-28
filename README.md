@@ -4,7 +4,7 @@
 
 **Clograms** tries to close the gap between code and diagrams by creating a diagram tool that is aware of your code.
 
-Diagrams about your code can be helpful in lots of situations like reverse engeneering an unknown code base, document your project high level architecture, planning for a redesign.
+Diagrams about your code can be helpful in lots of situations like reverse engeneering an unknown code base, document your project high level architecture or planning for a redesign.
 
 **Clograms** tries to help with this tasks by combining the visualization capabilities of a diagram application with the navigation/exploration features of IDEs.
 
@@ -16,16 +16,16 @@ Diagrams about your code can be helpful in lots of situations like reverse engen
 
 ## Features
 
-- **Scan** and **index** your lein and deps.edn project
+- **Scan** and **index** your lein and deps.edn projects
 - **Draw** diagrams by using **your project entities** (projects, namespaces, vars, specs, etc ...)
-- **Draw** shapes to document or explain any part of your system
-- **Link** your entities to express relations.
+- **Draw shapes**  to document or explain any part of your system
+- **Link** your entities to express relations
 - Quickly **search** any system entity and add it to your diagram
 - **Explore** your system and all its dependencies using the **project browser**
 - Easily add more entities using clograms **source code navigation**
 - Quickly figure out **multimethod implementations** and **functions specs**
-- Any **function references** one click away
-- **Re-frame** aware, quickly explore your subscriptions, events, fxs and cofxs
+- Any **function x-references** is one click away
+- **Re-frame aware**, quickly explore your subscriptions, events, fxs and cofxs
 - **Hot code reload**, if you change any clj, cljs or cljc file in the project you are indexing, changes should flow to the UI auto-magically
 - **Save** and **share** your diagrams as .edn files
 
@@ -59,6 +59,12 @@ When indexing finishes, point your browser to http://localhost:3000 and wait a l
 
 You can also run your browser in app mode like `google-chrome --app=http://localhost:3000`.
 
+### Saving your diagram
+
+The current diagrams save functionality is not ideal but you can save and restore diagrams from edn files.
+
+When you click the save button in the ui **Clograms** will create a `diagram.edn` file inside the folder where you are running it from, and will read it every time you load the ui.
+
 ## Developers info
 
 ### Build UI
@@ -69,7 +75,10 @@ You can also run your browser in app mode like `google-chrome --app=http://local
 
 ```bash
 cd clograms
-npx shadow-cljs watch app
+
+make watch-ui # will start shadow-cljs and watch the ui, open your browser at localhost:9500
+
+make watch-css # will watch garden files and build css files
 ```
 
 ### Run it
