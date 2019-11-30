@@ -36,8 +36,7 @@
                       :opt-un [::ports
                                ::extra-data
                                ::client-x
-                               ::client-y
-                               ::label]))
+                               ::client-y]))
 
 (s/def ::from-port (s/tuple ::rg/id :diagram.port/id))
 (s/def ::to-port (s/tuple ::rg/id :diagram.port/id))

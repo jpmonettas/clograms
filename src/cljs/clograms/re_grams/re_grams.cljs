@@ -79,9 +79,6 @@
 (defn select-node [db node-id]
   (assoc-in db [::diagram :selected-node-id] node-id))
 
-(defn set-node-label [db node-id label]
-  (assoc-in db [::diagram :nodes node-id :label] label))
-
 (defn set-node-extra-data [db node-id extra-data]
   (assoc-in db [::diagram :nodes node-id :extra-data] extra-data))
 
@@ -502,7 +499,6 @@
 (reg-event-db ::set-link-label (fn [db [_ link-id label]] (set-link-label db link-id label)))
 (reg-event-db ::remove-link (fn [db [_ link-id]] (remove-link db link-id)))
 (reg-event-db ::add-node (fn [db [_ node]] (add-node db node)))
-(reg-event-db ::set-node-label (fn [db [_ node-id label]] (set-node-label db node-id label)))
 (reg-event-db ::remove-node (fn [db [_ node-id]] (remove-node db node-id)))
 (reg-event-fx ::select-node (fn [{:keys [db]} [_ node-id]]
                               (let [db' (select-node db node-id)]

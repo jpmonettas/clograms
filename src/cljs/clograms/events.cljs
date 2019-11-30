@@ -24,7 +24,7 @@
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
   [a-spec db]
-  #_(when-not (s/valid? a-spec db)
+  (when-not (s/valid? a-spec db)
     (throw (js/Error. (str "spec check failed: " (expound/expound-str a-spec db))))))
 
 ;; now we create an interceptor using `after`
@@ -46,11 +46,15 @@
                                                           (rg/set-node-extra-data
                                                            db node-id
                                                            (assoc (rg/node-extra-data db node-id) :comment comment))))
+(re-frame/reg-event-db ::set-node-label [inter-check] (fn [db [_ node-id label]]
+                                                        (rg/set-node-extra-data
+                                                         db node-id
+                                                         (assoc (rg/node-extra-data db node-id) :label label))))
 
 (re-frame/reg-event-db ::remove-node-comment [inter-check] (fn [db [_ node-id comment]]
                                                              (rg/set-node-extra-data
-                                                           db node-id
-                                                           (dissoc (rg/node-extra-data db node-id) :comment))))
+                                                              db node-id
+                                                              (dissoc (rg/node-extra-data db node-id) :comment))))
 
 
 (re-frame/reg-event-db ::toggle-collapse-node [inter-check] (fn [db [_ node-id]]

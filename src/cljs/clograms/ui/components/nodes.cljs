@@ -9,38 +9,38 @@
             [clograms.ui.components.general :as gral-components]))
 
 (defn node-wrapper [{:keys [ctx-menu node]} child]
-  (let [node-color (re-frame/subscribe [::subs/node-color (:entity node)])
-        node-comment (re-frame/subscribe [::subs/node-comment (::rg/id node)])]
+  (let [node-color (re-frame/subscribe [::subs/node-color (:entity node)])]
     (fn [{:keys [ctx-menu node]} child]
-      [:div.node-wrapper {:on-context-menu (fn [evt]
-                                             (.preventDefault evt)
-                                             (let [x (.. evt -nativeEvent -pageX)
-                                                   y (.. evt -nativeEvent -pageY)]
-                                               (re-frame/dispatch
-                                                [::events/show-context-menu
-                                                 {:x x
-                                                  :y y
-                                                  :menu ctx-menu}])))
-                         :on-double-click (fn [evt]
-                                            (re-frame/dispatch [::events/set-node-comment (::rg/id node) ""]))
-                         :style (when-let [color @node-color]
-                                  {:color color
-                                   :box-shadow "10px 10px 18px"})}
-      (when-let [comment @node-comment]
-        [:div.node-comment {:contentEditable true
-                            :style {:bottom (str (:h node) "px")}
-                            :on-key-down (fn [evt]
-                                           ;; remove comment when backspace and comment already empty
-                                           (let [div-txt (.. evt -target -innerHTML)]
-                                             (when (and (= 8 (.-keyCode evt))
-                                                        (str/blank? div-txt))
-                                               (re-frame/dispatch [::events/remove-node-comment (::rg/id node)]))))
-                            :on-blur (fn [evt]
-                                       (let [div-txt (.. evt -target -innerHTML)]
-                                         (re-frame/dispatch [::events/set-node-comment (::rg/id node) div-txt])))
-                            :dangerouslySetInnerHTML {:__html comment}}])
+      (let [node-comment (-> node :extra-data :comment)]
+       [:div.node-wrapper {:on-context-menu (fn [evt]
+                                              (.preventDefault evt)
+                                              (let [x (.. evt -nativeEvent -pageX)
+                                                    y (.. evt -nativeEvent -pageY)]
+                                                (re-frame/dispatch
+                                                 [::events/show-context-menu
+                                                  {:x x
+                                                   :y y
+                                                   :menu ctx-menu}])))
+                           :on-double-click (fn [evt]
+                                              (re-frame/dispatch [::events/set-node-comment (::rg/id node) ""]))
+                           :style (when-let [color @node-color]
+                                    {:color color
+                                     :box-shadow "10px 10px 18px"})}
+        (when node-comment
+          [:div.node-comment {:contentEditable true
+                              :style {:bottom (str (:h node) "px")}
+                              :on-key-down (fn [evt]
+                                             ;; remove comment when backspace and comment already empty
+                                             (let [div-txt (.. evt -target -innerHTML)]
+                                               (when (and (= 8 (.-keyCode evt))
+                                                          (str/blank? div-txt))
+                                                 (re-frame/dispatch [::events/remove-node-comment (::rg/id node)]))))
+                              :on-blur (fn [evt]
+                                         (let [div-txt (.. evt -target -innerHTML)]
+                                           (re-frame/dispatch [::events/set-node-comment (::rg/id node) div-txt])))
+                              :dangerouslySetInnerHTML {:__html node-comment}}])
 
-      child])))
+        child]))))
 
 (defn project-node-component [{:keys [entity] :as node}]
   (let [project @(re-frame/subscribe [::subs/project-entity (:project/id entity)])]
@@ -235,7 +235,7 @@
                         :r (quot (max (:w node) (:h node)) 2)}]
               [:text {:x cx :y cy
                       :text-anchor :middle}
-               (:label node) ]]}]))
+               (-> node :extra-data :label)]]}]))
 
 (defn rectangle-node-component [node]
   [shape-wrapper
@@ -244,7 +244,7 @@
             [:rect {:width (:w node) :height (:h node) :rx 3}]
             [:text {:x (quot (:w node) 2) :y (quot (:h node) 2)
                     :text-anchor :middle}
-             (:label node)]]}])
+             (-> node :extra-data :label)]]}])
 
 (defn group-node-component [node]
   [shape-wrapper
@@ -255,4 +255,4 @@
              :height (:h node)
              :rx 3}]
      [:text {:x 5 :y 20}
-      (or (:label node) "<group title>") ]]}])
+      (or (-> node :extra-data :label) "<group title>") ]]}])

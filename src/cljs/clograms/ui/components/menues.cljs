@@ -13,7 +13,7 @@
 
 (defn edit-node-label-ctx-menu-option [node]
   {:label "Edit text"
-   :dispatch [:text-edit-modal/create [::rg/set-node-label (::rg/id node)]]})
+   :dispatch [:text-edit-modal/create [::events/set-node-label (::rg/id node)]]})
 
 (defn set-ns-color-ctx-menu-option [ns-name]
   {:label (str "Set " ns-name " namespace color to selected")

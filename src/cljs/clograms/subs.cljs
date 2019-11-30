@@ -334,11 +334,6 @@
      (or (get ns-colors ns-name) (get proj-colors proj-name)))))
 
 (re-frame/reg-sub
- ::node-comment
- (fn [db [_ node-id]]
-   (:comment (rg/node-extra-data db node-id))))
-
-(re-frame/reg-sub
  :text-edit-modal/event
  (fn [db [_]]
    (components-db/text-edit-modal-event db)))
