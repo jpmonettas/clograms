@@ -78,7 +78,7 @@ You can also save your diagram as a pdf file using the browser print functionali
 ```bash
 cd clograms
 
-make watch-ui # will start shadow-cljs and watch the ui, open your browser at localhost:9500
+make watch-ui # will start shadow-cljs and watch the ui, open your browser at http://localhost:9500/clograms.html
 
 make watch-css # will watch garden files and build css files
 ```

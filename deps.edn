@@ -10,7 +10,7 @@
                                         ;; called jpmonettas/tools.namespace
                                         :exclusions [org.clojure/tools.namespace]}
         ring-cors                      {:mvn/version "0.1.13"}
-        lambdaisland/garden-watcher    {:mvn/version "0.3.3"}
+        lambdaisland/garden-watcher    {:mvn/version "0.3.5"}
         http-kit                       {:mvn/version "2.3.0"}
         com.cognitect/transit-clj      {:mvn/version "0.8.319"}
 
