@@ -11,4 +11,4 @@
                                    :optimizations :simple}
                 :modules {:main {:init-fn clograms.core/init}}
                 :devtools {:after-load clograms.core/mount-root}
-                :release {:compiler-options {:optimizations :simple}}}}}
+                :release {:compiler-options {:optimizations :advanced}}}}}
