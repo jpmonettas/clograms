@@ -77,15 +77,6 @@
 (defn uncollapse-bottom-bar [db]
   (assoc-in db [:bottom-bar :collapsed?] false))
 
-(defn node-comment [db node-id]
-  (get-in db [:node/comments node-id]))
-
-(defn set-node-comment [db node-id comment]
-  (assoc-in db [:node/comments node-id] comment))
-
-(defn remove-node-comment [db node-id]
-  (update db :node/comments dissoc node-id))
-
 (defn set-side-bar-search [db query]
   (assoc-in db [:side-bar :query] query))
 
