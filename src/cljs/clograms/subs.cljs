@@ -131,27 +131,6 @@
  (fn [db _]
    (db/bottom-bar db)))
 
-#_(def callers-refs
-  (memoize ;; ATTENTION ! Be careful with this cache when we implement reload on file change
-   (fn [datascript-db var-id]
-     (when datascript-db
-       (db/var-x-refs datascript-db var-id)))))
-
-#_(re-frame/reg-sub
- ::selected-var-refs
- (fn [db _]
-   (let [selected-entity (:entity (rg/selected-node db))
-         non-interesting (fn [v] (#{'cljs.core 'clojure.core} (:namespace/name v)))
-         same-as-selected (fn [v] (= (:var/id v) (:var/id selected-entity)))]
-
-     (when (and selected-entity
-                (= (:entity/type selected-entity) :var))
-       (let [all-callers-refs (callers-refs (:datascript/db db) (:var/id selected-entity))]
-         {:called-by (->> all-callers-refs
-                          (remove same-as-selected)
-                          (map #(assoc % :entity/type :var))
-                          (into #{}))})))))
-
 (re-frame/reg-sub
  ::ref-frame-feature
  :<- [::datascript-db]

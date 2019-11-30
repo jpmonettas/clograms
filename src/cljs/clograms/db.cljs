@@ -245,21 +245,6 @@
      :project/name (:project/name (:project/_namespaces ns))
      :namespace/name (:namespace/name ns)}))
 
-#_(defn all-entities [datascript-db]
-  (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fsrcf ?fsrcs
-              :in $
-              :where
-              [?vid :var/name ?vname]
-              [?nsid :namespace/vars ?vid]
-              [?vid :var/function ?fid]
-              [?fid :function/source-form ?fsrcf]
-              [?fid :function/source-str ?fsrcs]
-              [?nsid :namespace/name ?nsname]
-              [?pid :project/name ?pname]
-              [?pid :project/namespaces ?nsid]]
-            datascript-db)
-       (map #(zipmap [:project/name :namespace/name :var/name :var/id :function/source-form :function/source-str] %))))
-
 (defn all-projects [datascript-db]
   (->> (d/q '[:find ?pid ?pname ?pver
               :in $
@@ -332,7 +317,6 @@
                     (dissoc :fn :multi)))))))
 
 (defn var-x-refs [datascript-db var-id]
-  (prn "Finding var references for " var-id)
   (->> (d/q '[:find ?pname ?vrnsn ?in-fn ?fsrcs ?fnvid
               :in $ ?vid
               :where

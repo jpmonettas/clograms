@@ -43,6 +43,11 @@
 (re-frame/reg-event-fx ::remove-entity-from-diagram [inter-check] (fn [{:keys [db]} [_ id]] (entities/remove-entity-from-diagram db id)))
 (re-frame/reg-event-fx ::rg/node-selected [inter-check] (fn [{:keys [db]} [_ node]] (selection/node-selected db node)))
 (re-frame/reg-event-db ::set-node-comment [inter-check] (fn [db [_ node-id comment]] (db/set-node-comment db node-id comment)))
+
+(re-frame/reg-event-db ::toggle-collapse-node [inter-check] (fn [db [_ node-id]]
+                                                              (rg/set-node-extra-data db node-id
+                                                                                      (update (rg/node-extra-data db node-id) :collapsed? not))))
+
 (re-frame/reg-event-db ::remove-node-comment [inter-check] (fn [db [_ node-id comment]] (db/remove-node-comment db node-id)))
 (re-frame/reg-event-db ::show-context-menu [inter-check] (fn [db [_ ctx-menu]] (menues/show-context-menu db ctx-menu)))
 (re-frame/reg-event-db ::hide-context-menu [inter-check] (fn [db [_]] (menues/hide-context-menu db)))
@@ -68,6 +73,7 @@
                                                                                             :project/colors
                                                                                             :namespace/colors
                                                                                             :node/comments]))))
+
 (re-frame/reg-event-db :accordion/activate-item [inter-check] (fn [db [_ accordion-id item-id]] (components-db/accordion-activate-item db accordion-id item-id)))
 
 (re-frame/reg-event-db :text-edit-modal/create [inter-check] (fn [db [_ event]] (components-db/text-edit-modal-create db event)))
@@ -76,6 +82,8 @@
                        (fn [{:keys [db]} [_ event]]
                          {:db (components-db/text-edit-modal-kill db)
                           :dispatch event}))
+
+
 
 
 (comment

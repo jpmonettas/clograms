@@ -55,53 +55,51 @@
          [:div.project-version (:project/version project)]]]]]]))
 
 (defn namespace-node-component [{:keys [entity] :as node}]
-  (let [collapsed (r/atom false)]
-   (fn [{:keys [entity] :as node}]
-     (let [ns @(re-frame/subscribe [::subs/namespace-entity (:namespace/id entity)])]
-       [node-wrapper {:node node
-                      :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name ns))
-                                 (menues/set-ns-color-ctx-menu-option (:namespace/name ns))
-                                 (menues/remove-entity-ctx-menu-option node)]}
-        [:div.namespace-node.custom-node
-         [:div.node-body
-          [:div.header
-           [:div.title
-            [:span.namespace-name (str (:namespace/name ns))]
-            [:span.project-name (str "(" (:project/name ns) ")")]]
-           [gral-components/collapse-button @collapsed {:on-click #(swap! collapsed not)}]]
-          (when (and (not @collapsed)
-                     (not-empty (:namespace/docstring ns)))
-            [:pre.namespace-doc {:on-wheel (fn [e] (.stopPropagation e))}
-             (:namespace/docstring ns)])]]]))))
+  (let [ns @(re-frame/subscribe [::subs/namespace-entity (:namespace/id entity)])
+        collapsed? (-> node :extra-data :collapsed?)]
+    [node-wrapper {:node node
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name ns))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name ns))
+                              (menues/remove-entity-ctx-menu-option node)]}
+     [:div.namespace-node.custom-node
+      [:div.node-body
+       [:div.header
+        [:div.title
+         [:span.namespace-name (str (:namespace/name ns))]
+         [:span.project-name (str "(" (:project/name ns) ")")]]
+        [gral-components/collapse-button collapsed? {:on-click #(re-frame/dispatch [::events/toggle-collapse-node (::rg/id node)])}]]
+       (when (and (not collapsed?)
+                  (not-empty (:namespace/docstring ns)))
+         [:pre.namespace-doc {:on-wheel (fn [e] (.stopPropagation e))}
+          (:namespace/docstring ns)])]]]))
 
 (defn function-node-component [{:keys [entity] :as node}]
-  (let [collapsed (r/atom false)]
-   (fn [{:keys [entity] :as node}]
-     (let [var @(re-frame/subscribe [::subs/function-entity (:var/id entity) (::rg/id node)])
-           spec-source (:fspec.alpha/source-str var)]
-       [node-wrapper {:node node
-                      :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name var))
-                                 (menues/set-ns-color-ctx-menu-option (:namespace/name var))
-                                 (menues/find-references (:var/id entity) (::rg/id node))
-                                 (menues/remove-entity-ctx-menu-option node)]}
-        [:div.var-node.custom-node
-         [:div.node-body
-          [:div.header
-           [:div.title
-            [gral-components/collapse-button @collapsed {:on-click #(swap! collapsed not)}]
-            [:span.namespace-name (str (:namespace/name var) "/")]
-            [:span.var-name (:var/name var)]]]
-          (if @collapsed
-            [:ul.fn-args
-             (for [args-vec (:function/args var)]
-               ^{:key (str args-vec)}
-               [:li.args-vec args-vec])]
-            [:div
-             (when spec-source
-               [:pre.spec-source {:on-wheel (fn [e] (.stopPropagation e))
-                                  :dangerouslySetInnerHTML {:__html spec-source}}])
-             [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
-                           :dangerouslySetInnerHTML {:__html (:function/source-str var)}}]])]]]))))
+  (let [var @(re-frame/subscribe [::subs/function-entity (:var/id entity) (::rg/id node)])
+        spec-source (:fspec.alpha/source-str var)
+        collapsed? (-> node :extra-data :collapsed?)]
+    [node-wrapper {:node node
+                   :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name var))
+                              (menues/set-ns-color-ctx-menu-option (:namespace/name var))
+                              (menues/find-references (:var/id entity) (::rg/id node))
+                              (menues/remove-entity-ctx-menu-option node)]}
+     [:div.var-node.custom-node
+      [:div.node-body
+       [:div.header
+        [:div.title
+         [gral-components/collapse-button collapsed? {:on-click #(re-frame/dispatch [::events/toggle-collapse-node (::rg/id node)])}]
+         [:span.namespace-name (str (:namespace/name var) "/")]
+         [:span.var-name (:var/name var)]]]
+       (if collapsed?
+         [:ul.fn-args
+          (for [args-vec (:function/args var)]
+            ^{:key (str args-vec)}
+            [:li.args-vec args-vec])]
+         [:div
+          (when spec-source
+            [:pre.spec-source {:on-wheel (fn [e] (.stopPropagation e))
+                               :dangerouslySetInnerHTML {:__html spec-source}}])
+          [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
+                        :dangerouslySetInnerHTML {:__html (:function/source-str var)}}]])]]]))
 
 (defn var-node-component [{:keys [entity] :as node}]
   (let [var @(re-frame/subscribe [::subs/var-entity (:var/id entity)])]

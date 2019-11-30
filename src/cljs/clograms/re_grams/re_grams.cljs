@@ -80,8 +80,13 @@
   (assoc-in db [::diagram :selected-node-id] node-id))
 
 (defn set-node-label [db node-id label]
-  (prn "Setting " node-id "- > " label)
   (assoc-in db [::diagram :nodes node-id :label] label))
+
+(defn set-node-extra-data [db node-id extra-data]
+  (assoc-in db [::diagram :nodes node-id :extra-data] extra-data))
+
+(defn node-extra-data [db node-id]
+  (get-in db [::diagram :nodes node-id :extra-data]))
 
 (defn node-ports [node]
   (:ports node))
@@ -503,6 +508,7 @@
                               (let [db' (select-node db node-id)]
                                 {:db db'
                                  :dispatch [::node-selected (selected-node db')]})))
+
 
 ;; Intended for users to override and listen
 ;; -----------------------------------------

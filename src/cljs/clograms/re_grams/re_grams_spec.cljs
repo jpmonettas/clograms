@@ -25,6 +25,8 @@
 
 (s/def ::label string?)
 
+(s/def ::extra-data map?)
+
 (s/def ::node (s/keys :req [::rg/id
                             :diagram.node/type]
                       :req-un [::w
@@ -32,6 +34,7 @@
                                ::x
                                ::y]
                       :opt-un [::ports
+                               ::extra-data
                                ::client-x
                                ::client-y
                                ::label]))
