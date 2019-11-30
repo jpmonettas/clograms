@@ -1,9 +1,10 @@
-.PHONY: ui release clean help
+.PHONY: install deploy ui release clean help
 
 clean:
 	-rm clograms.jar
 	-rm pom.xml
 	-rm -rf resources/public/js/*
+	-rm target -rf
 
 clograms.jar:
 	clj -A:jar clograms.jar
@@ -22,6 +23,11 @@ release-ui: clean
 	npx shadow-cljs release app
 
 release: release-ui clograms.jar pom.xml
+
+install: clograms.jar pom.xml
+	mvn install:install-file -Dfile=clograms.jar -DpomFile=pom.xml
+
+deploy:
 	mvn deploy:deploy-file -Dfile=clograms.jar -DrepositoryId=clojars -DpomFile=pom.xml -Durl=https://clojars.org/repo
 
 tag-release:
