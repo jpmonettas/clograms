@@ -96,9 +96,9 @@
                        :margin-left "5%"
                        :width "90%"}]]]
     [:.node-body {:display :inline-block
-                  :color (color :main-font)}
-     [:.source {:max-width "500px"
-                :font-size "10px"
+                  :color (color :main-font)
+                  :max-width "500px"}
+     [:.source {:font-size "10px"
                 :max-height "200px"
                 :border :unset
                 :background-color (color :main-font)}]
@@ -108,7 +108,8 @@
                      :max-height "100px"
                      :border :unset
                      :background-color (color :main-font)}]
-     [:.args-vec {:white-space :nowrap}]
+     [:.args-vec {:white-space :nowrap
+                  :overflow-x :scroll}]
      [:.header {:white-space :nowrap}
       [:.title {:white-space :nowrap}]
       [:.dispatch-val {:display :inline-block

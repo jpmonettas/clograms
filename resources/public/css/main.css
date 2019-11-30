@@ -135,10 +135,10 @@
 .diagram-wrapper .diagram-layer .node-body {
   display: inline-block;
   color: #eee;
+  max-width: 500px;
 }
 
 .diagram-wrapper .diagram-layer .node-body .source {
-  max-width: 500px;
   font-size: 10px;
   max-height: 200px;
   border: unset;
@@ -156,6 +156,7 @@
 
 .diagram-wrapper .diagram-layer .node-body .args-vec {
   white-space: nowrap;
+  overflow-x: scroll;
 }
 
 .diagram-wrapper .diagram-layer .node-body .header {

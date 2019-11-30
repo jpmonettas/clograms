@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Fix (#1) width of entity unwieldy when collapsed if arg vec long
 - Fix dragging highlights issue
 - A bunch of style bug fixes
 - Diferentiate between var types on vars draggables V,F or M
