@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## 0.1.7 (2019-11-30)
+
 ## 0.1.5 (2019-11-30)
 
 - Fix (#1) width of entity unwieldy when collapsed if arg vec long
