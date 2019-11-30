@@ -24,7 +24,7 @@
   ;; sente routes
 
 
-  (GET "/" [] (resource-response "index.html" {:root "public"}))
+  (GET "/" [] (resource-response "clograms.html" {:root "public"}))
   (GET "/open-file" [path line :as req]
        {:status 200
         :headers {"Content-Type" "text/html"}
