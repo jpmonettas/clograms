@@ -151,8 +151,8 @@
      [:div.custom-node.re-frame-node
       [:div.node-body
        [:div.header
-        [:div.title "Re frame subscription"]]
-       [:div (str (:re-frame.subs/key s))]]]]))
+        [:div.title "Re frame subscription"]
+        [:div.key (str (:re-frame.subs/key s))]]]]]))
 
 (defn re-frame-event-node-component [{:keys [entity] :as node}]
   (let [e @(re-frame/subscribe [::subs/re-frame-event-entity (:id entity)])]
@@ -163,8 +163,8 @@
      [:div.custom-node.re-frame-node
       [:div.node-body
        [:div.header
-        [:div.title "Re frame event"]]
-       [:div (str (:re-frame.event/key e))]]]]))
+        [:div.title "Re frame event"]
+        [:div.key (str (:re-frame.event/key e))]]]]]))
 
 (defn re-frame-fx-node-component [{:keys [entity] :as node}]
   (let [e @(re-frame/subscribe [::subs/re-frame-fx-entity (:id entity)])]
@@ -175,8 +175,8 @@
      [:div.custom-node.re-frame-node
       [:div.node-body
        [:div.header
-        [:div.title "Re frame effect"]]
-       [:div (str (:re-frame.fx/key e))]]]]))
+        [:div.title "Re frame effect"]
+        [:div.key (str (:re-frame.fx/key e))]]]]]))
 
 (defn re-frame-cofx-node-component [{:keys [entity] :as node}]
   (let [e @(re-frame/subscribe [::subs/re-frame-cofx-entity (:id entity)])]
@@ -187,8 +187,8 @@
      [:div.custom-node.re-frame-node
       [:div.node-body
        [:div.header
-        [:div.title "Re frame co-effect"]]
-       [:div (str (:re-frame.cofx/key e))]]]]))
+        [:div.title "Re frame co-effect"]
+        [:div.key (str (:re-frame.cofx/key e))]]]]]))
 
 (defn spec-node-component [{:keys [entity] :as node}]
   (let [e @(re-frame/subscribe [::subs/spec-entity (:spec/id entity)])

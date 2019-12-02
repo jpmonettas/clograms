@@ -53,19 +53,6 @@
                       "")]
     [:span.var-name (:var/name var)]]])
 
-(defn draggable-ref-node [r]
-  [:li.draggable-var.draggable-entity
-   {:draggable true
-    :on-drag-start (fn [event]
-                     (-> event
-                         .-dataTransfer
-                         (.setData "entity-data" {:entity/type :var
-                                                  :id (:var/id r)})))}
-   [:div
-    [:div.namespace-name (:namespace/name r)]
-    [:div.var-name (name (:var/name r) )]]
-   [:div.project-name (str "(" (:project/name r) ")")]])
-
 (defn projects-browser []
   (let [browser-level @(re-frame/subscribe [::subs/side-bar-browser-level])
         items @(re-frame/subscribe [::subs/side-bar-browser-items+query])
@@ -198,7 +185,7 @@
      ^{:key (str (:spec/id s))}
      [draggable-spec-node s])])
 
-(defn shapes-draggables []
+(defn draggable-shapes []
   (let [drag-map (fn [shape-type]
                    {:draggable true
                     :on-drag-start (fn [event]
@@ -236,7 +223,7 @@
      [gral-components/accordion
       :right-side-bar
       (cond-> {:shapes {:title "Shapes"
-                        :child [shapes-draggables]}
+                        :child [draggable-shapes]}
                :project-browser {:title "Projects, Namespaces & Vars"
                                  :child [projects-browser]}}
         (seq specs)         (assoc :specs {:title "Specs"

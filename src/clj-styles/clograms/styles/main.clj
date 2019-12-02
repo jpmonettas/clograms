@@ -109,7 +109,7 @@
                      :border :unset
                      :background-color (color :main-font)}]
      [:.args-vec {:white-space :nowrap
-                  :overflow-x :scroll}]
+                  :overflow-x :auto}]
      [:.header {:white-space :nowrap}
       [:.title {:white-space :nowrap}]
       [:.dispatch-val {:display :inline-block
@@ -134,6 +134,7 @@
      [:.var-name {:font-weight :bold}]]
     [:.re-frame-node {:background-color (color :re-frame)}]
     [:.spec-node {:background-color (color :spec-node)}]]])
+
 (def svg-shapes
   [:svg
    [:.resizer {:cursor :nwse-resize

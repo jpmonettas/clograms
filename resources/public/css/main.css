@@ -156,7 +156,7 @@
 
 .diagram-wrapper .diagram-layer .node-body .args-vec {
   white-space: nowrap;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 
 .diagram-wrapper .diagram-layer .node-body .header {

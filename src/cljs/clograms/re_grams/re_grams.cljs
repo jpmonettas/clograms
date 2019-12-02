@@ -445,8 +445,7 @@
                            ;; links
                            (for [l (vals links)]
                              ^{:key (::id l)}
-                             [link nodes l])
-]
+                             [link nodes l])]
 
                           [:div.nodes
                            (doall (for [n div-nodes]
