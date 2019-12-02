@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 
 - Move node collapsed to node :extra-data
+- Upgrade clindex to 0.3.2
 
 ## 0.1.7 (2019-11-30)
 
