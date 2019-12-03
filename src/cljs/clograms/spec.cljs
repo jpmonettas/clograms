@@ -22,7 +22,6 @@
 (s/def :var/reference (s/keys :req [:project/name
                                     :namespace/name
                                     :var/name
-                                    :function/source-form
                                     :function/source-str
                                     :var/id]))
 
