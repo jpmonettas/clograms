@@ -7,7 +7,8 @@
             [re-com.core :as re-com]
             [clograms.db :as db]
             [clograms.re-grams.re-grams :as rg]
-            [clograms.ui.components.general :as gral-components]))
+            [clograms.ui.components.general :as gral-components]
+            [clograms.ui.components.nodes :as nodes]))
 
 (defn draggable-project [project]
   [:div.draggable-project.draggable-entity
@@ -197,14 +198,16 @@
     [:div
      [:div.draggable-shape (drag-map :clograms/rectangle-node)
       [:svg {:width 30 :height 30}
-       [:rect.rectangle-shape (merge {:width 30 :height 30 :rx 3})]]]
+       (nodes/rectangle-node-component {:w 30 :h 30 :extra-data {:label ""}})]]
      [:div.draggable-shape (drag-map :clograms/circle-node)
       [:svg {:width 30 :height 30}
-       [:circle.circle-shape {:r 15 :cx 15 :cy 15}]]]
+       (nodes/circle-node-component {:w 30 :h 30 :extra-data {:label ""}})]]
      [:div.draggable-shape (drag-map :clograms/group-node)
       [:svg {:width 30 :height 30}
-       [:g.group-shape
-        [:rect {:width 30 :height 30 :rx 3}]]]]]))
+       (nodes/group-node-component {:w 30 :h 30 :extra-data {:label ""}})]]
+     [:div.draggable-shape (drag-map :clograms/user-node)
+      [:svg {:width 30 :height 30}
+       (nodes/user-node-component {:w 30 :h 30 :extra-data {:label ""}})]]]))
 
 (defn side-bar []
   (let [namespace-node (fn [n]

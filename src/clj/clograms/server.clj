@@ -41,6 +41,7 @@
 
 (comment
   (-main "/home/jmonetta/my-projects/clindex"                "clj")
+  (-main "/home/jmonetta/my-projects/clograms"                "cljs")
   (-main "/home/jmonetta/my-projects/district0x/memefactory" "cljs")
 
 

@@ -147,17 +147,14 @@
     [:.svg-port {:z-index 100
                  :fill :transparent}
      [:&:hover {:cursor :crosshair}]]]
-   [:.group-shape
-    [:rect {:stroke :grey
-            :stroke-width 4
-            :fill :transparent}]
-    [:text {:stroke :none :fill (color :main-font)}]]
-   [:.rectangle-shape {:stroke :black
-                       :fill (color :shape)}
-    [:text {:stroke :none :fill (color :main-font)}]]
-   [:.circle-shape {:stroke :black
-                    :fill (color :shape)}
-    [:text {:stroke :none :fill (color :main-font)}]]])
+   [:g.custom-node
+    {:stroke :black
+     :fill (color :shape)}
+    [:text {:stroke :none :fill (color :main-font)}]
+    [:&.group-shape
+     [:rect {:stroke :grey
+             :stroke-width 4
+             :fill :transparent}]]]])
 
 (def general
   [:body {:background-color (str (color :background) " !important")

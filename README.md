@@ -91,7 +91,7 @@ You can index a project by runnning :
 clj -m clograms.server some-project-folder clj # you can also use cljs to index clojurescript projects
 ```
 
-## For developers
+## Diagrams
 
 For diagrams use clograms with the diagram.edn in the repo or take a look at the [exported pdf](/docs/clograms.pdf)
 

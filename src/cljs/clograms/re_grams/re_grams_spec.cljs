@@ -66,12 +66,13 @@
 (s/def ::cli-current ::coord)
 (s/def ::start-pos ::coord)
 (s/def ::start-size (s/tuple number? number?))
-
+(s/def ::prop-resize? boolean?)
 (s/def ::grab-object (s/keys :req [:diagram.object/type]
                              :opt [::rg/id]
                              :req-un [::start-pos]
                              :opt-un [::tmp-link-from
-                                      ::start-size]))
+                                      ::start-size
+                                      ::prop-resize?]))
 
 (s/def ::grab (s/nilable
                (s/keys :req-un [::cli-origin

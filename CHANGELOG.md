@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Add proportional node support + user svg node
 - Move node collapsed to node :extra-data
 - Upgrade clindex to 0.3.2
 

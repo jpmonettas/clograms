@@ -248,35 +248,20 @@ svg .svg-node .svg-port:hover {
   cursor: crosshair;
 }
 
-svg .group-shape rect {
+svg g.custom-node {
+  stroke: black;
+  fill: #336699;
+}
+
+svg g.custom-node text {
+  stroke: none;
+  fill: #eee;
+}
+
+svg g.custom-node.group-shape rect {
   stroke: grey;
   stroke-width: 4;
   fill: transparent;
-}
-
-svg .group-shape text {
-  stroke: none;
-  fill: #eee;
-}
-
-svg .rectangle-shape {
-  stroke: black;
-  fill: #336699;
-}
-
-svg .rectangle-shape text {
-  stroke: none;
-  fill: #eee;
-}
-
-svg .circle-shape {
-  stroke: black;
-  fill: #336699;
-}
-
-svg .circle-shape text {
-  stroke: none;
-  fill: #eee;
 }
 
 body {

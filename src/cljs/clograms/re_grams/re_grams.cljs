@@ -128,7 +128,7 @@
 (def svg-port-side 7)
 
 (defn port [node p]
-  (let [[node-graph-type] (get @node-components (:diagram.node/type node))
+  (let [node-comp  (get @node-components (:diagram.node/type node))
         grab-sub (subscribe [::grab])
         node-id (::id node)
         update-after-render (fn [p-cmp]
@@ -151,7 +151,7 @@
                                                              :tmp-link-from [node-id (:id p)]} [(.-clientX evt) (.-clientY evt)]]))
                          :on-mouse-up (fn [evt]
                                         (dispatch [::add-link (get-in @grab-sub [:grab-object :tmp-link-from]) [node-id (:id p)]]))} ]
-         (case node-graph-type
+          (case (:type node-comp)
            :div [:div.div-port props-map [:div.port-inner]]
            :svg [:rect.svg-port (merge props-map p {:width svg-port-side :height svg-port-side})])
 
@@ -215,14 +215,16 @@
                  [(.-clientX evt) (.-clientY evt)]]))))
 
 (defn build-svg-node-resizer-handler [n]
-  (fn [evt]
-    (.stopPropagation evt)
-    (when (= left-button (.-buttons evt))
-      (dispatch [::grab {:diagram.object/type :node-resizer
-                         ::id (::id n)
-                         :start-pos [(:x n) (:y n)]
-                         :start-size [(:w n) (:h n)]}
-                 [(.-clientX evt) (.-clientY evt)]]))))
+  (let [{:keys [prop-resize?]} (get @node-components (:diagram.node/type n) default-node)]
+    (fn [evt]
+      (.stopPropagation evt)
+      (when (= left-button (.-buttons evt))
+        (dispatch [::grab {:diagram.object/type :node-resizer
+                           ::id (::id n)
+                           :start-pos [(:x n) (:y n)]
+                           :start-size [(:w n) (:h n)]
+                           :prop-resize? prop-resize?}
+                   [(.-clientX evt) (.-clientY evt)]])))))
 
 (defn port-position [node port-id]
   (let [[nx ny nw nh] ((juxt :x :y :w :h) node)
@@ -238,7 +240,7 @@
                port-id)))
 
 (defn svg-node [n]
-  (let [[_ node-component] (get @node-components (:diagram.node/type n) default-node)
+  (let [node-comp (get @node-components (:diagram.node/type n) default-node)
         selected-node-id (subscribe [::selected-node-id])]
     [:g.svg-node.node {:class (when (= @selected-node-id (::id n)) "selected")
                        :on-click (build-node-click-handler n)
@@ -249,14 +251,14 @@
        ^{:key (:id p)}
        [port n (merge p (port-position n (:id p)))])
 
-     [node-component n]
+     [(:comp node-comp) n]
      [:circle.resizer {:cx (:w n)
                        :cy (:h n)
                        :r 20
                        :on-mouse-down (build-svg-node-resizer-handler n)}]]))
 
 (defn div-node [n]
-  (let [[_ node-component] (get @node-components (:diagram.node/type n) default-node)
+  (let [node-comp (get @node-components (:diagram.node/type n) default-node)
         selected-node-id (subscribe [::selected-node-id])
         update-after-render (fn [n-cmp]
                               (let [dn (r/dom-node n-cmp)
@@ -280,7 +282,7 @@
            ^{:key (:id p)}
            [port n p])
 
-         [node-component n]])})))
+         [(:comp node-comp) n]])})))
 
 (defn drag [db current-cli-coord]
   (if-let [{:keys [cli-origin grab-object]} (get-in db [::diagram :grab])]
@@ -304,8 +306,10 @@
                             drag-x (- current-dia-x start-dia-x)
                             drag-y (- current-dia-y start-dia-y)
                             [obj-start-width obj-start-height] (:start-size grab-object)
-                            end-width (+ obj-start-width drag-x)
-                            end-height (+ obj-start-height drag-y)]
+                            [end-width end-height] (if (:prop-resize? grab-object)
+                                                     (let [drag (max drag-x drag-y)]
+                                                       [(+ obj-start-width drag) (+ obj-start-height drag)])
+                                                     [(+ obj-start-width drag-x) (+ obj-start-height drag-y)])]
                         (-> db'
                             (assoc-in [::diagram :nodes (::id grab-object) :w] end-width)
                             (assoc-in [::diagram :nodes (::id grab-object) :h] end-height)))
@@ -403,8 +407,8 @@
     :reagent-render (fn [dia]
                       (let [{:keys [nodes links link-config grab translate scale scale-origin]} dia
                             [tx ty] translate
-                            div-nodes (filter #(= (first (get @node-components (:diagram.node/type %))) :div) (vals nodes))
-                            svg-nodes (filter #(= (first (get @node-components (:diagram.node/type %))) :svg) (vals nodes))]
+                            div-nodes (filter #(= (:type (get @node-components (:diagram.node/type %))) :div) (vals nodes))
+                            svg-nodes (filter #(= (:type (get @node-components (:diagram.node/type %))) :svg) (vals nodes))]
                         [:div.diagram-layer {:style {:overflow :hidden}
                                                :on-mouse-down (fn [evt]
                                                                 (.stopPropagation evt)
@@ -452,8 +456,8 @@
                                     ^{:key (::id n)}
                                     [div-node n]))]]]))}))
 
-(defn register-node-component! [node-type [node-graph-type component-fn]]
-  (swap! node-components assoc node-type [node-graph-type component-fn]))
+(defn register-node-component! [node-type comp-desc]
+  (swap! node-components assoc node-type comp-desc))
 
 (defn register-link-component! [link-type component-fn]
   (swap! link-components assoc link-type component-fn))
