@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## 0.1.8 (2019-12-3)
+
 - Add database node
 - Add proportional node support + user svg node
 - Move node collapsed to node :extra-data
