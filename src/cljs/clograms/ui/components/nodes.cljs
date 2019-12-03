@@ -225,19 +225,6 @@
   [(menues/remove-node-ctx-menu-option node)
    (menues/edit-node-label-ctx-menu-option node)])
 
-(defn circle-node-component [node]
-  (let [cx (quot (:w node) 2)
-        cy (quot (:h node) 2)]
-    [shape-wrapper
-     {:ctx-menu (shape-menu node)
-      :child [:g.circle-shape.custom-node
-              [:circle {:cx cx
-                        :cy cy
-                        :r (quot (max (:w node) (:h node)) 2)}]
-              [:text {:x cx :y cy
-                      :text-anchor :middle}
-               (-> node :extra-data :label)]]}]))
-
 (defn rectangle-node-component [node]
   [shape-wrapper
    {:ctx-menu (shape-menu node)
@@ -247,7 +234,7 @@
                     :text-anchor :middle}
              (-> node :extra-data :label)]]}])
 
-(defn group-node-component [node]
+(defn group-node-component [node _]
   [shape-wrapper
    {:ctx-menu (shape-menu node)
     :child
@@ -258,23 +245,13 @@
      [:text {:x 5 :y 20}
       (or (-> node :extra-data :label) "<group title>") ]]}])
 
-
-(defn user-node-component [node]
-  (let [draw-height 350
-        draw-width 266
-        scale (/ (:h node) draw-height)]
-    [shape-wrapper
-     {:ctx-menu (shape-menu node)
-      :child
-      [:g.user-shape.custom-node
-       [:g {:transform (gstring/format "translate(0,0) scale(%f)" scale)}
-        [:path {:d "M175,171.173c38.914,0,70.463-38.318,70.463-85.586C245.463,38.318,235.105,0,175,0s-70.465,38.318-70.465,85.587 C104.535,132.855,136.084,171.173,175,171.173z"}]
-        [:path {:d "M41.909,301.853C41.897,298.971,41.885,301.041,41.909,301.853L41.909,301.853z"}]
-        [:path {:d "M308.085,304.104C308.123,303.315,308.098,298.63,308.085,304.104L308.085,304.104z"}]
-        [:path {:d "M307.935,298.397c-1.305-82.342-12.059-105.805-94.352-120.657c0,0-11.584,14.761-38.584,14.761
-        s-38.586-14.761-38.586-14.761c-81.395,14.69-92.803,37.805-94.303,117.982c-0.123,6.547-0.18,6.891-0.202,6.131
-        c0.005,1.424,0.011,4.058,0.011,8.651c0,0,19.592,39.496,133.08,39.496c113.486,0,133.08-39.496,133.08-39.496
-        c0-2.951,0.002-5.003,0.005-6.399C308.062,304.575,308.018,303.664,307.935,298.397z"}]]
-       [:text {:x (quot (:w node) 2) :y (:h node)
-                    :text-anchor :middle}
-        (-> node :extra-data :label)]]}]))
+(defn svg-node-component [node svg-url]
+  [shape-wrapper
+   {:ctx-menu (shape-menu node)
+    :child
+    [:g.custom-svg-node
+     [:image {:width (:w node) :height (:h node) :href svg-url}]
+     [:text {:x (quot (:w node) 2) :y (quot (:h node) 2)
+             :text-anchor :middle
+             :fill "white"}
+      (-> node :extra-data :label)]]}])

@@ -44,10 +44,12 @@
   (re/register-node-component! :clograms/re-frame-fx-node    {:type :div :comp nodes/re-frame-fx-node-component})
   (re/register-node-component! :clograms/re-frame-cofx-node  {:type :div :comp nodes/re-frame-cofx-node-component})
   (re/register-node-component! :clograms/spec-node           {:type :div :comp nodes/spec-node-component})
-  (re/register-node-component! :clograms/rectangle-node      {:type :svg :comp nodes/rectangle-node-component})
-  (re/register-node-component! :clograms/circle-node         {:type :svg :comp nodes/circle-node-component :prop-resize? true})
-  (re/register-node-component! :clograms/group-node          {:type :svg :comp nodes/group-node-component})
-  (re/register-node-component! :clograms/user-node           {:type :svg :comp nodes/user-node-component :prop-resize? true})
+  (re/register-node-component! :clograms/rectangle-node      {:type :svg :prop-resize? false :comp nodes/rectangle-node-component})
+  (re/register-node-component! :clograms/circle-node         {:type :svg :svg-url "/svg/circle.svg" :prop-resize? true :comp nodes/svg-node-component})
+  (re/register-node-component! :clograms/group-node          {:type :svg :prop-resize? false :comp nodes/group-node-component})
+  (re/register-node-component! :clograms/user-node           {:type :svg :svg-url "/svg/man-user.svg" :prop-resize? true :comp nodes/svg-node-component})
+  (re/register-node-component! :clograms/database-node       {:type :svg :svg-url "/svg/database.svg" :prop-resize? true :comp nodes/svg-node-component})
+
   (re/register-link-component! :clograms/line-link links/line-link-component)
   (re-frame/clear-subscription-cache!)
   (reagent/render [main-screen/main-panel]

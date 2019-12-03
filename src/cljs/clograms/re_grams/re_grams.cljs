@@ -251,7 +251,7 @@
        ^{:key (:id p)}
        [port n (merge p (port-position n (:id p)))])
 
-     [(:comp node-comp) n]
+     [(:comp node-comp) n (:svg-url node-comp)]
      [:circle.resizer {:cx (:w n)
                        :cy (:h n)
                        :r 20
@@ -401,14 +401,36 @@
    [:marker {:id "arrow-start" :marker-width 10 :marker-height 10 :ref-x 0 :ref-y 2 :orient "auto" :marker-units "strokeWidth"}
     [:path {:d "M0,2 L6,4 L6,0 z" :fill "gray"}]]])
 
+(defn svg-nodes-components []
+  (let [nodes-comp @node-components
+        svg-keys (keep (fn [[k c]] (when (= :svg (:type c)) k)) nodes-comp)]
+    (select-keys nodes-comp svg-keys )))
+
+(defn div-nodes-components []
+  (let [nodes-comp @node-components
+        div-keys (keep (fn [[k c]] (when (= :div (:type c)) k)) nodes-comp)]
+    (select-keys nodes-comp div-keys)))
+
+(defn svg-nodes-comparator [type1 type2]
+  ;; let put groups first so they don't oclude other svg nodes
+  (cond
+    (= type1 type2) 0
+    (= type1 :clograms/group-node) -1
+    (= type2 :clograms/group-node) 1
+    :else 0))
+
 (defn diagram [dia]
   (r/create-class
    {:component-did-mount (fn [this])
     :reagent-render (fn [dia]
                       (let [{:keys [nodes links link-config grab translate scale scale-origin]} dia
                             [tx ty] translate
-                            div-nodes (filter #(= (:type (get @node-components (:diagram.node/type %))) :div) (vals nodes))
-                            svg-nodes (filter #(= (:type (get @node-components (:diagram.node/type %))) :svg) (vals nodes))]
+                            div-nodes (filter (fn [n] (contains? (div-nodes-components) (:diagram.node/type n))) (vals nodes))
+                            ;; the order in which we render the nodes matters since nodes rendered after
+                            ;; ocludes nodes rendered first
+                            svg-nodes (->> (vals nodes)
+                                           (filter (fn [n] (contains? (svg-nodes-components) (:diagram.node/type n))))
+                                           (sort-by :diagram.node/type svg-nodes-comparator))]
                         [:div.diagram-layer {:style {:overflow :hidden}
                                                :on-mouse-down (fn [evt]
                                                                 (.stopPropagation evt)

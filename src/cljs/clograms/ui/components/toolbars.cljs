@@ -196,18 +196,12 @@
                                                             :w 80
                                                             :h 80})))})]
     [:div
-     [:div.draggable-shape (drag-map :clograms/rectangle-node)
-      [:svg {:width 30 :height 30}
-       (nodes/rectangle-node-component {:w 30 :h 30 :extra-data {:label ""}})]]
-     [:div.draggable-shape (drag-map :clograms/circle-node)
-      [:svg {:width 30 :height 30}
-       (nodes/circle-node-component {:w 30 :h 30 :extra-data {:label ""}})]]
-     [:div.draggable-shape (drag-map :clograms/group-node)
-      [:svg {:width 30 :height 30}
-       (nodes/group-node-component {:w 30 :h 30 :extra-data {:label ""}})]]
-     [:div.draggable-shape (drag-map :clograms/user-node)
-      [:svg {:width 30 :height 30}
-       (nodes/user-node-component {:w 30 :h 30 :extra-data {:label ""}})]]]))
+     (for [[k c] (rg/svg-nodes-components)]
+       ^{:key (str k)}
+       [:div.draggable-shape (drag-map k)
+        [:svg {:width 30 :height 30}
+         ((:comp c) {:w 30 :h 30 :extra-data {:label ""}}
+          (:svg-url c))]])]))
 
 (defn side-bar []
   (let [namespace-node (fn [n]
