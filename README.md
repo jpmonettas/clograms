@@ -69,6 +69,8 @@ You can also save your diagram as a pdf file using the browser print functionali
 
 ## Developers info
 
+Clograms is based on [clindex](https://github.com/jpmonettas/clindex) a Clojure[Script] source code indexer.
+
 ### Build UI
 
 #### Prerequisites
@@ -91,9 +93,13 @@ You can index a project by runnning :
 clj -m clograms.server some-project-folder clj # you can also use cljs to index clojurescript projects
 ```
 
-## Diagrams
+### Docs
 
-For diagrams use clograms with the diagram.edn in the repo or take a look at the [exported pdf](/docs/clograms.pdf)
+You can find a diagram.edn file in this repo that documents some aspects of Clograms. It is also [exported as pdf](/docs/clograms.pdf)
+
+## Related work
+
+- [The FC4 Framework](https://github.com/FundingCircle/fc4-framework) A framework for authoring, publishing, and maintaining C4 software architecture diagrams.
 
 ## Roadmap
 
