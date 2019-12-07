@@ -14,7 +14,7 @@
         http-kit                       {:mvn/version "2.3.0"}
         com.cognitect/transit-clj      {:mvn/version "0.8.319"}
 
-        clindex                        {:mvn/version "0.3.2"}
+        clindex                        {:mvn/version "0.3.3"}
         ;; clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
 
         ;;;;;;;;

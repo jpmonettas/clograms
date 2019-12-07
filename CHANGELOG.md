@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Upgrading clindex to 0.3.3
+
 ## 0.1.8 (2019-12-3)
 
 - Add database node
