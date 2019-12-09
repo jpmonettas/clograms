@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Upgrading clindex to 0.3.4
+
 ## 0.1.9 (2019-12-7)
 
 - Upgrading clindex to 0.3.3
