@@ -46,13 +46,13 @@ The latest released version is: [![Clojars Project](https://img.shields.io/cloja
 ### Index a Clojure project :
 
 ```bash
-clj -Sdeps '{:deps {clograms {:mvn/version "0.1.9"}}}' -m clograms.server my-clojure-project-folder clj
+clj -Sdeps '{:deps {clograms {:mvn/version "0.1.10"}}}' -m clograms.server my-clojure-project-folder clj
 ```
 
 ### Index a ClojureScript project :
 
 ```bash
-clj -Sdeps '{:deps {clograms {:mvn/version "0.1.9"}}}' -m clograms.server my-clojurescript-project-folder cljs
+clj -Sdeps '{:deps {clograms {:mvn/version "0.1.10"}}}' -m clograms.server my-clojurescript-project-folder cljs
 ```
 
 When indexing finishes, point your browser to http://localhost:3000 and wait a little bit for it to load, it needs to transfer the entire index to the browser.
