@@ -75,8 +75,9 @@ Multiple nodes can be selected by holding the CTRL key. When multiple nodes are 
 
 Currently supported nodes :
 
-*Shapes* : circle, rectangle, database, group and user
-*Source code nodes* : projects, namespaces, vars, specs, re-frame(events, subs, fxs, cofxs)
+**Shapes*** : circle, rectangle, database, group and user
+
+**Source code nodes*** : projects, namespaces, vars, specs, re-frame(events, subs, fxs, cofxs)
 
 ### Shape Nodes
 
@@ -86,7 +87,7 @@ Shapes also support the `Edit text` context menu which you can use to change the
 
 Links can be created by dragging from one node port to another node port.
 
-Arrows direction can be changed by using the arrows controls at the top.
+Arrows direction can be changed by using the arrows controls at the top before creating a link.
 
 Links also support label edition by using the `Edit text` context menu and can be removed like nodes.
 
