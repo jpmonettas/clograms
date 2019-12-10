@@ -143,6 +143,7 @@
    [:.link
     [:&:hover [:line {:stroke :red}]]]
    [:.svg-node
+    [:&.selected [:.svg-port {:fill "yellow"}]]
     [:&:hover [:.svg-port {:fill "yellow"}]]
     [:.svg-port {:z-index 100
                  :fill :transparent}

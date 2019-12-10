@@ -96,7 +96,6 @@
 
 (def default-db
   (-> (rg/initial-db)
-      (rg/set-link-type :clograms/line-link)
       (merge {:side-bar {:query ""}
               :bottom-bar {:collapsed? true}
               :projects-browser {:level 0
@@ -189,9 +188,11 @@
      :project/version (or (:project/version proj) "UNKNOWN")}))
 
 (defn namespace-entity [datascript-db namespace-id]
-  (let [ns (d/entity datascript-db namespace-id)]
+  (let [ns (d/entity datascript-db namespace-id)
+        ns-proj (:project/_namespaces ns)]
     {:namespace/id namespace-id
-     :project/name (:project/name (:project/_namespaces ns))
+     :project/name (:project/name ns-proj)
+     :project/id (:db/id ns-proj)
      :namespace/name (:namespace/name ns)
      :namespace/docstring (:namespace/docstring ns)}))
 

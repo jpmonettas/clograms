@@ -5,7 +5,7 @@
 (s/def :diagram.object/type #{:node :link :diagram :node-resizer})
 (s/def ::rg/id string?)
 (s/def :diagram.node/type (s/nilable keyword?))
-(s/def :diagram.link/type (s/nilable keyword?))
+(s/def :diagram.link/type #{:clograms/straight-line})
 
 (s/def ::client-x number?)
 (s/def ::client-y number?)
@@ -69,9 +69,7 @@
 (s/def ::prop-resize? boolean?)
 (s/def ::grab-object (s/keys :req [:diagram.object/type]
                              :opt [::rg/id]
-                             :req-un [::start-pos]
                              :opt-un [::tmp-link-from
-                                      ::start-size
                                       ::prop-resize?]))
 
 (s/def ::grab (s/nilable

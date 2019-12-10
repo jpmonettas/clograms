@@ -10,6 +10,7 @@
   {::diagram {:nodes {}
               :links {}
               :link-config {:arrow-start? false
+                            :diagram.link/type :clograms/straight-line
                             :arrow-end? true}
               :main-tool-config {:tool :selection}
               :scale 1
@@ -75,12 +76,15 @@
 
 ;;;;; Node selection
 
+(defn selected-nodes-ids [db]
+  (get-in db [::diagram :selected-nodes-ids]))
+
 (defn selected-nodes [db]
-  (let [selected-nodes-ids (get-in db [::diagram :selected-nodes-ids])]
-    (->> db
-         ::diagram
-         :nodes
-         (filter #(selected-nodes-ids (::id %))))))
+  (-> db
+      ::diagram
+      :nodes
+      (select-keys (selected-nodes-ids db))
+      vals))
 
 (defn add-node-to-selection
   "If node isn't selected add it to selection, if it is already part of selection remove it."
@@ -174,7 +178,8 @@
                                           (.stopPropagation evt)
                                           (.preventDefault evt)
                                           (dispatch [::grab {:diagram.object/type :link
-                                                             :tmp-link-from [node-id (:id p)]} [(.-clientX evt) (.-clientY evt)]]))
+                                                             :tmp-link-from [node-id (:id p)]}
+                                                     [(.-clientX evt) (.-clientY evt)]]))
                          :on-mouse-up (fn [evt]
                                         (dispatch [::add-link (get-in @grab-sub [:grab-object :tmp-link-from]) [node-id (:id p)]]))} ]
           (case (:type node-comp)
@@ -239,8 +244,7 @@
         (.preventDefault evt))
     (when (= left-button (.-buttons evt))
       (dispatch [::grab {:diagram.object/type :node
-                         ::id (::id n)
-                         :start-pos [(:x n) (:y n)]}
+                         ::id (::id n)}
                  [(.-clientX evt) (.-clientY evt)]]))))
 
 (defn build-svg-node-resizer-handler [n]
@@ -250,8 +254,6 @@
       (when (= left-button (.-buttons evt))
         (dispatch [::grab {:diagram.object/type :node-resizer
                            ::id (::id n)
-                           :start-pos [(:x n) (:y n)]
-                           :start-size [(:w n) (:h n)]
                            :prop-resize? prop-resize?}
                    [(.-clientX evt) (.-clientY evt)]])))))
 
@@ -313,41 +315,45 @@
 
          [(:comp node-comp) n]])})))
 
+(defn drag-nodes [db grab-node-id [drag-x drag-y]]
+  (let [selection (selected-nodes-ids db)
+        update-node (fn [d nid]
+                      (-> d
+                          (update-in [::diagram :nodes nid :x] + drag-x)
+                          (update-in [::diagram :nodes nid :y] + drag-y)))]
+    (if (> (count selection) 1)
+      (reduce (fn [d sel-nid]
+                (update-node d sel-nid))
+              db
+              selection)
+
+      (update-node db grab-node-id))))
+
 (defn drag [db current-cli-coord]
   (if-let [{:keys [cli-origin grab-object]} (get-in db [::diagram :grab])]
     (let [[cli-x cli-y] current-cli-coord
-          [grab-start-x grab-start-y] cli-origin
-          [obj-start-x obj-start-y] (:start-pos grab-object)
+          [current-dia-x current-dia-y] (client-coord->dia-coord (::diagram db) current-cli-coord)
+          before-cli-coord (get-in db [::diagram :grab :cli-current])
+          [drag-x drag-y] (let [[before-x before-y] (client-coord->dia-coord (::diagram db) before-cli-coord)]
+                            [(- current-dia-x before-x) (- current-dia-y before-y)])
+
           db' (assoc-in db [::diagram :grab :cli-current] current-cli-coord)]
       (case (:diagram.object/type grab-object)
-        :node (let [[current-dia-x current-dia-y] (client-coord->dia-coord (::diagram db) current-cli-coord)
-                    [start-dia-x start-dia-y] (client-coord->dia-coord (::diagram db) cli-origin)
-                    drag-x (- current-dia-x start-dia-x)
-                    drag-y (- current-dia-y start-dia-y)
-                    obj-end-x (+ obj-start-x drag-x)
-                    obj-end-y (+ obj-start-y drag-y)]
-                (-> db'
-                    (assoc-in [::diagram :nodes (::id grab-object) :x] obj-end-x)
-                    (assoc-in [::diagram :nodes (::id grab-object) :y] obj-end-y)))
-        ;; TODO: refactor this out to displacement-vector fn
-        :node-resizer (let [[current-dia-x current-dia-y] (client-coord->dia-coord (::diagram db) current-cli-coord)
-                            [start-dia-x start-dia-y] (client-coord->dia-coord (::diagram db) cli-origin)
-                            drag-x (- current-dia-x start-dia-x)
-                            drag-y (- current-dia-y start-dia-y)
-                            [obj-start-width obj-start-height] (:start-size grab-object)
-                            [end-width end-height] (if (:prop-resize? grab-object)
-                                                     (let [drag (max drag-x drag-y)]
-                                                       [(+ obj-start-width drag) (+ obj-start-height drag)])
-                                                     [(+ obj-start-width drag-x) (+ obj-start-height drag-y)])]
+        :node (drag-nodes db' (::id grab-object) [drag-x drag-y])
+        :node-resizer (let [[drag-x drag-y] (if (:prop-resize? grab-object)
+                                              (let [drag (max drag-x drag-y)]
+                                                [drag drag])
+                                              [drag-x drag-y])]
+
                         (-> db'
-                            (assoc-in [::diagram :nodes (::id grab-object) :w] end-width)
-                            (assoc-in [::diagram :nodes (::id grab-object) :h] end-height)))
-        :diagram (let [drag-x (- cli-x grab-start-x)
-                       drag-y (- cli-y grab-start-y)
-                       obj-end-x (+ obj-start-x drag-x)
-                       obj-end-y (+ obj-start-y drag-y)]
+                            (update-in [::diagram :nodes (::id grab-object) :w] + drag-x)
+                            (update-in [::diagram :nodes (::id grab-object) :h] + drag-y)))
+        :diagram (let [[before-cli-x before-cli-y] before-cli-coord
+                       cli-drag-x (- cli-x before-cli-x)
+                       cli-drag-y (- cli-y before-cli-y)]
                    (-> db'
-                       (assoc-in [::diagram :translate] [obj-end-x obj-end-y])))
+                       (update-in [::diagram :translate 0] + cli-drag-x)
+                       (update-in [::diagram :translate 1] + cli-drag-y)))
         :link db'))
     db))
 
@@ -461,10 +467,13 @@
                                            (filter (fn [n] (contains? (svg-nodes-components) (:diagram.node/type n))))
                                            (sort-by :diagram.node/type svg-nodes-comparator))]
                         [:div.diagram-layer {:style {:overflow :hidden}
-                                               :on-mouse-down (fn [evt]
+                                             :on-mouse-down (fn [evt]
+                                                              (when (= left-button (.-buttons evt))
                                                                 (.stopPropagation evt)
                                                                 (.preventDefault evt)
-                                                                (dispatch [::grab {:diagram.object/type :diagram :start-pos [tx ty]} [(.-clientX evt) (.-clientY evt)]]))
+                                                                (dispatch [::grab {:diagram.object/type :diagram}
+                                                                           [(.-clientX evt) (.-clientY evt)]])
+                                                                (dispatch [::clear-nodes-selection])))
                                                :on-wheel (fn [evt]
                                                            (dispatch [::zoom (.-deltaY evt) [(.-clientX evt) (.-clientY evt)]]))
                                                :on-mouse-move (fn [evt]
@@ -562,6 +571,7 @@
                                         (let [db' (add-node-to-selection db node-id)]
                                           {:db db'
                                            :dispatch [::node-selection-updated (selected-nodes db')]})))
+(reg-event-db ::clear-nodes-selection (fn [db [_]] (clear-nodes-selection db)))
 
 
 

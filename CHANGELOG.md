@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Multi node selection by pressing CTRL + click
+- Multi node dragginig
+
 ## 0.1.10 (2019-12-9)
 
 - Upgrading clindex to 0.3.4

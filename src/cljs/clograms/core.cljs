@@ -50,7 +50,7 @@
   (re/register-node-component! :clograms/user-node           {:type :svg :svg-url "/svg/man-user.svg" :prop-resize? true :comp nodes/svg-node-component})
   (re/register-node-component! :clograms/database-node       {:type :svg :svg-url "/svg/database.svg" :prop-resize? true :comp nodes/svg-node-component})
 
-  (re/register-link-component! :clograms/line-link links/line-link-component)
+  (re/register-link-component! :clograms/straight-line links/line-link-component)
   (re-frame/clear-subscription-cache!)
   (reagent/render [main-screen/main-panel]
                   (.getElementById js/document "app")))

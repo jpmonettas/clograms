@@ -239,6 +239,10 @@ svg .link:hover line {
   stroke: red;
 }
 
+svg .svg-node.selected .svg-port {
+  fill: yellow;
+}
+
 svg .svg-node:hover .svg-port {
   fill: yellow;
 }

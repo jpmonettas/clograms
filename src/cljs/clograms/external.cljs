@@ -1,6 +1,7 @@
 (ns clograms.external
   (:require [ajax.core :as ajax]
-            [clograms.db :as db]))
+            [clograms.db :as db]
+            [clograms.re-grams.re-grams :as rg]))
 
 (defn reload-datascript-db []
   {:http-xhrio {:method          :get
@@ -38,7 +39,13 @@
            :loading? false)))
 
 (defn diagram-loaded [db diagram-str]
-  (let [diagram (cljs.reader/read-string diagram-str)]
+  (let [diagram (-> (cljs.reader/read-string diagram-str)
+                    (update ::rg/diagram (fn [d]
+                                           ;; merge whatever diagram we loaded on top of initial diagram
+                                           ;; so we can upgrade
+                                           ;; It could happen that the stored diagram doesn't contain some new keys needed
+                                           ;; by the new version
+                                           (merge (::rg/diagram (rg/initial-db)) d))))]
     (-> db
         (merge diagram))))
 

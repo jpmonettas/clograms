@@ -24,7 +24,7 @@
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
   [a-spec db]
-  #_(when-not (s/valid? a-spec db)
+  (when-not (s/valid? a-spec db)
     (throw (js/Error. (str "spec check failed: " (expound/expound-str a-spec db))))))
 
 ;; now we create an interceptor using `after`
@@ -41,7 +41,7 @@
 (re-frame/reg-event-db ::db-loaded [inter-check] (fn [db [_ new-db]] (external/db-loaded db new-db)))
 (re-frame/reg-event-fx ::add-entity-to-diagram [inter-check] (fn [{:keys [db]} [_ et id opts]] (entities/add-entity-to-diagram db et id opts)))
 (re-frame/reg-event-fx ::remove-entity-from-diagram [inter-check] (fn [{:keys [db]} [_ id]] (entities/remove-entity-from-diagram db id)))
-(re-frame/reg-event-fx ::rg/node-selected [inter-check] (fn [{:keys [db]} [_ node]] (selection/node-selected db node)))
+(re-frame/reg-event-fx ::rg/node-selection-updated [inter-check] (fn [{:keys [db]} [_ nodes]] (selection/node-selection-updated db nodes)))
 (re-frame/reg-event-db ::set-node-comment [inter-check] (fn [db [_ node-id comment]]
                                                           (rg/set-node-extra-data
                                                            db node-id
