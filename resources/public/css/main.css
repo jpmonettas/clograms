@@ -45,6 +45,10 @@
   border: 1px solid black;
 }
 
+.diagram-wrapper .diagram-layer .node.selected .port-inner {
+  background-color: yellow;
+}
+
 .diagram-wrapper .diagram-layer .node:hover .port-inner {
   background-color: yellow !important;
 }

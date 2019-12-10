@@ -52,7 +52,7 @@
                     :align-items :center
                     :border "1px solid black"
                     }]
-    [:.node #_[:&.selected [:.port-inner {:background-color :yellow}]]
+    [:.node [:&.selected [:.port-inner {:background-color :yellow}]]
      [:&:hover [:.port-inner
                 {:background-color (str "yellow !important")}]]
 

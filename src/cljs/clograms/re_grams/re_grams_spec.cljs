@@ -79,16 +79,20 @@
                                 ::cli-current
                                 ::grab-object])))
 
-(s/def ::selected-node-id ::rg/id)
+(s/def ::selected-nodes-ids (s/coll-of ::rg/id :kind set?))
 
 (s/def ::link-config (s/keys :req [:diagram.link/type]
                              :req-un [::arrow-start?
                                       ::arrow-end?]))
 
+(s/def :main-tool/tool #{:selection :drag})
+
+(s/def ::main-tool-config (s/keys :req-un [:main-tool/tool]))
 (s/def ::rg/diagram (s/keys :req-un [::nodes
                                      ::links
                                      ::scale
                                      ::translate
-                                     ::link-config]
-                            :opt-un [::grab
-                                     ::selected-node-id]))
+                                     ::link-config
+                                     ::main-tool-config
+                                     ::selected-nodes-ids]
+                            :opt-un [::grab]))

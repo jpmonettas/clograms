@@ -11,9 +11,10 @@
               :links {}
               :link-config {:arrow-start? false
                             :arrow-end? true}
+              :main-tool-config {:tool :selection}
               :scale 1
               :translate [0 0]
-              }})
+              :selected-nodes-ids #{}}})
 
 (defonce node-components (atom {}))
 (defonce link-components (atom {}))
@@ -72,12 +73,37 @@
 (defn get-node [db node-id]
   (get-in db [::diagram :nodes node-id]))
 
-(defn selected-node [db]
-  (let [selected-node-id (get-in db [::diagram :selected-node-id])]
-    (get-node db selected-node-id)))
+;;;;; Node selection
 
-(defn select-node [db node-id]
-  (assoc-in db [::diagram :selected-node-id] node-id))
+(defn selected-nodes [db]
+  (let [selected-nodes-ids (get-in db [::diagram :selected-nodes-ids])]
+    (->> db
+         ::diagram
+         :nodes
+         (filter #(selected-nodes-ids (::id %))))))
+
+(defn add-node-to-selection
+  "If node isn't selected add it to selection, if it is already part of selection remove it."
+  [db node-id]
+  (if (contains? (get-in db [::diagram :selected-nodes-ids]) node-id)
+    (update-in db [::diagram :selected-nodes-ids] disj node-id)
+    (update-in db [::diagram :selected-nodes-ids] conj node-id)))
+
+(defn remove-node-from-selection [db node-id]
+  (update-in db [::diagram :selected-nodes-ids] disj node-id))
+
+(defn clear-nodes-selection [db]
+  (assoc-in db [::diagram :selected-nodes-ids] #{}))
+
+(defn select-single-node
+  "Leave this node as the only selected node, unless it is part of the current selection.
+  In that case it is a nop."
+  [db node-id]
+  (if-not (contains? (get-in db [::diagram :selected-nodes-ids]) node-id)
+    (assoc-in db [::diagram :selected-nodes-ids] #{node-id})
+    db))
+
+;; ----------------------------
 
 (defn set-node-extra-data [db node-id extra-data]
   (assoc-in db [::diagram :nodes node-id :extra-data] extra-data))
@@ -199,7 +225,10 @@
    [:span (gstring/format "translate: %s, scale: %1.3f" translate scale)]])
 
 (defn build-node-click-handler [n]
-  (fn [evt] (dispatch [::select-node (::id n)])))
+  (fn [evt]
+    (if (.-ctrlKey evt)
+      (dispatch [::add-node-to-selection (::id n)])
+      (dispatch [::select-single-node (::id n)]))))
 
 (defn build-node-mouse-down-handler [n]
   (fn [evt]
@@ -241,8 +270,8 @@
 
 (defn svg-node [n]
   (let [node-comp (get @node-components (:diagram.node/type n) default-node)
-        selected-node-id (subscribe [::selected-node-id])]
-    [:g.svg-node.node {:class (when (= @selected-node-id (::id n)) "selected")
+        selected-nodes-ids @(subscribe [::selected-nodes-ids])]
+    [:g.svg-node.node {:class (when (selected-nodes-ids (::id n)) "selected")
                        :on-click (build-node-click-handler n)
                        :on-mouse-down (build-node-mouse-down-handler n)
                        :transform (gstring/format "translate(%d,%d)" (:x n) (:y n))}
@@ -259,7 +288,7 @@
 
 (defn div-node [n]
   (let [node-comp (get @node-components (:diagram.node/type n) default-node)
-        selected-node-id (subscribe [::selected-node-id])
+        selected-nodes-ids (subscribe [::selected-nodes-ids])
         update-after-render (fn [n-cmp]
                               (let [dn (r/dom-node n-cmp)
                                     brect (.getBoundingClientRect dn)]
@@ -270,7 +299,7 @@
       :component-did-update (fn [this] (update-after-render this))
       :reagent-render
       (fn [n]
-        [:div.node {:class (when (= @selected-node-id (::id n)) "selected")
+        [:div.node {:class (when (@selected-nodes-ids (::id n)) "selected")
                     :on-click (build-node-click-handler n)
                     :on-mouse-down (build-node-mouse-down-handler n)
                     :style {:position :absolute
@@ -499,7 +528,7 @@
 (reg-sub ::diagram (fn [db _] (::diagram db)))
 (reg-sub ::translate (fn [db _] (get-in db [::diagram :translate])))
 (reg-sub ::scale (fn [db _] (get-in db [::diagram :scale])))
-(reg-sub ::selected-node-id (fn [db _] (get-in db [::diagram :selected-node-id])))
+(reg-sub ::selected-nodes-ids (fn [db _] (get-in db [::diagram :selected-nodes-ids])))
 (reg-sub ::link-config (fn [db _] (get-in db [::diagram :link-config])))
 ;;;;;;;;;;;;;
 ;; Events  ;;
@@ -525,16 +554,21 @@
 (reg-event-db ::remove-link (fn [db [_ link-id]] (remove-link db link-id)))
 (reg-event-db ::add-node (fn [db [_ node]] (add-node db node)))
 (reg-event-db ::remove-node (fn [db [_ node-id]] (remove-node db node-id)))
-(reg-event-fx ::select-node (fn [{:keys [db]} [_ node-id]]
-                              (let [db' (select-node db node-id)]
-                                {:db db'
-                                 :dispatch [::node-selected (selected-node db')]})))
+(reg-event-fx ::select-single-node (fn [{:keys [db]} [_ node-id]]
+                                     (let [db' (select-single-node db node-id)]
+                                       {:db db'
+                                        :dispatch [::node-selection-updated (selected-nodes db')]})))
+(reg-event-fx ::add-node-to-selection (fn [{:keys [db]} [_ node-id]]
+                                        (let [db' (add-node-to-selection db node-id)]
+                                          {:db db'
+                                           :dispatch [::node-selection-updated (selected-nodes db')]})))
+
 
 
 ;; Intended for users to override and listen
 ;; -----------------------------------------
 
-(reg-event-db ::node-selected identity)
+(reg-event-db ::node-selection-updated identity)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -542,18 +576,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
-  (dispatch [::add-node  {:title "NODE 1"
-                          ::id "nid1"
-                          :diagram.node/type :custom-node-1}
-             [{::id "pid1" :diagram.port/type :custom-port-1}
-              {::id "pid2" :diagram.port/type :custom-port-1}]])
 
-  (dispatch [::add-node {:title "NODE 2"
-                         ::id "nid2"
-                         :client-x 10
-                         :client-y 10}
-             [{::id "pid1" :diagram.port/type :custom-port-1}
-              {::id "pid2" :diagram.port/type :custom-port-1}]])
-
-  (dispatch [::add-link ["nid1" "pid1"] ["nid2" "pid2"]])
   )
