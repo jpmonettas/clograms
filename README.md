@@ -59,11 +59,53 @@ When indexing finishes, point your browser to http://localhost:3000 and wait a l
 
 You can also run your browser in app mode like `google-chrome --app=http://localhost:3000`.
 
+## Micro Manual
+
+### Search
+
+You can add nodes to your diagram by using the top bar search. If you remember the name of a function, namespace, project, spec or whatever you can type it there.
+Once you select a option, the node will be added to the center of the diagram.
+
+### Nodes
+
+There are multiple types of nodes you can use in your diagram. You can drag them from the right side bar.
+All nodes support at least the remove context menu option and they can be filtered by using the input at the top of the right side bar.
+
+Multiple nodes can be selected by holding the CTRL key. When multiple nodes are selected, dragging will drag all selected nodes.
+
+Currently supported nodes :
+
+*Shapes* : circle, rectangle, database, group and user
+*Source code nodes* : projects, namespaces, vars, specs, re-frame(events, subs, fxs, cofxs)
+
+### Shape Nodes
+
+Shapes also support the `Edit text` context menu which you can use to change the shape label and are also resizable by dragging the bottom right corner.
+
+### Links
+
+Links can be created by dragging from one node port to another node port.
+
+Arrows direction can be changed by using the arrows controls at the top.
+
+Links also support label edition by using the `Edit text` context menu and can be removed like nodes.
+
+### Functions and Vars nodes
+
+Clicking on any function call link will add another function node in front of it.
+
+You can find function call references by using the `Find references` context menu. Double clicking on any funcition reference will automatically add a node
+behind it.
+
+### Coloring
+
+You can color nodes by project or namespace they belong to by using the context menu on any source code node. The current selected color will be used.
+
 ### Saving your diagram
 
 The current diagrams save functionality is not ideal but you can save and restore diagrams from edn files.
 
-When you click the save button in the ui **Clograms** will create a `diagram.edn` file inside the folder where you are running it from, and will read it every time you load the ui.
+When you click the save button in the ui **Clograms** will create a `diagram.edn` file inside the folder you are running it from, and will read it every time you load the ui.
 
 You can also save your diagram as a pdf file using the browser print functionality. It will hide all the toolbars so you can print only the diagram.
 
