@@ -201,6 +201,8 @@
         ns (:namespace/_re-frame-subs sub)]
     {:id id
      :re-frame.subs/key (:re-frame.subs/key sub)
+     :source/form (deserialize-source (:source/form sub))
+     :source/str (:source/str sub)
      :project/name (:project/name (:project/_namespaces ns))
      :namespace/name (:namespace/name ns)}))
 
@@ -209,6 +211,8 @@
         ns (:namespace/_re-frame-events e)]
     {:id id
      :re-frame.event/key (:re-frame.event/key e)
+     :source/form (deserialize-source (:source/form e))
+     :source/str (:source/str e)
      :project/name (:project/name (:project/_namespaces ns))
      :namespace/name (:namespace/name ns)}))
 
@@ -217,6 +221,8 @@
         ns (:namespace/_re-frame-fxs e)]
     {:id id
      :re-frame.fx/key (:re-frame.fx/key e)
+     :source/form (deserialize-source (:source/form e))
+     :source/str (:source/str e)
      :project/name (:project/name (:project/_namespaces ns))
      :namespace/name (:namespace/name ns)}))
 
@@ -226,6 +232,8 @@
     {:id id
      :re-frame.cofx/key (:re-frame.cofx/key e)
      :project/name (:project/name (:project/_namespaces ns))
+     :source/form (deserialize-source (:source/form e))
+     :source/str (:source/str e)
      :namespace/name (:namespace/name ns)}))
 
 (defn spec-entity [datascript-db spec-id]

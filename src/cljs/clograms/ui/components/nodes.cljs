@@ -118,9 +118,9 @@
 
 (defn multimethod-node-component [{:keys [entity] :as node}]
   (let [expanded (r/atom {})]
-   (fn [{:keys [entity] :as node}]
-     (let [mm @(re-frame/subscribe [::subs/multimethod-entity (:var/id entity) (::rg/id node)])]
-       [node-wrapper {:node node
+    (fn [{:keys [entity] :as node}]
+      (let [mm @(re-frame/subscribe [::subs/multimethod-entity (:var/id entity) (::rg/id node)])]
+        [node-wrapper {:node node
                       :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name mm))
                                  (menues/set-ns-color-ctx-menu-option (:namespace/name mm))
                                  (menues/remove-entity-ctx-menu-option node)]}
@@ -143,53 +143,56 @@
                  [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
                                :dangerouslySetInnerHTML {:__html (:multimethod/source-str method)}}])]))]]]]))))
 
+(defn re-frame-node-body [collapsed? key-str source-str label node-id]
+  [:div.node-body
+   [:div.header
+    [gral-components/collapse-button collapsed? {:on-click #(re-frame/dispatch [::events/toggle-collapse-node node-id])}]
+    [:span.key key-str]
+    [:span.title (gstring/format "(re-frame %s)" label)]]
+   (when-not collapsed?
+     [:div
+      [:pre.source {:on-wheel (fn [e] (.stopPropagation e))
+                    :dangerouslySetInnerHTML {:__html source-str}}]])])
+
 (defn re-frame-subs-node-component [{:keys [entity] :as node}]
-  (let [s @(re-frame/subscribe [::subs/re-frame-subs-entity (:id entity)])]
+  (let [s @(re-frame/subscribe [::subs/re-frame-subs-entity (:id entity) (::rg/id node)])
+        collapsed? (-> node :extra-data :collapsed?)]
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name s))
                               (menues/set-ns-color-ctx-menu-option (:namespace/name s))
                               (menues/remove-entity-ctx-menu-option node)]}
      [:div.custom-node.re-frame-node
-      [:div.node-body
-       [:div.header
-        [:div.title "Re frame subscription"]
-        [:div.key (str (:re-frame.subs/key s))]]]]]))
+      [re-frame-node-body collapsed? (str (:re-frame.subs/key s)) (:source/str s) "subscription" (::rg/id node) ]]]))
 
 (defn re-frame-event-node-component [{:keys [entity] :as node}]
-  (let [e @(re-frame/subscribe [::subs/re-frame-event-entity (:id entity)])]
+  (let [e @(re-frame/subscribe [::subs/re-frame-event-entity (:id entity) (::rg/id node)])
+        collapsed? (-> node :extra-data :collapsed?)]
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
                               (menues/set-ns-color-ctx-menu-option (:namespace/name e))
                               (menues/remove-entity-ctx-menu-option node)]}
      [:div.custom-node.re-frame-node
-      [:div.node-body
-       [:div.header
-        [:div.title "Re frame event"]
-        [:div.key (str (:re-frame.event/key e))]]]]]))
+      [re-frame-node-body collapsed? (str (:re-frame.event/key e)) (:source/str e) "event" (::rg/id node) ]]]))
 
 (defn re-frame-fx-node-component [{:keys [entity] :as node}]
-  (let [e @(re-frame/subscribe [::subs/re-frame-fx-entity (:id entity)])]
+  (let [e @(re-frame/subscribe [::subs/re-frame-fx-entity (:id entity) (::rg/id node)])
+        collapsed? (-> node :extra-data :collapsed?)]
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
                               (menues/set-ns-color-ctx-menu-option (:namespace/name e))
                               (menues/remove-entity-ctx-menu-option node)]}
      [:div.custom-node.re-frame-node
-      [:div.node-body
-       [:div.header
-        [:div.title "Re frame effect"]
-        [:div.key (str (:re-frame.fx/key e))]]]]]))
+      [re-frame-node-body collapsed? (str (:re-frame.fx/key e)) (:source/str e) "effect" (::rg/id node) ]]]))
 
 (defn re-frame-cofx-node-component [{:keys [entity] :as node}]
-  (let [e @(re-frame/subscribe [::subs/re-frame-cofx-entity (:id entity)])]
+  (let [e @(re-frame/subscribe [::subs/re-frame-cofx-entity (:id entity) (::rg/id node)])
+        collapsed? (-> node :extra-data :collapsed?)]
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name e))
                               (menues/set-ns-color-ctx-menu-option (:namespace/name e))
                               (menues/remove-entity-ctx-menu-option node)]}
      [:div.custom-node.re-frame-node
-      [:div.node-body
-       [:div.header
-        [:div.title "Re frame co-effect"]
-        [:div.key (str (:re-frame.cofx/key e))]]]]]))
+      [re-frame-node-body collapsed? (str (:re-frame.cofx/key e)) (:source/str e) "coeffect" (::rg/id node) ]]]))
 
 (defn spec-node-component [{:keys [entity] :as node}]
   (let [e @(re-frame/subscribe [::subs/spec-entity (:spec/id entity)])

@@ -272,26 +272,34 @@
 (re-frame/reg-sub
  ::re-frame-subs-entity
  :<- [::datascript-db]
- (fn [datascript-db [_ id]]
-   (db/re-frame-subs-entity datascript-db id)))
+ (fn [datascript-db [_ sub-id node-id]]
+   (let [e (db/re-frame-subs-entity datascript-db sub-id)]
+    (-> e
+        (update :source/str enhance-source-str nil (:source/form e) node-id)))))
 
 (re-frame/reg-sub
  ::re-frame-event-entity
  :<- [::datascript-db]
- (fn [datascript-db [_ id]]
-   (db/re-frame-event-entity datascript-db id)))
+ (fn [datascript-db [_ id node-id]]
+   (let [e (db/re-frame-event-entity datascript-db id)]
+     (-> e
+         (update :source/str enhance-source-str nil (:source/form e) node-id)))))
 
 (re-frame/reg-sub
  ::re-frame-fx-entity
  :<- [::datascript-db]
- (fn [datascript-db [_ id]]
-   (db/re-frame-fx-entity datascript-db id)))
+ (fn [datascript-db [_ id node-id]]
+   (let [e (db/re-frame-fx-entity datascript-db id)]
+     (-> e
+         (update :source/str enhance-source-str nil (:source/form e) node-id)))))
 
 (re-frame/reg-sub
  ::re-frame-cofx-entity
  :<- [::datascript-db]
- (fn [datascript-db [_ id]]
-   (db/re-frame-cofx-entity datascript-db id)))
+ (fn [datascript-db [_ id node-id]]
+   (let [e (db/re-frame-cofx-entity datascript-db id)]
+     (-> e
+         (update :source/str enhance-source-str nil (:source/form e) node-id)))))
 
 (re-frame/reg-sub
  ::spec-entity

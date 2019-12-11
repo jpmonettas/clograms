@@ -225,6 +225,11 @@
   background-color: #896dad;
 }
 
+.diagram-wrapper .diagram-layer .re-frame-node .key {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
 .diagram-wrapper .diagram-layer .spec-node {
   background-color: #c17055;
 }

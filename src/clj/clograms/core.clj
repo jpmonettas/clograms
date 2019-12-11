@@ -20,7 +20,8 @@
                (if (#{:function/source-form
                       :multimethod/source-form
                       :spec.alpha/source-form
-                      :fspec.alpha/source-form} a)
+                      :fspec.alpha/source-form
+                      :source/form} a)
                  (binding [*print-meta* true] (pr-str v))
                  v)]))))
 

@@ -132,7 +132,9 @@
     [:.var-node {:background-color (color :var-node)}
      [:.port {:background-color (color :var-node)}]
      [:.var-name {:font-weight :bold}]]
-    [:.re-frame-node {:background-color (color :re-frame)}]
+    [:.re-frame-node {:background-color (color :re-frame)}
+     [:.key {:font-weight :bold
+             :margin-right "5px"}]]
     [:.spec-node {:background-color (color :spec-node)}]]])
 
 (def svg-shapes
