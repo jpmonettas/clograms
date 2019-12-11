@@ -2,7 +2,7 @@
   (:require [datascript.core :as d]
             [clindex.api :as idx]
             [clindex.schema :as schema]
-            [clograms.index.re-frame :as re-frame-idx]
+            [clindex.forms-facts.re-frame :as re-frame-idx]
             [cognitect.transit :as transit])
   (:import [java.io ByteArrayOutputStream]))
 
@@ -17,11 +17,7 @@
                e
                a
                ;; if it is a srouce value serialize it as a string
-               (if (#{:function/source-form
-                      :multimethod/source-form
-                      :spec.alpha/source-form
-                      :fspec.alpha/source-form
-                      :source/form} a)
+               (if (= :source/form a)
                  (binding [*print-meta* true] (pr-str v))
                  v)]))))
 

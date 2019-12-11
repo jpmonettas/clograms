@@ -143,9 +143,9 @@
         proy (:project/_namespaces ns)]
     {:var/name (:var/name var)
      :var/docstring (:var/docstring var)
-     :function/source-form (deserialize-source (:function/source-form func))
-     :function/source-str (:function/source-str func)
-     :fspec.alpha/source-form (deserialize-source (:fspec.alpha/source-form (:function/spec.alpha func)))
+     :function/source-form (deserialize-source (:source/form func))
+     :function/source-str (:source/str func)
+     :fspec.alpha/source-form (deserialize-source (:source/form (:function/spec.alpha func)))
      :function/args (:function/args func)
      :namespace/name (:namespace/name ns)
      :project/name (:project/name proy)}))
@@ -159,11 +159,13 @@
      :var/docstring (:var/docstring var)
      :multi/dispatch-form (:multi/dispatch-form multi)
      :multi/methods (map (fn [multi-method]
-                           (-> (select-keys multi-method
-                                            [:multimethod/dispatch-val
-                                             :multimethod/source-form
-                                             :multimethod/source-str])
-                               (update :multimethod/source-form deserialize-source)))
+                           (let [mm (select-keys multi-method
+                                                 [:multimethod/dispatch-val
+                                                  :source/form
+                                                  :source/str])]
+                             (-> mm
+                                 (assoc :multimethod/source-form (deserialize-source (:source/form mm)))
+                                 (assoc :multimethod/source-str (:source/str mm)))))
                            (:multi/methods multi))
      :namespace/name (:namespace/name ns)
      :project/name (:project/name proy)}))
@@ -241,7 +243,7 @@
         ns (:namespace/_specs-alpha e)]
     {:spec/id spec-id
      :spec.alpha/key (:spec.alpha/key e)
-     :spec.alpha/source-form (deserialize-source (:spec.alpha/source-form e))
+     :spec.alpha/source-form (deserialize-source (:source/form e))
      :project/name (:project/name (:project/_namespaces ns))
      :namespace/name (:namespace/name ns)}))
 
@@ -326,7 +328,7 @@
               [?vrid :var-ref/namespace ?vrnid]
               [?vrid :var-ref/in-function ?fnid]
               [?fnvid :var/function ?fnid]
-              [?fnid :function/source-str ?fsrcs]
+              [?fnid :source/str ?fsrcs]
               [?fnvid :var/name ?in-fn]
               [?vrnid :namespace/name ?vrnsn]
               [?pid :project/name ?pname]

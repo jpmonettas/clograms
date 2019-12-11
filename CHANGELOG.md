@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Upgrade to clindex 0.4.0
 - Add re-frame nodes source and collapse support
 - Multi node selection by pressing CTRL + click
 - Multi node dragginig
