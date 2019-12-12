@@ -146,6 +146,4 @@ You can find a diagram.edn file in this repo that documents some aspects of Clog
 
 ## Roadmap
 
-- More shapes, arrows and diagrams tools in general
-- Add support for deps tree diagrams like https://github.com/clojure/tools.deps.graph
-- Multiscale diargams
+Check [here](https://github.com/jpmonettas/clograms/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement)
