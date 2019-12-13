@@ -661,6 +661,15 @@ body .app-wrapper .draggable-spec {
   padding: 5px;
 }
 
+.bottom-bar .body .references li .var-name {
+  font-weight: bold;
+}
+
+.bottom-bar .body .references li .project-name {
+  margin-left: 3px;
+  opacity: 0.5;
+}
+
 .bottom-bar .body .references li.even {
   background-color: #403b39;
 }

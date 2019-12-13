@@ -265,8 +265,9 @@
            (map-indexed
             (fn [i v]
               ^{:key (str (:var/id v))}
-              [:li {:on-double-click #(re-frame/dispatch [::events/add-entity-to-diagram :var (:var/id v) {:link-to-port :first
-                                                                                                           :link-to-node-id node-id}])
+              [:li {:on-double-click #(re-frame/dispatch [::events/add-entity-to-diagram :var (:var/id v) (when node-id
+                                                                                                            {:link-to-port :first
+                                                                                                             :link-to-node-id node-id})])
                     :class (if (even? i) "even" "odd")}
                [:span.ns-name (str (:namespace/name v) "/")]
                [:span.var-name (:var/name v)]

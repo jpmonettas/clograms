@@ -366,6 +366,9 @@
     [:&.collapsed {:display :none}]
     [:.references {:padding "5px"}
      [:li
+      [:.var-name {:font-weight :bold}]
+      [:.project-name {:margin-left "3px"
+                       :opacity 0.5}]
       [:&.odd ]
       [:&.even {:background-color "#403b39"}]]]]])
 

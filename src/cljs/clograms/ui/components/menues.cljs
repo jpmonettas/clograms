@@ -35,6 +35,13 @@
   {:label "Remove"
    :dispatch [::rg/remove-link (::rg/id link)]})
 
+(defn find-project-protocols [project-id]
+  {:label "Find project protocols"
+   :dispatch [::events/find-project-protocols project-id]})
+
+(defn find-project-multimethods [project-id]
+  {:label "Find project multimethods"
+   :dispatch [::events/find-project-multimethods project-id]})
 
 (defn context-menu [{:keys [x y menu]}]
   [:div.context-menu {:style {:position :absolute

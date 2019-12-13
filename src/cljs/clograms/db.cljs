@@ -56,8 +56,8 @@
   (get db :project/colors))
 
 (defn set-var-references [db node-id references]
-  (assoc-in db [:bottom-bar :references] {:node-id node-id
-                                          :vars references}))
+  (assoc-in db [:bottom-bar :references] (cond-> {:vars references}
+                                           node-id (assoc :node-id node-id))))
 
 (defn current-var-references [db]
   (get-in db [:bottom-bar :references]))
@@ -371,3 +371,31 @@
             datascript-db)
        (map #(zipmap [:spec/id :spec.alpha/key] %))
        (map #(assoc % :entity/type :spec))))
+
+(defn find-project-protocols [datascript-db project-id]
+  (->> (d/q '[:find ?pname ?nsname ?vid ?vname
+              :in $ ?pid
+              :where
+              [?pid :project/namespaces ?nsid]
+              [?pid :project/name ?pname]
+              [?nsid :namespace/vars ?vid]
+              [?nsid :namespace/name ?nsname]
+              [?vid :var/name ?vname]
+              [?vid :var/protocol? true]]
+            datascript-db
+            project-id)
+       (map #(zipmap [:project/name :namespace/name :var/id :var/name] %))))
+
+(defn find-project-multimethods [datascript-db project-id]
+  (->> (d/q '[:find ?pname ?nsname ?vid ?vname
+              :in $ ?pid
+              :where
+              [?pid :project/namespaces ?nsid]
+              [?pid :project/name ?pname]
+              [?nsid :namespace/vars ?vid]
+              [?nsid :namespace/name ?nsname]
+              [?vid :var/name ?vname]
+              [?vid :var/multi]]
+            datascript-db
+            project-id)
+       (map #(zipmap [:project/name :namespace/name :var/id :var/name] %))))

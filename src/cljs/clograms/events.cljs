@@ -67,6 +67,8 @@
 (re-frame/reg-event-db ::set-namespace-color [inter-check] (fn [db [_ ns-name]] (tools/set-namespace-color db ns-name)))
 (re-frame/reg-event-db ::set-project-color [inter-check] (fn [db [_ project-name]] (tools/set-project-color db project-name)))
 (re-frame/reg-event-db ::find-var-references [inter-check] (fn [db [_ var-id node-id]] (tools/find-var-references db var-id node-id)))
+(re-frame/reg-event-db ::find-project-protocols [inter-check] (fn [db [_ project-id]] (tools/find-project-protocols db project-id)))
+(re-frame/reg-event-db ::find-project-multimethods [inter-check] (fn [db [_ project-id]] (tools/find-project-multimethods db project-id)))
 (re-frame/reg-event-db ::side-bar-browser-back [inter-check] (fn [db _] (browser/side-bar-browser-back db)))
 (re-frame/reg-event-db ::side-bar-browser-select-project [inter-check] (fn [db [_ p]]
                                                                          (-> db

@@ -22,13 +22,12 @@
 (s/def :var/reference (s/keys :req [:project/name
                                     :namespace/name
                                     :var/name
-                                    :function/source-str
                                     :var/id]))
 
 (s/def :bottom-bar.references/vars (s/coll-of :var/reference))
 (s/def :bottom-bar.references/node-id ::rg/id)
-(s/def :bottom-bar/references (s/keys :req-un [:bottom-bar.references/vars
-                                               :bottom-bar.references/node-id]))
+(s/def :bottom-bar/references (s/keys :req-un [:bottom-bar.references/vars]
+                                      :opt-un [:bottom-bar.references/node-id]))
 (s/def :bottom-bar/title string?)
 (s/def :bottom-bar/collapsed? boolean?)
 

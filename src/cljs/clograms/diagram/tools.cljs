@@ -25,3 +25,23 @@
                                                  (:project/name var-entity)))
         (db/set-var-references node-id references)
         (db/uncollapse-bottom-bar))))
+
+(defn find-project-protocols [db project-id]
+  (let [references (db/find-project-protocols (:datascript/db db) project-id)
+        project-entity (db/project-entity (:datascript/db db) project-id)]
+    (-> db
+        (db/set-bottom-bar-title (gstring/format "Protocols: %s (%s)"
+                                                 (:project/name project-entity)
+                                                 (:project/version project-entity)))
+        (db/set-var-references nil references)
+        (db/uncollapse-bottom-bar))))
+
+(defn find-project-multimethods [db project-id]
+  (let [references (db/find-project-multimethods (:datascript/db db) project-id)
+        project-entity (db/project-entity (:datascript/db db) project-id)]
+    (-> db
+        (db/set-bottom-bar-title (gstring/format "Multimethods: %s (%s)"
+                                                 (:project/name project-entity)
+                                                 (:project/version project-entity)))
+        (db/set-var-references nil references)
+        (db/uncollapse-bottom-bar))))

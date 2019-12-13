@@ -47,6 +47,8 @@
   (let [project @(re-frame/subscribe [::subs/project-entity (:project/id entity)])]
     [node-wrapper {:node node
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name project))
+                              (menues/find-project-protocols (:project/id entity))
+                              (menues/find-project-multimethods (:project/id entity))
                               (menues/remove-entity-ctx-menu-option node)]}
      [:div.project-node.custom-node
       [:div.node-body

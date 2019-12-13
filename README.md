@@ -24,7 +24,7 @@ Diagrams about your code can be helpful in lots of situations like reverse engen
 - **Explore** your system and all its dependencies using the **project browser**
 - Easily add more entities using clograms **source code navigation**
 - Quickly figure out **multimethod implementations** and **functions specs**
-- Any **function x-references** is one click away
+- Any **function x-references**, **protocols** or **multimethods** is one click away
 - **Re-frame aware**, quickly explore your subscriptions, events, fxs and cofxs
 - **Hot code reload**, if you change any clj, cljs or cljc file in the project you are indexing, changes should flow to the UI auto-magically
 - **Save** and **share** your diagrams as .edn files
@@ -97,6 +97,11 @@ Clicking on any function call link will add another function node in front of it
 
 You can find function call references by using the `Find references` context menu. Double clicking on any funcition reference will automatically add a node
 behind it.
+
+### Discover protocols and multimethods
+
+You can right click on any project node and use the `Find project protocols` or `Find project multimethods` to discover protocols and
+multimethods inside any project.
 
 ### Coloring
 
