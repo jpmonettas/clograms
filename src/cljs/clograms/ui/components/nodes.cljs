@@ -49,6 +49,7 @@
                    :ctx-menu [(menues/set-project-color-ctx-menu-option (:project/name project))
                               (menues/find-project-protocols (:project/id entity))
                               (menues/find-project-multimethods (:project/id entity))
+                              (menues/find-unreferenced-functions (:project/id entity))
                               (menues/remove-entity-ctx-menu-option node)]}
      [:div.project-node.custom-node
       [:div.node-body

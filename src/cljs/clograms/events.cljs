@@ -69,6 +69,7 @@
 (re-frame/reg-event-db ::find-var-references [inter-check] (fn [db [_ var-id node-id]] (tools/find-var-references db var-id node-id)))
 (re-frame/reg-event-db ::find-project-protocols [inter-check] (fn [db [_ project-id]] (tools/find-project-protocols db project-id)))
 (re-frame/reg-event-db ::find-project-multimethods [inter-check] (fn [db [_ project-id]] (tools/find-project-multimethods db project-id)))
+(re-frame/reg-event-db ::find-unreferenced-functions [inter-check] (fn [db [_ project-id]] (tools/find-unreferenced-functions db project-id)))
 (re-frame/reg-event-db ::side-bar-browser-back [inter-check] (fn [db _] (browser/side-bar-browser-back db)))
 (re-frame/reg-event-db ::side-bar-browser-select-project [inter-check] (fn [db [_ p]]
                                                                          (-> db

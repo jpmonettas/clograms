@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 
 - Implement find protocols and multimethods in project
+- Implement find unreferenced functions
 
 ## 0.1.12 (2019-12-12)
 

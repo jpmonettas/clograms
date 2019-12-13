@@ -45,3 +45,13 @@
                                                  (:project/version project-entity)))
         (db/set-var-references nil references)
         (db/uncollapse-bottom-bar))))
+
+(defn find-unreferenced-functions [db project-id]
+  (let [references (db/unreferenced-fns-in-project (:datascript/db db) project-id)
+        project-entity (db/project-entity (:datascript/db db) project-id)]
+    (-> db
+        (db/set-bottom-bar-title (gstring/format "Unreferenced functions: %s (%s)"
+                                                 (:project/name project-entity)
+                                                 (:project/version project-entity)))
+        (db/set-var-references nil references)
+        (db/uncollapse-bottom-bar))))

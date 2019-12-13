@@ -3,7 +3,8 @@
             [datascript.core :as d]
             [cljs.tools.reader :as tools-reader]
             [clojure.string :as str]
-            [cognitect.transit :as transit]))
+            [cognitect.transit :as transit]
+            [goog.string :as gstring]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Re-frame DB                                                                 ;;
@@ -339,6 +340,28 @@
        (map #(zipmap [:project/name :namespace/name :var/name
                       :function/source-str :var/id] %))
        (remove #(= (:var/id %) var-id))))
+
+(defn unreferenced-fns-in-project [datascript-db project-id]
+  (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fspec (count ?vref)
+              :in $ ?pid
+              :where
+              [?pid :project/name ?pname]
+              [?pid :project/namespaces ?nsid]
+              [?nsid :namespace/name ?nsname]
+              [?nsid :namespace/vars ?vid]
+              [?vid :var/name ?vname]
+              [?vid :var/function ?fid]
+              [(get-else $ ?fid :function/spec.alpha "N/A") ?fspec]
+              [?vid :var/refs ?vref]]
+            datascript-db
+            project-id)
+       (map #(zipmap [:project/name :namespace/name :var/name :var/id :spec :count] %))
+       ;; we say a function is unreferenced if it only contains one reference (itself)
+       ;; or it contains two references (itself and a spec)
+       (filter (fn [vr]
+                 (if (= (:spec vr) "N/A")
+                   (= (:count vr) 1)
+                   (= (:count vr) 2))))))
 
 (defn all-re-frame-feature [datascript-db feature-key]
   (->> (d/q '[:find ?subid ?subk ?nsn ?pn

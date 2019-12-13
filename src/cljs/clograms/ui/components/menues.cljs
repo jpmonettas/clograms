@@ -43,6 +43,10 @@
   {:label "Find project multimethods"
    :dispatch [::events/find-project-multimethods project-id]})
 
+(defn find-unreferenced-functions  [project-id]
+  {:label "Find unreferenced functions"
+   :dispatch [::events/find-unreferenced-functions project-id]})
+
 (defn context-menu [{:keys [x y menu]}]
   [:div.context-menu {:style {:position :absolute
                               :top y

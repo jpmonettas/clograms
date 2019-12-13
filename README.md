@@ -25,6 +25,7 @@ Diagrams about your code can be helpful in lots of situations like reverse engen
 - Easily add more entities using clograms **source code navigation**
 - Quickly figure out **multimethod implementations** and **functions specs**
 - Any **function x-references**, **protocols** or **multimethods** is one click away
+- Identify uncalled funcitions in a library to help you discover its intended api
 - **Re-frame aware**, quickly explore your subscriptions, events, fxs and cofxs
 - **Hot code reload**, if you change any clj, cljs or cljc file in the project you are indexing, changes should flow to the UI auto-magically
 - **Save** and **share** your diagrams as .edn files
@@ -98,10 +99,14 @@ Clicking on any function call link will add another function node in front of it
 You can find function call references by using the `Find references` context menu. Double clicking on any funcition reference will automatically add a node
 behind it.
 
-### Discover protocols and multimethods
+### Discover interesting project things
 
 You can right click on any project node and use the `Find project protocols` or `Find project multimethods` to discover protocols and
 multimethods inside any project.
+
+You can also right click on any project and use the `Find unreferenced functions` to discover functions definitions that are not referenced inside
+the project. This is useful for two things, in libraries it helps to find what functions are intended to be called by users, while in non library projects can
+help identify unused functions.
 
 ### Coloring
 
