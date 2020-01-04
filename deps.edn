@@ -14,8 +14,8 @@
         http-kit                       {:mvn/version "2.3.0"}
         com.cognitect/transit-clj      {:mvn/version "0.8.319"}
 
-        clindex                        {:mvn/version "0.4.1"}
-        ;; clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
+        clindex                        {:mvn/version "0.4.2"}
+        ;;clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
 
         ;;;;;;;;
         ;; UI ;;
@@ -38,5 +38,5 @@
         org.clojure/clojurescript      {:mvn/version "1.10.516"}
         org.clojure/core.async         {:mvn/version "0.4.500"}
         com.taoensso/sente             {:mvn/version "1.14.0"}
-        datascript                     {:mvn/version "0.17.1"}
+        datascript                     {:mvn/version "0.18.8"}
         expound                        {:mvn/version "0.7.2"}}}

@@ -341,7 +341,7 @@
                       :function/source-str :var/id] %))
        (remove #(= (:var/id %) var-id))))
 
-(defn unreferenced-fns-in-project [datascript-db project-id]
+(defn non-test-fns-ref-counts-in-project [datascript-db project-id]
   (->> (d/q '[:find ?pname ?nsname ?vname ?vid ?fspec (count ?vref)
               :in $ ?pid
               :where
@@ -352,16 +352,20 @@
               [?vid :var/name ?vname]
               [?vid :var/function ?fid]
               [(get-else $ ?fid :function/spec.alpha "N/A") ?fspec]
-              [?vid :var/refs ?vref]]
+              [?vid :var/refs ?vref]
+              [?vref :var-ref/namespace ?vrefns]
+              [?pid :project/namespaces ?vrefns]
+              [?vrefns :namespace/name ?vrefnsname]
+              [(str ?vrefnsname) ?vrefnsnamestr]
+              (not [(clojure.string/includes? ?vrefnsnamestr "test")])]
             datascript-db
             project-id)
-       (map #(zipmap [:project/name :namespace/name :var/name :var/id :spec :count] %))
-       ;; we say a function is unreferenced if it only contains one reference (itself)
-       ;; or it contains two references (itself and a spec)
-       (filter (fn [vr]
-                 (if (= (:spec vr) "N/A")
-                   (= (:count vr) 1)
-                   (= (:count vr) 2))))))
+       (map (fn [row]
+              (let [vr (zipmap [:project/name :namespace/name :var/name :var/id :spec :count] row)]
+                (assoc vr :variadic-count (-> (d/entity datascript-db (:var/id vr))
+                                              :var/function
+                                              :function/args
+                                              count)))))))
 
 (defn all-re-frame-feature [datascript-db feature-key]
   (->> (d/q '[:find ?subid ?subk ?nsn ?pn
