@@ -77,6 +77,15 @@
 (s/def :clograms.ui.components/general (s/keys :opt-un [:components.general/accordion
                                                         :components.general/text-edit-modal]))
 
+(s/def :tcp/port int?)
+(s/def ::diagram-file string?)
+(s/def ::folder string?)
+(s/def ::platform #{:cljs :clj})
+
+(s/def :clograms/config (s/keys :req-un [:tcp/port
+                                         ::diagram-file
+                                         ::folder
+                                         ::platform]))
 (s/def ::db (s/keys :req [::rg/diagram]
                     :opt [:datascript/db
                           :main-project/id
@@ -89,4 +98,5 @@
                              ::projects-browser
                              ::selected-color
                              ::loading?]
-                    :opt-un [::ctx-menu]))
+                    :opt-un [::ctx-menu
+                             :clograms/config]))

@@ -2,6 +2,7 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [clograms.events :as events]
+            [clograms.fxs]
             [clograms.ui.screens.main :as main-screen]
             [clograms.ui.components.nodes :as nodes]
             [clograms.ui.components.links :as links]
@@ -58,19 +59,4 @@
 (defn ^:export init []
   (re-frame/dispatch-sync [::events/initialize-db])
   (dev-setup)
-  (mount-root)
-
-  ;; Read from websocket
-  (let [{:keys [chsk ch-recv send-fn state]} (sente/make-channel-socket-client! "/chsk"
-                                                                                nil
-                                                                                {:type :auto
-                                                                                 :host "localhost"
-                                                                                 :port 3000})] ; e/o #{:auto :ajax :ws}
-    (go-loop [{:keys [?data]} (async/<! ch-recv)]
-      (js/console.log "[WebSocket event]" ?data)
-      (let [[ev dat] ?data]
-        (case ev
-          :updates/datoms (re-frame/dispatch [::events/new-datoms dat])
-          nil))
-      (recur (async/<! ch-recv)))
-    (js/console.info "Websocket connection ready")))
+  (mount-root))

@@ -1,27 +1,36 @@
 (ns clograms.external
   (:require [ajax.core :as ajax]
             [clograms.db :as db]
-            [clograms.re-grams.re-grams :as rg]))
+            [clograms.re-grams.re-grams :as rg]
+            [goog.string :as gstring]))
 
-(defn reload-datascript-db []
+(defn reload-config [port]
   {:http-xhrio {:method          :get
-                :uri             "http://localhost:3000/db"
+                :uri             (gstring/format "http://localhost:%s/config" port)
+                :timeout         8000
+                :response-format (ajax/raw-response-format)
+                :on-success      [:clograms.events/config-loaded]
+                :on-failure      [:clograms.events/reload-failed]}})
+
+(defn reload-datascript-db [port]
+  {:http-xhrio {:method          :get
+                :uri             (gstring/format "http://localhost:%s/db" port)
                 :timeout         8000
                 :response-format (ajax/raw-response-format)
                 :on-success      [:clograms.events/db-loaded]
                 :on-failure      [:clograms.events/reload-failed]}})
 
-(defn load-diagram []
+(defn load-diagram [port]
   {:http-xhrio {:method          :get
-                :uri             "http://localhost:3000/diagram"
+                :uri             (gstring/format "http://localhost:%s/diagram" port)
                 :timeout         8000
                 :response-format (ajax/raw-response-format)
                 :on-success      [:clograms.events/diagram-loaded]
                 :on-failure      [:clograms.events/diagram-load-failed]}})
 
-(defn save-diagram [diagram]
+(defn save-diagram [diagram port]
   {:http-xhrio {:method          :post
-                :uri             "http://localhost:3000/diagram"
+                :uri             (gstring/format "http://localhost:%s/diagram" port)
                 :timeout         8000
                 :params (pr-str diagram)
                 :format (ajax/text-request-format)
@@ -37,6 +46,11 @@
            :datascript/db datascript-db
            :main-project/id main-project-id
            :loading? false)))
+
+(defn config-loaded [{:keys [db] :as cofxs} config-str]
+  (let [config (cljs.reader/read-string config-str)]
+   {:db (assoc db :config config)
+    :start-websocket config}))
 
 (defn diagram-loaded [db diagram-str]
   (let [diagram (-> (cljs.reader/read-string diagram-str)

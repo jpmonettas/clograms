@@ -31,14 +31,18 @@
 (def inter-check (re-frame/after (partial check-and-throw ::clograms-spec/db)))
 
 (defn initialize-db-and-load []
-  {:db db/default-db
-   :dispatch-n [[::reload-db]
-                [::load-diagram]]})
+  (let [port (.. js/window -location -port)]
+   {:db db/default-db
+    :dispatch-n [[::reload-config port]
+                 [::reload-db port]
+                 [::load-diagram port]]}))
 
 (re-frame/reg-event-fx ::initialize-db [inter-check] (fn [_ _] (initialize-db-and-load)))
-(re-frame/reg-event-fx ::reload-db [inter-check] (fn [cofxs [_]] (external/reload-datascript-db)))
+(re-frame/reg-event-fx ::reload-config [inter-check] (fn [cofxs [_ port]] (external/reload-config port)))
+(re-frame/reg-event-fx ::reload-db [inter-check] (fn [cofxs [_ port]] (external/reload-datascript-db port)))
 (re-frame/reg-event-db ::new-datoms [] (fn [db [_ new-datoms]] (external/new-datascript-db-datoms db new-datoms)))
 (re-frame/reg-event-db ::db-loaded [inter-check] (fn [db [_ new-db]] (external/db-loaded db new-db)))
+(re-frame/reg-event-fx ::config-loaded [inter-check] (fn [cofxs [_ config]] (external/config-loaded cofxs config)))
 (re-frame/reg-event-fx ::add-entity-to-diagram [inter-check] (fn [{:keys [db]} [_ et id opts]] (entities/add-entity-to-diagram db et id opts)))
 (re-frame/reg-event-fx ::remove-entity-from-diagram [inter-check] (fn [{:keys [db]} [_ id]] (entities/remove-entity-from-diagram db id)))
 (re-frame/reg-event-fx ::rg/node-selection-updated [inter-check] (fn [{:keys [db]} [_ nodes]] (selection/node-selection-updated db nodes)))
@@ -81,13 +85,14 @@
                                                                                (db/set-side-bar-search ""))))
 (re-frame/reg-event-db ::side-bar-set-search [inter-check] (fn [db [_ query]] (db/set-side-bar-search db query)))
 (re-frame/reg-event-db ::toggle-bottom-bar-collapse [inter-check] (fn [db _] (db/toggle-bottom-bar-collapse db)))
-(re-frame/reg-event-fx ::load-diagram [inter-check] (fn [_ _] (external/load-diagram)))
+(re-frame/reg-event-fx ::load-diagram [inter-check] (fn [_ [_ port]] (external/load-diagram port)))
 (re-frame/reg-event-db ::diagram-loaded [inter-check] (fn [db [_ diagram]] (external/diagram-loaded db diagram)))
 (re-frame/reg-event-fx ::save-diagram [] (fn [cofxs _] (external/save-diagram (select-keys (:db cofxs)
                                                                                            [::rg/diagram
                                                                                             :project/colors
                                                                                             :namespace/colors
-                                                                                            :node/comments]))))
+                                                                                            :node/comments])
+                                                                              (-> cofxs :db :config :port))))
 
 (re-frame/reg-event-db :accordion/activate-item [inter-check] (fn [db [_ accordion-id item-id]] (components-db/accordion-activate-item db accordion-id item-id)))
 

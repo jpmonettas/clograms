@@ -10,8 +10,23 @@
             [ring.middleware.cors :refer [wrap-cors]]
             [taoensso.sente :as sente]
             [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]]
-            )
+            [clojure.tools.cli :as tools-cli])
   (:gen-class))
+
+(def server (atom nil))
+
+(def cli-options
+  [["-f" "--file FILE" "Diagram file"
+    :default "diagram.edn"]
+   ["-p" "--port PORT" "Port number"
+    :default 3000
+    :parse-fn #(Integer/parseInt %)
+    :validate [#(< 0 % 0x10000) "Must be a number between 0 and 65536"]]
+   ["-P" "--platform PLATFORM" "Platform to index, can be clj or cljs"
+    :default :clj
+    :parse-fn keyword
+    :validate [#(contains? #{:clj :cljs} %) "Platform must be clj or cljs"]]
+   ["-h" "--help"]])
 
 (defn build-websocket []
   ;; TODO: move all this stuff to sierra components or something like that
@@ -25,24 +40,40 @@
      :ws-send-fn send-fn
      :connected-uids-atom connected-uids}))
 
-(defn -main [& [folder platform]]
-  (let [port (Integer/parseInt (or (env :port) "3000"))
-        {:keys [ws-routes ws-send-fn]} (build-websocket)
-        server (http-server/run-server (-> (compojure/routes ws-routes #'handler/routes)
-                                           (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
-                                                      :access-control-allow-methods [:get :put :post :delete])
-                                           wrap-keyword-params
-                                           wrap-params)
-                                       {:port port})]
-    (println "Indexing " folder "for platform" platform)
-    (core/re-index-all folder (keyword platform) ws-send-fn)
 
-    (println "Indexing done, open http://localhost:3000")))
+(defn -main [& args]
+  (let [parsed-args (tools-cli/parse-opts args cli-options)]
+    (if (or (-> parsed-args :options :help)
+            (empty? (:arguments parsed-args)))
+      (do
+        (println "Usage : clograms [OPTIONS] project-folder")
+        (println (-> parsed-args :summary)))
+
+      (let [platform (-> parsed-args :options :platform)
+            port (-> parsed-args :options :port)
+            folder (-> parsed-args :arguments first)
+            diagram-file (-> parsed-args :options :file)
+            {:keys [ws-routes ws-send-fn]} (build-websocket)]
+
+        (reset! server (http-server/run-server (-> (compojure/routes ws-routes (handler/build-routes {:diagram-file diagram-file
+                                                                                                      :port port
+                                                                                                      :folder folder
+                                                                                                      :platform platform}))
+                                                   (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
+                                                              :access-control-allow-methods [:get :put :post :delete])
+                                                   wrap-keyword-params
+                                                   wrap-params)
+                                               {:port port}))
+
+        (println "Indexing " folder "for platform" platform)
+        (core/re-index-all folder platform ws-send-fn)
+
+        (println (format "Indexing done, open http://localhost:%d" port))))))
 
 (comment
-  (-main "/home/jmonetta/my-projects/clindex"                "clj")
-  (-main "/home/jmonetta/my-projects/clograms"                "cljs")
-  (-main "/home/jmonetta/my-projects/district0x/memefactory" "cljs")
+  (-main "--platform" "clj" "--file" "mio.edn" "--port" "2000" "/home/jmonetta/my-projects/clindex")
+  (-main "--platform" "cljs" "/home/jmonetta/my-projects/clograms")
+  (-main "--platform" "cljs" "/home/jmonetta/my-projects/district0x/memefactory")
 
 
   )

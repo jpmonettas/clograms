@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Improved command line options
 - Implement find protocols and multimethods in project
 - Implement find unreferenced functions
 

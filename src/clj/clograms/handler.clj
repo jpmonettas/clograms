@@ -1,5 +1,5 @@
 (ns clograms.handler
-  (:require [compojure.core :refer [GET POST defroutes]]
+  (:require [compojure.core :refer [GET POST defroutes routes]]
             [compojure.route :refer [resources]]
             [ring.util.response :refer [resource-response]]
             [ring.util.request :refer [body-string]]
@@ -18,29 +18,30 @@
                   (slurp path))]
    (str "<p style=\"white-space: pre-wrap\">" content "</p>")))
 
-(def diagram-file "./diagram.edn")
+(defn build-routes [{:keys [diagram-file] :as config}]
+  (routes
 
-(defroutes routes
-  ;; sente routes
-
-
-  (GET "/" [] (resource-response "clograms.html" {:root "public"}))
-  (GET "/open-file" [path line :as req]
-       {:status 200
-        :headers {"Content-Type" "text/html"}
-        :body (file-content path (Integer/parseInt line))})
-  (GET "/db" []
-       {:status 200
-        :headers {"Content-Type" "application/edn"}
-        :body (db-edn)})
-  (GET "/diagram" []
-       {:status 200
-        :headers {"Content-Type" "application/edn"}
-        :body (try
-                (slurp diagram-file)
-                (catch Exception e))})
-  (POST "/diagram" req
-        (let [diagram (body-string req)]
-          (spit diagram-file diagram)
-          {:status 200}))
-  (resources "/"))
+   (GET "/" [] (resource-response "clograms.html" {:root "public"}))
+   (GET "/open-file" [path line :as req]
+        {:status 200
+         :headers {"Content-Type" "text/html"}
+         :body (file-content path (Integer/parseInt line))})
+   (GET "/db" []
+        {:status 200
+         :headers {"Content-Type" "application/edn"}
+         :body (db-edn)})
+   (GET "/diagram" []
+        {:status 200
+         :headers {"Content-Type" "application/edn"}
+         :body (try
+                 (slurp diagram-file)
+                 (catch Exception e))})
+   (GET "/config" []
+        {:status 200
+         :headers {"Content-Type" "application/edn"}
+         :body (pr-str config)})
+   (POST "/diagram" req
+         (let [diagram (body-string req)]
+           (spit diagram-file diagram)
+           {:status 200}))
+   (resources "/")))
