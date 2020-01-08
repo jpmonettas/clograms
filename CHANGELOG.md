@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## 0.1.13 (2020-1-8)
+
 - Improved command line options
 - Implement find protocols and multimethods in project
 - Implement find unreferenced functions
