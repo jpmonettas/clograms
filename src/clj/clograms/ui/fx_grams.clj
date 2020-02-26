@@ -253,14 +253,11 @@
       (dispatch [::add-node-to-selection (::id n)])
       (dispatch [::select-single-node (::id n)]))))
 
-#_(defn build-node-mouse-down-handler [n]
+(defn build-node-mouse-down-handler [n]
   (fn [evt]
-    (.stopPropagation evt)
-    (when-not (.. evt -target -attributes -contenteditable)
-      ;; this makes things like text areas inside nodes unable to get focus
-      ;; TODO : also add it when target is a input
-        (.preventDefault evt))
-    (when (= left-button (.-buttons evt))
+    (.consume evt)
+    (prn "!!!!!!!!" evt)
+    #_(when (= left-button (.-buttons evt))
       (dispatch [::grab {:diagram.object/type :node
                          ::id (::id n)}
                  [(.-clientX evt) (.-clientY evt)]]))))
@@ -348,6 +345,11 @@
                                     ;; TODO: need to try this
                                     #_(update-after-render (.getLayoutBounds v))))))
     :desc {:fx/type :text
+           :on-mouse-pressed {:event/type ::grab
+                              :grab-obj {:diagram.object/type :node
+                                         ::id (::id node)}
+                              :fx/sync true}
+           :on-mouse-released {:event/type ::grab-release}
            :style {:-fx-border-color :red}
            :translate-x (:x node)
            :translate-y (:y node)
@@ -638,6 +640,7 @@
 
 (defmethod handle-event ::grab [{:keys [fx/event fx/context grab-obj]}]
   (let [client-grab-origin [(.getSceneX event) (.getSceneY event)]]
+    (.consume event)
     {:context (fx/swap-context context grab grab-obj client-grab-origin)}))
 
 (defmethod handle-event ::grab-release [{:keys [fx/event fx/context ]}]
