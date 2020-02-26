@@ -16,6 +16,7 @@
 (defonce node-components (atom {}))
 (defonce link-components (atom {}))
 
+(def dispatch-event nil)
 ;;;;;;;;;;;;;;;;;;;
 ;; Subscriptions ;;
 ;;;;;;;;;;;;;;;;;;;
@@ -332,6 +333,28 @@
 
          [(:comp node-comp) n]])})))
 
+(defn node-cmp [{:keys [fx/context node]}]
+  (let [update-after-render (fn [layout-bounds]
+                              (dispatch-event {:event/type ::set-node-dimensions
+                                               :node-id (::id node)
+                                               :dims {:w (.getWidth layout-bounds)
+                                                      :h (.getHeight layout-bounds)}}))]
+   {:fx/type fx/ext-on-instance-lifecycle
+    :on-created (fn [node-cmp]
+                  (update-after-render (.getLayoutBounds node-cmp))
+                  (.addListener (.layoutBoundsProperty node-cmp)
+                                (reify javafx.beans.value.ChangeListener
+                                  (changed [_ _ _ v]
+                                    ;; TODO: need to try this
+                                    #_(update-after-render (.getLayoutBounds v))))))
+    :desc {:fx/type :text
+           :style {:-fx-border-color :red}
+           :translate-x (:x node)
+           :translate-y (:y node)
+           :wrapping-width (:w node)
+           ;; :max-height (:h node)
+           :text (str node)}}))
+
 (defn drag-nodes [db grab-node-id [drag-x drag-y]]
   (let [selection (selected-nodes-ids db)
         update-node (fn [d nid]
@@ -535,24 +558,17 @@
                                     ^{:key (::id n)}
                                     [div-node n]))]]]))}))
 
-(defn node-cmp [{:keys [fx/context node]}]
-  {:fx/type :text
-   :style {:-fx-border-color :red}
-   :translate-x (:x node)
-   :translate-y (:y node)
-   :wrapping-width (:w node)
-   ;; :max-height (:h node)
-   :text (str node)})
 
 (defn root-view [{:keys [fx/context]}]
   (let [{:keys [nodes links link-config grab translate scale scale-origin] :as a} (fx/sub context ::diagram)
         [tx ty] translate
-        div-nodes (filter (fn [n] (contains? (div-nodes-components) (:diagram.node/type n))) (vals nodes))
+        ;; div-nodes (filter (fn [n] (contains? (div-nodes-components) (:diagram.node/type n))) (vals nodes))
         ;; the order in which we render the nodes matters since nodes rendered after
         ;; ocludes nodes rendered first
-        svg-nodes (->> (vals nodes)
-                       (filter (fn [n] (contains? (svg-nodes-components) (:diagram.node/type n))))
-                       (sort-by :diagram.node/type svg-nodes-comparator))]
+        ;; svg-nodes (->> (vals nodes)
+        ;;                (filter (fn [n] (contains? (svg-nodes-components) (:diagram.node/type n))))
+        ;;                (sort-by :diagram.node/type svg-nodes-comparator))
+        ]
     {:fx/type :stage
      :showing true
      :width 1000
@@ -564,21 +580,21 @@
              :on-mouse-released {:event/type ::grab-release}
              :on-mouse-dragged {:event/type ::drag}
              :root {:fx/type :group
-                    :translate-x tx
-                    :translate-y ty
+                    :translate-x (or tx 0)
+                    :translate-y (or ty 0)
                     :children [{:fx/type :pane
                                 :transforms [{:fx/type :scale
                                               :pivot-x 0
                                               :pivot-y 0
-                                              :x scale
-                                              :y scale}]
+                                              :x (or scale 1)
+                                              :y (or scale 1)}]
                                 :on-scroll {:event/type ::zoom}
-                                :children (-> []
-                                              ;; nodes
-                                              (into (for [n (vals nodes)]
-                                                      {:fx/type node-cmp
-                                                       :fx/context context
-                                                       :node n})))}]}}}))
+                                :children (cond-> []
+                                            ;; nodes
+                                            nodes (into (for [n (vals nodes)]
+                                                          {:fx/type node-cmp
+                                                           :fx/context context
+                                                           :node n})))}]}}}))
 
 
 (defn register-node-component! [node-type comp-desc]
@@ -591,14 +607,17 @@
 
 (comment
 
-  (def *context (atom (fx/create-context (-> (clojure.edn/read-string (slurp "./diagram.edn"))
-                                             (assoc-in [::diagram :translate] [0 0])
-                                             (assoc-in [::diagram :scale] 1)))))
-  (def app
-    (fx/create-app *context
-                   :event-handler handle-event
-                   :desc-fn (fn [_]
-                              {:fx/type root-view})))
+  (do
+    (def *context (atom (fx/create-context {})))
+
+    (def app (fx/create-app *context
+                            :event-handler handle-event
+                            :desc-fn (fn [_]
+                                       {:fx/type root-view})))
+    (alter-var-root (var dispatch-event) (constantly (:handler app)))
+    (dispatch-event {:event/type ::init})
+    )
+
 
 
 
@@ -610,6 +629,10 @@
 ;; Events  ;;
 ;;;;;;;;;;;;;
 
+(defmethod handle-event ::init [{:keys [fx/context]}]
+  {:context (fx/swap-context context (constantly (-> (clojure.edn/read-string (slurp "./diagram.edn"))
+                                                     (assoc-in [::diagram :translate] [0 0])
+                                                     (assoc-in [::diagram :scale] 1))))})
 ;; Internals
 ;; ---------
 
@@ -625,9 +648,9 @@
     {:context (fx/swap-context context drag current-cli-coord)}))
 
 (defmethod handle-event ::set-port-dimensions [{:keys [fx/event fx/context node-id port-id dims]}]
-  {:context (set-port-dimensions (db context) node-id port-id dims)})
-(defmethod handle-event ::set-node-dimensions [{:keys [fx/event fx/context node-id dims]}]
-  {:context (set-node-dimensions (db context) node-id dims)})
+  {:context (fx/swap-context context set-port-dimensions node-id port-id dims)})
+(defmethod handle-event ::set-node-dimensions [{:keys [fx/event fx/context node-id dims] :as ev}]
+  {:context (fx/swap-context context set-node-dimensions node-id dims)})
 
 ;; Intended for users to call
 ;; --------------------------
