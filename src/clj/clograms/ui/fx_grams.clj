@@ -1,6 +1,7 @@
 (ns clograms.ui.fx-grams
   (:require [cljfx.api :as fx]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clograms.ui.events :as ui-events]))
 
 (defn initial-state []
   {::diagram {:nodes {}
@@ -16,7 +17,6 @@
 (defonce node-components (atom {}))
 (defonce link-components (atom {}))
 
-(def dispatch-event nil)
 ;;;;;;;;;;;;;;;;;;;
 ;; Subscriptions ;;
 ;;;;;;;;;;;;;;;;;;;
@@ -35,7 +35,6 @@
 (defn  selected-nodes-ids-sub [context] (fx/sub context #(get-in % [::diagram :selected-nodes-ids])))
 (defn  link-config-sub [context] (fx/sub context #(get-in % [::diagram :link-config])))
 
-(defmulti handle-event :event/type)
 
 (defn client-coord->dia-coord [{:keys [translate scale]} [client-x client-y]]
   (let [[tx ty] translate]
@@ -166,45 +165,45 @@
   (let [[x y] (client-coord->dia-coord (::diagram db) [client-x client-y])
         scale (get-in db [::diagram :scale])]
     (update-in db [::diagram :nodes node-id :ports port-id]
-              (fn [dims]
-                (assoc dims
-                       :w (quot w scale)
-                       :h (quot h scale)
-                       :x x
-                       :y y)))))
+               (fn [dims]
+                 (assoc dims
+                        :w (quot w scale)
+                        :h (quot h scale)
+                        :x x
+                        :y y)))))
 
 (def svg-port-side 7)
 
 #_(defn port [node p]
-  (let [node-comp  (get @node-components (:diagram.node/type node))
-        grab-sub (subscribe [::grab])
-        node-id (::id node)
-        update-after-render (fn [p-cmp]
-                              (let [dn (r/dom-node p-cmp)
-                                    brect (.getBoundingClientRect dn)]
-                                (dispatch [::set-port-dimensions node-id (:id p) {:w (.-width brect)
-                                                                                  :h (.-height brect)
-                                                                                  :client-x (.-x brect)
-                                                                                  :client-y (.-y brect)}])))]
-    (r/create-class
-     {:component-did-mount (fn [this] (update-after-render this))
-      :component-did-update (fn [this] (update-after-render this))
-      :reagent-render
-      (fn [node p]
-        (let [props-map {:class (str "port-" (:id p))
-                         :on-mouse-down (fn [evt]
-                                          (.stopPropagation evt)
-                                          (.preventDefault evt)
-                                          (dispatch [::grab {:diagram.object/type :link
-                                                             :tmp-link-from [node-id (:id p)]}
-                                                     [(.-clientX evt) (.-clientY evt)]]))
-                         :on-mouse-up (fn [evt]
-                                        (dispatch [::add-link (get-in @grab-sub [:grab-object :tmp-link-from]) [node-id (:id p)]]))} ]
-          (case (:type node-comp)
-           :div [:div.div-port props-map [:div.port-inner]]
-           :svg [:rect.svg-port (merge props-map p {:width svg-port-side :height svg-port-side})])
+    (let [node-comp  (get @node-components (:diagram.node/type node))
+          grab-sub (subscribe [::grab])
+          node-id (::id node)
+          update-after-render (fn [p-cmp]
+                                (let [dn (r/dom-node p-cmp)
+                                      brect (.getBoundingClientRect dn)]
+                                  (dispatch [::set-port-dimensions node-id (:id p) {:w (.-width brect)
+                                                                                    :h (.-height brect)
+                                                                                    :client-x (.-x brect)
+                                                                                    :client-y (.-y brect)}])))]
+      (r/create-class
+       {:component-did-mount (fn [this] (update-after-render this))
+        :component-did-update (fn [this] (update-after-render this))
+        :reagent-render
+        (fn [node p]
+          (let [props-map {:class (str "port-" (:id p))
+                           :on-mouse-down (fn [evt]
+                                            (.stopPropagation evt)
+                                            (.preventDefault evt)
+                                            (dispatch [::grab {:diagram.object/type :link
+                                                               :tmp-link-from [node-id (:id p)]}
+                                                       [(.-clientX evt) (.-clientY evt)]]))
+                           :on-mouse-up (fn [evt]
+                                          (dispatch [::add-link (get-in @grab-sub [:grab-object :tmp-link-from]) [node-id (:id p)]]))} ]
+            (case (:type node-comp)
+              :div [:div.div-port props-map [:div.port-inner]]
+              :svg [:rect.svg-port (merge props-map p {:width svg-port-side :height svg-port-side})])
 
-         ))})))
+            ))})))
 
 ;;;;;;;;;;
 ;; Node ;;
@@ -218,6 +217,7 @@
 
 (defn set-node-dimensions [db node-id {:keys [w h]}]
   (let [scale (get-in db [::diagram :scale])]
+    (println "Setting " node-id w "x" h)
     (update-in db [::diagram :nodes node-id]
                (fn [dims]
                  (assoc dims
@@ -232,45 +232,45 @@
 (def debug false)
 
 #_(defn node-debug [{:keys [x y w h] :as node}]
-  (let [s @(subscribe [::scale])
-        t @(subscribe [::translate])
-        [cx cy] (dia-coord->client-coord {:translate t :scale s} [x y])]
-   [:ul.node-debug
-    [:li (str "x: " x)]
-    [:li (str "y: " y)]
-    [:li (str "w: " w)]
-    [:li (str "h: " h)]
-    [:li (str "cx: " cx)]
-    [:li (str "cy: " cy)]]))
+    (let [s @(subscribe [::scale])
+          t @(subscribe [::translate])
+          [cx cy] (dia-coord->client-coord {:translate t :scale s} [x y])]
+      [:ul.node-debug
+       [:li (str "x: " x)]
+       [:li (str "y: " y)]
+       [:li (str "w: " w)]
+       [:li (str "h: " h)]
+       [:li (str "cx: " cx)]
+       [:li (str "cy: " cy)]]))
 
 #_(defn debug-bar [scale translate]
-  [:div.debug-bar
-   [:span (format "translate: %s, scale: %1.3f" translate scale)]])
+    [:div.debug-bar
+     [:span (format "translate: %s, scale: %1.3f" translate scale)]])
 
 #_(defn build-node-click-handler [n]
-  (fn [evt]
-    (if (.-ctrlKey evt)
-      (dispatch [::add-node-to-selection (::id n)])
-      (dispatch [::select-single-node (::id n)]))))
+    (fn [evt]
+      (if (.-ctrlKey evt)
+        (dispatch [::add-node-to-selection (::id n)])
+        (dispatch [::select-single-node (::id n)]))))
 
 (defn build-node-mouse-down-handler [n]
   (fn [evt]
     (.consume evt)
     (prn "!!!!!!!!" evt)
     #_(when (= left-button (.-buttons evt))
-      (dispatch [::grab {:diagram.object/type :node
-                         ::id (::id n)}
-                 [(.-clientX evt) (.-clientY evt)]]))))
+        (dispatch [::grab {:diagram.object/type :node
+                           ::id (::id n)}
+                   [(.-clientX evt) (.-clientY evt)]]))))
 
 #_(defn build-svg-node-resizer-handler [n]
-  (let [{:keys [prop-resize?]} (get @node-components (:diagram.node/type n) default-node)]
-    (fn [evt]
-      (.stopPropagation evt)
-      (when (= left-button (.-buttons evt))
-        (dispatch [::grab {:diagram.object/type :node-resizer
-                           ::id (::id n)
-                           :prop-resize? prop-resize?}
-                   [(.-clientX evt) (.-clientY evt)]])))))
+    (let [{:keys [prop-resize?]} (get @node-components (:diagram.node/type n) default-node)]
+      (fn [evt]
+        (.stopPropagation evt)
+        (when (= left-button (.-buttons evt))
+          (dispatch [::grab {:diagram.object/type :node-resizer
+                             ::id (::id n)
+                             :prop-resize? prop-resize?}
+                     [(.-clientX evt) (.-clientY evt)]])))))
 
 (defn port-position [node port-id]
   (let [[nx ny nw nh] ((juxt :x :y :w :h) node)
@@ -283,79 +283,83 @@
           5 {:x (quot nw 2) :y nh}
           6 {:x fix         :y nh}
           7 {:x fix         :y (quot nh 2)}}
-               port-id)))
+         port-id)))
 
 #_(defn svg-node [n]
-  (let [node-comp (get @node-components (:diagram.node/type n) default-node)
-        selected-nodes-ids @(subscribe [::selected-nodes-ids])]
-    [:g.svg-node.node {:class (when (selected-nodes-ids (::id n)) "selected")
-                       :on-click (build-node-click-handler n)
-                       :on-mouse-down (build-node-mouse-down-handler n)
-                       :transform (gstring/format "translate(%d,%d)" (:x n) (:y n))}
+    (let [node-comp (get @node-components (:diagram.node/type n) default-node)
+          selected-nodes-ids @(subscribe [::selected-nodes-ids])]
+      [:g.svg-node.node {:class (when (selected-nodes-ids (::id n)) "selected")
+                         :on-click (build-node-click-handler n)
+                         :on-mouse-down (build-node-mouse-down-handler n)
+                         :transform (gstring/format "translate(%d,%d)" (:x n) (:y n))}
 
-     (for [p (vals (:ports n))]
-       ^{:key (:id p)}
-       [port n (merge p (port-position n (:id p)))])
+       (for [p (vals (:ports n))]
+         ^{:key (:id p)}
+         [port n (merge p (port-position n (:id p)))])
 
-     [(:comp node-comp) n (:svg-url node-comp)]
-     [:circle.resizer {:cx (:w n)
-                       :cy (:h n)
-                       :r 20
-                       :on-mouse-down (build-svg-node-resizer-handler n)}]]))
+       [(:comp node-comp) n (:svg-url node-comp)]
+       [:circle.resizer {:cx (:w n)
+                         :cy (:h n)
+                         :r 20
+                         :on-mouse-down (build-svg-node-resizer-handler n)}]]))
 
 #_(defn div-node [n]
-  (let [node-comp (get @node-components (:diagram.node/type n) default-node)
-        selected-nodes-ids (subscribe [::selected-nodes-ids])
-        update-after-render (fn [n-cmp]
-                              (let [dn (r/dom-node n-cmp)
-                                    brect (.getBoundingClientRect dn)]
-                                (dispatch [::set-node-dimensions (::id n) {:w (.-width brect)
-                                                                           :h (.-height brect)}])))]
-    (r/create-class
-     {:component-did-mount (fn [this] (update-after-render this))
-      :component-did-update (fn [this] (update-after-render this))
-      :reagent-render
-      (fn [n]
-        [:div.node {:class (when (@selected-nodes-ids (::id n)) "selected")
-                    :on-click (build-node-click-handler n)
-                    :on-mouse-down (build-node-mouse-down-handler n)
-                    :style {:position :absolute
-                            :top (:y n)
-                            :left (:x n)}}
-         (when debug [node-debug n])
+    (let [node-comp (get @node-components (:diagram.node/type n) default-node)
+          selected-nodes-ids (subscribe [::selected-nodes-ids])
+          update-after-render (fn [n-cmp]
+                                (let [dn (r/dom-node n-cmp)
+                                      brect (.getBoundingClientRect dn)]
+                                  (dispatch [::set-node-dimensions (::id n) {:w (.-width brect)
+                                                                             :h (.-height brect)}])))]
+      (r/create-class
+       {:component-did-mount (fn [this] (update-after-render this))
+        :component-did-update (fn [this] (update-after-render this))
+        :reagent-render
+        (fn [n]
+          [:div.node {:class (when (@selected-nodes-ids (::id n)) "selected")
+                      :on-click (build-node-click-handler n)
+                      :on-mouse-down (build-node-mouse-down-handler n)
+                      :style {:position :absolute
+                              :top (:y n)
+                              :left (:x n)}}
+           (when debug [node-debug n])
 
-         (for [p (vals (:ports n))]
-           ^{:key (:id p)}
-           [port n p])
+           (for [p (vals (:ports n))]
+             ^{:key (:id p)}
+             [port n p])
 
-         [(:comp node-comp) n]])})))
+           [(:comp node-comp) n]])})))
 
 (defn node-cmp [{:keys [fx/context node]}]
-  (let [update-after-render (fn [layout-bounds]
-                              (dispatch-event {:event/type ::set-node-dimensions
-                                               :node-id (::id node)
-                                               :dims {:w (.getWidth layout-bounds)
-                                                      :h (.getHeight layout-bounds)}}))]
-   {:fx/type fx/ext-on-instance-lifecycle
-    :on-created (fn [node-cmp]
-                  (update-after-render (.getLayoutBounds node-cmp))
-                  (.addListener (.layoutBoundsProperty node-cmp)
-                                (reify javafx.beans.value.ChangeListener
-                                  (changed [_ _ _ v]
-                                    ;; TODO: need to try this
-                                    #_(update-after-render (.getLayoutBounds v))))))
-    :desc {:fx/type :text
-           :on-mouse-pressed {:event/type ::grab
-                              :grab-obj {:diagram.object/type :node
-                                         ::id (::id node)}
-                              :fx/sync true}
-           :on-mouse-released {:event/type ::grab-release}
-           :style {:-fx-border-color :red}
-           :translate-x (:x node)
-           :translate-y (:y node)
-           :wrapping-width (:w node)
-           ;; :max-height (:h node)
-           :text (str node)}}))
+  (let [;;node-comp (get @node-components (:diagram.node/type node) default-node)
+        update-after-render (fn [layout-bounds]
+                              (ui-events/dispatch-event {:event/type ::set-node-dimensions
+                                                         :node-id (::id node)
+                                                         :dims {:w (.getWidth layout-bounds)
+                                                                :h (.getHeight layout-bounds)}}))]
+    {:fx/type fx/ext-on-instance-lifecycle
+     :on-created (fn [node-cmp]
+                   ;;(prn "->>>>>>>>>" (.getLayoutBounds node-cmp))
+                   (update-after-render (.getLayoutBounds node-cmp))
+                   (.addListener (.layoutBoundsProperty node-cmp)
+                                 (reify javafx.beans.value.ChangeListener
+                                   (changed [_ _ _ v]
+                                     ;; TODO: need to try this
+                                     #_(update-after-render (.getLayoutBounds v))))))
+     :desc {:fx/type :group
+            :children [{:fx/type :border-pane
+                        :translate-x (:x node)
+                        :translate-y (:y node)
+                        :style {:-fx-border-color :red}
+                        :on-mouse-pressed {:event/type ::grab
+                                           :grab-obj {:diagram.object/type :node
+                                                      ::id (::id node)}
+                                           :fx/sync true}
+                        :on-mouse-released {:event/type ::grab-release}
+                        :center {:fx/type :text
+                                 :wrapping-width 100
+                                 :text (str node)}}]}}
+    ))
 
 (defn drag-nodes [db grab-node-id [drag-x drag-y]]
   (let [selection (selected-nodes-ids db)
@@ -424,60 +428,60 @@
                   dia))))))
 
 #_(defn line-link [{:keys [arrow-start? arrow-end? x1 y1 x2 y2]}]
-  [:g
-   [:line (cond-> {:x1 x1 :y1 y1 :x2 x2 :y2 y2
-                   :stroke :gray
-                   :stroke-width 3}
-            arrow-start?  (assoc :marker-start "url(#arrow-start)")
-            arrow-end?    (assoc :marker-end "url(#arrow-end)"))]])
+    [:g
+     [:line (cond-> {:x1 x1 :y1 y1 :x2 x2 :y2 y2
+                     :stroke :gray
+                     :stroke-width 3}
+              arrow-start?  (assoc :marker-start "url(#arrow-start)")
+              arrow-end?    (assoc :marker-end "url(#arrow-end)"))]])
 
 (defn link-curve-string [[[fpx fpy] & points]]
   (format "M%f %f C%s" fpx fpy (str/join "," (map #(str/join " " %) points))))
 
 #_(defn curve-link [{:keys [x1 y1 x2 y2 arrow-start? arrow-end?]}]
-  [:path {:stroke :gray
-          :fill :none
-          :stroke-width 3
-          :d (link-curve-string [[x1 y1] [(- x1 50) y1] [(+ x2 50) y2] [x2 y2]])}])
+    [:path {:stroke :gray
+            :fill :none
+            :stroke-width 3
+            :d (link-curve-string [[x1 y1] [(- x1 50) y1] [(+ x2 50) y2] [x2 y2]])}])
 
 (defn translate-diagram [db to]
   (assoc-in db [::diagram :translate] to))
 
 #_(defn link [nodes {:keys [from-port to-port]  :as l}]
-  (let [text-y-gap -7 ;; this is so the text doesn't shows oevr the link
-        link-component (get @link-components (:diagram.link/type l) line-link)
-        center (fn [{:keys [x y w h]}] (when (and x y w h)
-                                         [(+ x (quot w 2)) (+ y (quot h 2))]))]
-   (fn [nodes {:keys [from-port to-port]  :as l}]
-     (let [[from-n from-p] from-port
-           [to-n to-p] to-port
-           [x1 y1] (center (get-in nodes [from-n :ports from-p]))
-           [x2 y2] (center (get-in nodes [to-n :ports to-p]))
-           x2 (or x2 (:to-x l))
-           y2 (or y2 (:to-y l))
-           link-center-x (+ x1 (quot (- x2 x1) 2))
-           link-center-y (+ y1 (quot (- y2 y1) 2) text-y-gap)]
-       (when (and x1 y1) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
-         [:g
-          (when-not (str/blank? (:label l))
-            [:text {:text-anchor :middle
-                    :stroke :none
-                    :fill :grey
-                    :x link-center-x
-                    :y link-center-y}
-             (:label l)])
-          [:g.link
-           [link-component {:x1 x1 :y1 y1 :x2 x2 :y2 y2
-                            ::id (::id l)
-                            :arrow-start? (:arrow-start? l)
-                            :arrow-end?   (:arrow-end? l)}]]])))))
+    (let [text-y-gap -7 ;; this is so the text doesn't shows oevr the link
+          link-component (get @link-components (:diagram.link/type l) line-link)
+          center (fn [{:keys [x y w h]}] (when (and x y w h)
+                                           [(+ x (quot w 2)) (+ y (quot h 2))]))]
+      (fn [nodes {:keys [from-port to-port]  :as l}]
+        (let [[from-n from-p] from-port
+              [to-n to-p] to-port
+              [x1 y1] (center (get-in nodes [from-n :ports from-p]))
+              [x2 y2] (center (get-in nodes [to-n :ports to-p]))
+              x2 (or x2 (:to-x l))
+              y2 (or y2 (:to-y l))
+              link-center-x (+ x1 (quot (- x2 x1) 2))
+              link-center-y (+ y1 (quot (- y2 y1) 2) text-y-gap)]
+          (when (and x1 y1) ;; so it doesn't fail when we still don't have port coordinates (waiting for render)
+            [:g
+             (when-not (str/blank? (:label l))
+               [:text {:text-anchor :middle
+                       :stroke :none
+                       :fill :grey
+                       :x link-center-x
+                       :y link-center-y}
+                (:label l)])
+             [:g.link
+              [link-component {:x1 x1 :y1 y1 :x2 x2 :y2 y2
+                               ::id (::id l)
+                               :arrow-start? (:arrow-start? l)
+                               :arrow-end?   (:arrow-end? l)}]]])))))
 
 #_(defn arrow-markers []
-  [:defs
-   [:marker {:id "arrow-end" :marker-width 10 :marker-height 10 :ref-x 5 :ref-y 2 :orient "auto" :marker-units "strokeWidth"}
-    [:path {:d "M0,0 L0,4 L6,2 z" :fill "gray"}]]
-   [:marker {:id "arrow-start" :marker-width 10 :marker-height 10 :ref-x 0 :ref-y 2 :orient "auto" :marker-units "strokeWidth"}
-    [:path {:d "M0,2 L6,4 L6,0 z" :fill "gray"}]]])
+    [:defs
+     [:marker {:id "arrow-end" :marker-width 10 :marker-height 10 :ref-x 5 :ref-y 2 :orient "auto" :marker-units "strokeWidth"}
+      [:path {:d "M0,0 L0,4 L6,2 z" :fill "gray"}]]
+     [:marker {:id "arrow-start" :marker-width 10 :marker-height 10 :ref-x 0 :ref-y 2 :orient "auto" :marker-units "strokeWidth"}
+      [:path {:d "M0,2 L6,4 L6,0 z" :fill "gray"}]]])
 
 (defn svg-nodes-components []
   (let [nodes-comp @node-components
@@ -498,70 +502,70 @@
     :else 0))
 
 #_(defn diagram [dia]
-  (r/create-class
-   {:component-did-mount (fn [this])
-    :reagent-render (fn [dia]
-                      (let [{:keys [nodes links link-config grab translate scale scale-origin]} dia
-                            [tx ty] translate
-                            div-nodes (filter (fn [n] (contains? (div-nodes-components) (:diagram.node/type n))) (vals nodes))
-                            ;; the order in which we render the nodes matters since nodes rendered after
-                            ;; ocludes nodes rendered first
-                            svg-nodes (->> (vals nodes)
-                                           (filter (fn [n] (contains? (svg-nodes-components) (:diagram.node/type n))))
-                                           (sort-by :diagram.node/type svg-nodes-comparator))]
-                        [:div.diagram-layer {:style {:overflow :hidden}
-                                             :on-mouse-down (fn [evt]
-                                                              (when (= left-button (.-buttons evt))
-                                                                (.stopPropagation evt)
-                                                                (.preventDefault evt)
-                                                                (dispatch [::grab {:diagram.object/type :diagram}
-                                                                           [(.-clientX evt) (.-clientY evt)]])
-                                                                (dispatch [::clear-nodes-selection])))
-                                             :on-mouse-up (fn [evt]
-                                                            (dispatch [::grab-release]))
-                                             :on-wheel (fn [evt]
-                                                         (dispatch [::zoom (.-deltaY evt) [(.-clientX evt) (.-clientY evt)]]))
-                                             :on-mouse-move (fn [evt]
-                                                              (when grab
-                                                                (dispatch [::drag [(.-clientX evt) (.-clientY evt)]])))
-                                             }
-                         (when debug [debug-bar scale translate])
-                         [:div.transform-div {:style {:transform (gstring/format "translate(%dpx,%dpx) scale(%f)" tx ty scale)
-                                                      :transform-origin "0px 0px"
-                                                      :height "100%"
-                                                      ;; For debugging
-                                                      ;; :background "#e2acac"
-                                                      }}
-                          [:svg {:style {:overflow :visible}}
-                           [arrow-markers]
+    (r/create-class
+     {:component-did-mount (fn [this])
+      :reagent-render (fn [dia]
+                        (let [{:keys [nodes links link-config grab translate scale scale-origin]} dia
+                              [tx ty] translate
+                              div-nodes (filter (fn [n] (contains? (div-nodes-components) (:diagram.node/type n))) (vals nodes))
+                              ;; the order in which we render the nodes matters since nodes rendered after
+                              ;; ocludes nodes rendered first
+                              svg-nodes (->> (vals nodes)
+                                             (filter (fn [n] (contains? (svg-nodes-components) (:diagram.node/type n))))
+                                             (sort-by :diagram.node/type svg-nodes-comparator))]
+                          [:div.diagram-layer {:style {:overflow :hidden}
+                                               :on-mouse-down (fn [evt]
+                                                                (when (= left-button (.-buttons evt))
+                                                                  (.stopPropagation evt)
+                                                                  (.preventDefault evt)
+                                                                  (dispatch [::grab {:diagram.object/type :diagram}
+                                                                             [(.-clientX evt) (.-clientY evt)]])
+                                                                  (dispatch [::clear-nodes-selection])))
+                                               :on-mouse-up (fn [evt]
+                                                              (dispatch [::grab-release]))
+                                               :on-wheel (fn [evt]
+                                                           (dispatch [::zoom (.-deltaY evt) [(.-clientX evt) (.-clientY evt)]]))
+                                               :on-mouse-move (fn [evt]
+                                                                (when grab
+                                                                  (dispatch [::drag [(.-clientX evt) (.-clientY evt)]])))
+                                               }
+                           (when debug [debug-bar scale translate])
+                           [:div.transform-div {:style {:transform (gstring/format "translate(%dpx,%dpx) scale(%f)" tx ty scale)
+                                                        :transform-origin "0px 0px"
+                                                        :height "100%"
+                                                        ;; For debugging
+                                                        ;; :background "#e2acac"
+                                                        }}
+                            [:svg {:style {:overflow :visible}}
+                             [arrow-markers]
 
-                           ;; current link (a temp link while drawing it)
-                           (when-let [lf (get-in grab [:grab-object :tmp-link-from])]
-                             [link nodes (let [[current-x current-y] (client-coord->dia-coord {:translate translate
-                                                                                               :scale scale}
-                                                                                              (:cli-current grab))]
-                                           (merge {:from-port lf :to-x current-x :to-y current-y}
-                                                  link-config))])
+                             ;; current link (a temp link while drawing it)
+                             (when-let [lf (get-in grab [:grab-object :tmp-link-from])]
+                               [link nodes (let [[current-x current-y] (client-coord->dia-coord {:translate translate
+                                                                                                 :scale scale}
+                                                                                                (:cli-current grab))]
+                                             (merge {:from-port lf :to-x current-x :to-y current-y}
+                                                    link-config))])
 
-                           ;; ATTENTION !!! : the order matters here, if shapes are rendered after links they will hide them
+                             ;; ATTENTION !!! : the order matters here, if shapes are rendered after links they will hide them
 
-                           ;; svg nodes
-                           (for [n svg-nodes]
-                             ^{:key (::id n)}
-                             [svg-node n])
+                             ;; svg nodes
+                             (for [n svg-nodes]
+                               ^{:key (::id n)}
+                               [svg-node n])
 
-                           ;; links
-                           (for [l (vals links)]
-                             ^{:key (::id l)}
-                             [link nodes l])]
+                             ;; links
+                             (for [l (vals links)]
+                               ^{:key (::id l)}
+                               [link nodes l])]
 
-                          [:div.nodes
-                           (doall (for [n div-nodes]
-                                    ^{:key (::id n)}
-                                    [div-node n]))]]]))}))
+                            [:div.nodes
+                             (doall (for [n div-nodes]
+                                      ^{:key (::id n)}
+                                      [div-node n]))]]]))}))
 
 
-(defn root-view [{:keys [fx/context]}]
+(defn diagram-view [{:keys [fx/context]}]
   (let [{:keys [nodes links link-config grab translate scale scale-origin] :as a} (fx/sub context ::diagram)
         [tx ty] translate
         ;; div-nodes (filter (fn [n] (contains? (div-nodes-components) (:diagram.node/type n))) (vals nodes))
@@ -571,32 +575,31 @@
         ;;                (filter (fn [n] (contains? (svg-nodes-components) (:diagram.node/type n))))
         ;;                (sort-by :diagram.node/type svg-nodes-comparator))
         ]
-    {:fx/type :stage
-     :showing true
-     :width 1000
-     :height 1000
-     :scene {:fx/type :scene
-             :on-mouse-pressed {:event/type ::grab
-                                :grab-obj {:diagram.object/type :diagram}
-                                :fx/sync true}
-             :on-mouse-released {:event/type ::grab-release}
-             :on-mouse-dragged {:event/type ::drag}
-             :root {:fx/type :group
-                    :translate-x (or tx 0)
-                    :translate-y (or ty 0)
-                    :children [{:fx/type :pane
-                                :transforms [{:fx/type :scale
-                                              :pivot-x 0
-                                              :pivot-y 0
-                                              :x (or scale 1)
-                                              :y (or scale 1)}]
-                                :on-scroll {:event/type ::zoom}
-                                :children (cond-> []
-                                            ;; nodes
-                                            nodes (into (for [n (vals nodes)]
-                                                          {:fx/type node-cmp
-                                                           :fx/context context
-                                                           :node n})))}]}}}))
+    {:fx/type :pane
+     :pref-width 1000
+     :pref-height 1000
+     :on-mouse-pressed {:event/type ::grab
+                        :grab-obj {:diagram.object/type :diagram}
+                        :fx/sync true}
+     :on-mouse-released {:event/type ::grab-release}
+     :on-mouse-dragged {:event/type ::drag}
+     :id "diagram-pane"
+     :children [{:fx/type :group
+                 :translate-x (or tx 0)
+                 :translate-y (or ty 0)
+                 :children [{:fx/type :pane
+                             :transforms [{:fx/type :scale
+                                           :pivot-x 0
+                                           :pivot-y 0
+                                           :x (or scale 1)
+                                           :y (or scale 1)}]
+                             :on-scroll {:event/type ::zoom}
+                             :children (cond-> []
+                                         ;; nodes
+                                         nodes (into (for [n (vals nodes)]
+                                                       {:fx/type node-cmp
+                                                        :fx/context context
+                                                        :node n})))}]}]}))
 
 
 (defn register-node-component! [node-type comp-desc]
@@ -605,95 +608,80 @@
 (defn register-link-component! [link-type component-fn]
   (swap! link-components assoc link-type component-fn))
 
-(defn db [context] (:cljfx.context/m context))
-
-(comment
-
-  (do
-    (def *context (atom (fx/create-context {})))
-
-    (def app (fx/create-app *context
-                            :event-handler handle-event
-                            :desc-fn (fn [_]
-                                       {:fx/type root-view})))
-    (alter-var-root (var dispatch-event) (constantly (:handler app)))
-    (dispatch-event {:event/type ::init})
-    )
-
-
-
-
-  ((:renderer app))
-  )
-
 
 ;;;;;;;;;;;;;
 ;; Events  ;;
 ;;;;;;;;;;;;;
 
-(defmethod handle-event ::init [{:keys [fx/context]}]
-  {:context (fx/swap-context context (constantly (-> (clojure.edn/read-string (slurp "./diagram.edn"))
-                                                     (assoc-in [::diagram :translate] [0 0])
-                                                     (assoc-in [::diagram :scale] 1))))})
 ;; Internals
 ;; ---------
 
-(defmethod handle-event ::grab [{:keys [fx/event fx/context grab-obj]}]
-  (let [client-grab-origin [(.getSceneX event) (.getSceneY event)]]
+(defn diagram-coords [event]
+  (if (= (.getId (.getSource event)) "diagram-pane")
+    [(.getX event) (.getY event)]
+    (let [scene-point (.localToScene (.getSource event) (.getX event) (.getY event))
+          diagram-cmp (.lookup (.getScene (.getSource event)) "#diagram-pane")
+          diagram-coor (.sceneToLocal diagram-cmp scene-point)]
+      [(.getX diagram-coor) (.getY diagram-coor)])))
+
+(defmethod ui-events/handle-event ::grab [{:keys [fx/event fx/context grab-obj]}]
+  (let [client-grab-origin (diagram-coords event)]
     (.consume event)
+    #_(prn ">>>>>>>" (.lookup (.getScene (.getSource event)) "#diagram-pane"))
     {:context (fx/swap-context context grab grab-obj client-grab-origin)}))
 
-(defmethod handle-event ::grab-release [{:keys [fx/event fx/context ]}]
+(defmethod ui-events/handle-event ::grab-release [{:keys [fx/event fx/context ]}]
   {:context (fx/swap-context context grab-release)})
 
-(defmethod handle-event ::drag [{:keys [fx/event fx/context ]}]
-  (let [current-cli-coord [(.getX event) (.getY event)]]
+(defmethod ui-events/handle-event ::drag [{:keys [fx/event fx/context ]}]
+  (let [current-cli-coord (diagram-coords event)]
     {:context (fx/swap-context context drag current-cli-coord)}))
 
-(defmethod handle-event ::set-port-dimensions [{:keys [fx/event fx/context node-id port-id dims]}]
+(defmethod ui-events/handle-event ::set-port-dimensions [{:keys [fx/event fx/context node-id port-id dims]}]
   {:context (fx/swap-context context set-port-dimensions node-id port-id dims)})
-(defmethod handle-event ::set-node-dimensions [{:keys [fx/event fx/context node-id dims] :as ev}]
+(defmethod ui-events/handle-event ::set-node-dimensions [{:keys [fx/event fx/context node-id dims] :as ev}]
   {:context (fx/swap-context context set-node-dimensions node-id dims)})
 
 ;; Intended for users to call
 ;; --------------------------
 
-(defmethod handle-event ::zoom [{:keys [fx/event fx/context]}]
+(defmethod ui-events/handle-event ::zoom [{:keys [fx/event fx/context]}]
   (let [delta (.getDeltaY event)
-        cli-coords [(.getSceneX event) (.getSceneY event)]]
+        cli-coords (diagram-coords event)]
     {:context (fx/swap-context context zoom delta cli-coords)}))
 
-(defmethod handle-event ::translate-diagram [{:keys [fx/event fx/context to]}]
-  {:context (translate-diagram (db context) to)})
-(defmethod handle-event ::add-link [{:keys [fx/event fx/context from-port to-port]}]
-  {:context (add-link (db context) from-port to-port)})
-(defmethod handle-event ::set-link-config [{:keys [fx/event fx/context link-config]}]
-  {:context (set-link-config (db context) link-config)})
-(defmethod handle-event ::set-link-label [{:keys [fx/event fx/context link-id label]}]
-  {:context (set-link-label (db context) link-id label)})
-(defmethod handle-event ::remove-link [{:keys [fx/event fx/context link-id]}]
-  {:context (remove-link (db context) link-id)})
-(defmethod handle-event ::add-node [{:keys [fx/event fx/context node]}]
-  {:context (add-node (db context) node)})
-(defmethod handle-event ::remove-node [{:keys [fx/event fx/context node-id]}]
-  {:context (remove-node (db context) node-id)})
-(defmethod handle-event ::select-single-node [{:keys [fx/context node-id]}]
-  (let [db' (select-single-node (db context) node-id)]
+(defmethod ui-events/handle-event ::translate-diagram [{:keys [fx/event fx/context to]}]
+  {:context (fx/swap-context context translate-diagram to)})
+(defmethod ui-events/handle-event ::add-link [{:keys [fx/event fx/context from-port to-port]}]
+  {:context (fx/swap-context context add-link from-port to-port)})
+(defmethod ui-events/handle-event ::set-link-config [{:keys [fx/event fx/context link-config]}]
+  {:context (fx/swap-context context set-link-config link-config)})
+(defmethod ui-events/handle-event ::set-link-label [{:keys [fx/event fx/context link-id label]}]
+  {:context (fx/swap-context context set-link-label link-id label)})
+(defmethod ui-events/handle-event ::remove-link [{:keys [fx/event fx/context link-id]}]
+  {:context (fx/swap-context context remove-link link-id)})
+(defmethod ui-events/handle-event ::add-node [{:keys [fx/event fx/context node]}]
+  {:context (fx/swap-context context add-node node)})
+(defmethod ui-events/handle-event ::remove-node [{:keys [fx/event fx/context node-id]}]
+  {:context (fx/swap-context context remove-node node-id)})
+(defmethod ui-events/handle-event ::select-single-node [{:keys [fx/context node-id]}]
+  (let [db' (fx/swap-context context select-single-node node-id)]
     {:coontext db'
      ;; TODO: figure this out in cljfx
      ;; :dispatch [::node-selection-updated (selected-nodes db')]
      })
   )
-(defmethod handle-event ::add-node-to-selection [{:keys [fx/context node-id]}]
-  (let [db' (add-node-to-selection db node-id)]
+(defmethod ui-events/handle-event ::add-node-to-selection [{:keys [fx/context node-id]}]
+  (let [db' (fx/swap-context context add-node-to-selection node-id)]
     {:context db'
      ;; :dispatch [::node-selection-updated (selected-nodes db')]
      }))
-(defmethod handle-event ::clear-nodes-selection [{:keys [fx/event fx/context _]}] (clear-nodes-selection db))
+(defmethod ui-events/handle-event ::clear-nodes-selection [{:keys [fx/event fx/context _]}]
+  (fx/swap-context context clear-nodes-selection))
 
 
 ;; Intended for users to override and listen
 ;; -----------------------------------------
 
-(defmethod handle-event ::node-selection-updated [_]
+(defmethod ui-events/handle-event ::node-selection-updated [_]
   nil)
