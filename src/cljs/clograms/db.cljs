@@ -158,7 +158,7 @@
         proy (:project/_namespaces ns)]
     {:var/name (:var/name var)
      :var/docstring (:var/docstring var)
-     :multi/dispatch-form (:multi/dispatch-form multi)
+     :multi/dispatch-form (deserialize-source (:multi/dispatch-form multi))
      :multi/methods (map (fn [multi-method]
                            (let [mm (select-keys multi-method
                                                  [:multimethod/dispatch-val

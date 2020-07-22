@@ -17,7 +17,8 @@
                e
                a
                ;; if it is a srouce value serialize it as a string
-               (if (= :source/form a)
+               (if (or (= :source/form a)
+                       (= :multi/dispatch-form a))
                  (binding [*print-meta* true] (pr-str v))
                  v)]))))
 
