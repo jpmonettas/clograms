@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## 0.1.14 (2020-7-22)
+
+- Fix issue #18. Correctly serializing :multi/dispatch-form
+
 ## 0.1.13 (2020-1-8)
 
 - Improved command line options
