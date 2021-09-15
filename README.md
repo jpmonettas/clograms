@@ -72,7 +72,7 @@ clj -Sdeps '{:deps {clograms {:mvn/version "0.1.13"}}}' -m clograms.server --hel
 ### Search
 
 You can add nodes to your diagram by using the top bar search. If you remember the name of a function, namespace, project, spec or whatever you can type it there.
-Once you select a option, the node will be added to the center of the diagram.
+Once you select an option, the node will be added to the center of the diagram.
 
 ### Nodes
 
