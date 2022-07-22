@@ -14,7 +14,7 @@
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:dbg]})
         jar-file (format "target/%s.jar" (name lib))
-        src-dirs ["src"]]
+        src-dirs ["src/clj" "src/clj-styles" "src/cljs"]]
     (b/write-pom {:class-dir class-dir
                   :lib lib
                   :version version
