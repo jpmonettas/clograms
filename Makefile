@@ -1,17 +1,4 @@
-.PHONY: install deploy ui release clean help
-
-clean:
-	-rm clograms.jar
-	-rm pom.xml
-	-rm -rf resources/public/js/*
-	-rm target -rf
-
-clograms.jar:
-	clj -A:jar clograms.jar
-
-pom.xml:
-	clj -Spom
-	mvn versions:set -DnewVersion=$(version)
+.PHONY: clean help
 
 watch-ui:
 	npx shadow-cljs watch app
@@ -22,13 +9,18 @@ watch-css:
 release-ui: clean
 	npx shadow-cljs release app
 
-release: release-ui clograms.jar pom.xml
+clean:
+	clj -T:build clean
+	-rm -rf resources/public/js/*
 
-install: clograms.jar pom.xml
-	mvn install:install-file -Dfile=clograms.jar -DpomFile=pom.xml
+clograms.jar:
+	clj -T:build jar
+
+install: clograms.jar
+	mvn install:install-file -Dfile=target/clograms.jar -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/clograms/pom.xml
 
 deploy:
-	mvn deploy:deploy-file -Dfile=clograms.jar -DrepositoryId=clojars -DpomFile=pom.xml -Durl=https://clojars.org/repo
+	mvn deploy:deploy-file -Dfile=target/clograms.jar -DrepositoryId=clojars -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/clograms/pom.xml -Durl=https://clojars.org/repo
 
 tag-release:
 	git add CHANGELOG.md && \

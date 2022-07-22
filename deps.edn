@@ -3,40 +3,44 @@
         ;;;;;;;;;;;;
         ;; Server ;;
         ;;;;;;;;;;;;
-        compojure                      {:mvn/version "1.6.1"}
+        compojure/compojure            {:mvn/version "1.6.1"}
         yogthos/config                 {:mvn/version "1.1.5"}
-        ring                           {:mvn/version "1.7.1"
+        ring/ring                      {:mvn/version "1.7.1"
                                         ;; since we are using our own fork of tools.namespace
                                         ;; called jpmonettas/tools.namespace
                                         :exclusions [org.clojure/tools.namespace]}
-        ring-cors                      {:mvn/version "0.1.13"}
+
+        ring-cors/ring-cors            {:mvn/version "0.1.13"}
         lambdaisland/garden-watcher    {:mvn/version "0.3.5"}
-        http-kit                       {:mvn/version "2.3.0"}
+        http-kit/http-kit              {:mvn/version "2.3.0"}
         com.cognitect/transit-clj      {:mvn/version "0.8.319"}
         org.clojure/tools.cli          {:mvn/version "0.4.2"}
-        clindex                        {:mvn/version "0.4.3"}
-        ;;clindex                        {:local/root "/home/jmonetta/my-projects/clindex"}
+        com.github.jpmonettas/clindex  {:mvn/version "0.4.94"}
+        ;;clindex                      {:local/root "/home/jmonetta/my-projects/clindex"}
 
         ;;;;;;;;
         ;; UI ;;
         ;;;;;;;;
         day8.re-frame/http-fx      {:mvn/version "0.1.6"}
-        dorothy                    {:mvn/version "0.0.7"}
-        reagent                    {:mvn/version "0.8.1"}
-        re-frame                   {:mvn/version "0.10.8"}
-        re-com                     {:mvn/version "2.5.0"}
-        zprint                     {:mvn/version "0.4.16"}
+        dorothy/dorothy            {:mvn/version "0.0.7"}
+        reagent/reagent            {:mvn/version "0.8.1"}
+        re-frame/re-frame          {:mvn/version "0.10.8"}
+        re-com/re-com              {:mvn/version "2.5.0"}
+        zprint/zprint              {:mvn/version "0.4.16"}
         net.mikera/core.matrix     {:mvn/version "0.62.0"}
-        pretty-spec                {:mvn/version "0.1.4"}
+        pretty-spec/pretty-spec    {:mvn/version "0.1.4"}
         com.cognitect/transit-cljs {:mvn/version "0.8.256"}
         thheller/shadow-cljs       {:mvn/version "2.8.76"}
 
         ;;;;;;;;;;;;
         ;; Shared ;;
         ;;;;;;;;;;;;
-        org.clojure/clojure            {:mvn/version "RELEASE"}
+
         org.clojure/clojurescript      {:mvn/version "1.10.516"}
         org.clojure/core.async         {:mvn/version "0.4.500"}
         com.taoensso/sente             {:mvn/version "1.14.0"}
-        datascript                     {:mvn/version "0.18.8"}
-        expound                        {:mvn/version "0.7.2"}}}
+        datascript/datascript          {:mvn/version "0.18.8"}
+        expound/expound                {:mvn/version "0.7.2"}}
+ :aliases
+ {:build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}}
+                   :ns-default build}}}
