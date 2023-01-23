@@ -12,7 +12,7 @@
   (let [lib 'com.github.jpmonettas/clograms
         version (format "0.1.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
-                               :aliases [:dbg]})
+                               :aliases []})
         jar-file (format "target/%s.jar" (name lib))
         src-dirs ["src/clj" "src/clj-styles" "src/cljs"]]
     (b/write-pom {:class-dir class-dir

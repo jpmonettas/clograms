@@ -13,7 +13,7 @@
         ring-cors/ring-cors            {:mvn/version "0.1.13"}
         lambdaisland/garden-watcher    {:mvn/version "0.3.5"}
         http-kit/http-kit              {:mvn/version "2.3.0"}
-        com.cognitect/transit-clj      {:mvn/version "0.8.319"}
+        com.cognitect/transit-clj      {:mvn/version "1.0.329"}
         org.clojure/tools.cli          {:mvn/version "0.4.2"}
         com.github.jpmonettas/clindex  {:mvn/version "0.4.94"}
         ;;clindex                      {:local/root "/home/jmonetta/my-projects/clindex"}
@@ -29,18 +29,20 @@
         zprint/zprint              {:mvn/version "0.4.16"}
         net.mikera/core.matrix     {:mvn/version "0.62.0"}
         pretty-spec/pretty-spec    {:mvn/version "0.1.4"}
-        com.cognitect/transit-cljs {:mvn/version "0.8.256"}
-        thheller/shadow-cljs       {:mvn/version "2.8.76"}
+        com.cognitect/transit-cljs {:mvn/version "0.8.280"}
 
         ;;;;;;;;;;;;
         ;; Shared ;;
         ;;;;;;;;;;;;
 
-        org.clojure/clojurescript      {:mvn/version "1.10.516"}
-        org.clojure/core.async         {:mvn/version "0.4.500"}
+        org.clojure/clojurescript      {:mvn/version "1.11.60"}
+        org.clojure/core.async         {:mvn/version "1.5.648"}
         com.taoensso/sente             {:mvn/version "1.14.0"}
         datascript/datascript          {:mvn/version "0.18.8"}
         expound/expound                {:mvn/version "0.7.2"}}
  :aliases
  {:build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}}
-                   :ns-default build}}}
+          :ns-default build}
+  :dev {:extra-deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3.309"
+                                                            :exclusions [org.clojure/tools.namespace]}
+                     thheller/shadow-cljs {:mvn/version "2.19.0"}}}}}

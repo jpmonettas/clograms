@@ -1,5 +1,6 @@
-{:deps true
+{:deps {:aliases [:dev]}
  :dev-http {9500 "resources/public/"}
+ :nrepl {:port 9000}
  :builds {:app {:output-dir "resources/public/js/"
                 :asset-path "/js"
                 :target :browser
