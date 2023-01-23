@@ -199,7 +199,7 @@
       :margin "5px"
       :background-color (color :background)
       :font-size "11px"
-      :cursor :no-drop}]
+      :cursor :grab}]
     [:.draggable-project {:background-color (color :project-node)}
      [:&.main-project {:border-width "2px"}]
      [:.project-version {:margin-left "5px"

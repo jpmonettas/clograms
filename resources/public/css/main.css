@@ -361,7 +361,7 @@ body .app-wrapper .draggable-entity {
   margin: 5px;
   background-color: #504945;
   font-size: 11px;
-  cursor: no-drop;
+  cursor: grab;
 }
 
 body .app-wrapper .draggable-project {
