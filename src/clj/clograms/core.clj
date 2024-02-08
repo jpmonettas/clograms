@@ -23,15 +23,15 @@
                  v)]))))
 
 (defn re-index-all
-  [folder platform ws-send-fn]
+  [folder platform ws-send-fn {:keys [watch?]}]
   (reset! current-platform platform)
   (idx/index-project! folder
-                      {:platforms #{platform}
-                       :extra-schema extra-schema
-                       :on-new-facts
-                       (fn [new-datoms]
-                         (println (format "Pushing %d new datoms to the UI" (count new-datoms)))
-                         (ws-send-fn :sente/all-users-without-uid [:updates/datoms (prepare-datoms-for-serialization new-datoms)]))}))
+                      (cond-> {:platforms #{platform}
+                               :extra-schema extra-schema}
+                        watch? (assoc :on-new-facts
+                                      (fn [new-datoms]
+                                        (println (format "Pushing %d new datoms to the UI" (count new-datoms)))
+                                        (ws-send-fn :sente/all-users-without-uid [:updates/datoms (prepare-datoms-for-serialization new-datoms)]))))))
 
 (defn- log-db [datascript-db-str]
   (spit "./datascript-db.json" datascript-db-str)

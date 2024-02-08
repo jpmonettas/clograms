@@ -26,6 +26,8 @@
     :default :clj
     :parse-fn keyword
     :validate [#(contains? #{:clj :cljs} %) "Platform must be clj or cljs"]]
+   ["-w" "--watch" "Watch project-folder for changes and reload"
+    :default false]
    ["-h" "--help"]])
 
 (defn build-websocket []
@@ -53,6 +55,7 @@
             port (-> parsed-args :options :port)
             folder (-> parsed-args :arguments first)
             diagram-file (-> parsed-args :options :file)
+            watch? (-> parsed-args :options :watch)
             {:keys [ws-routes ws-send-fn]} (build-websocket)]
 
         (reset! server (http-server/run-server (-> (compojure/routes ws-routes (handler/build-routes {:diagram-file diagram-file
@@ -63,10 +66,12 @@
                                                               :access-control-allow-methods [:get :put :post :delete])
                                                    wrap-keyword-params
                                                    wrap-params)
-                                               {:port port}))
+                                               {:port port
+                                                :join? false}))
 
-        (println "Indexing " folder "for platform" platform)
-        (core/re-index-all folder platform ws-send-fn)
+        (println "Indexing " folder "for platform " platform "watching:" watch?)
+
+        (core/re-index-all folder platform ws-send-fn {:watch? watch?})
 
         (println (format "Indexing done, open http://localhost:%d" port))))))
 
