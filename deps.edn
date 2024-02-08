@@ -41,7 +41,7 @@
         datascript/datascript          {:mvn/version "0.18.8"}
         expound/expound                {:mvn/version "0.7.2"}}
  :aliases
- {:build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}}
+ {:build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.9.6" :git/sha "8e78bcc"}}
           :ns-default build}
   :dev {:extra-deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3.309"
                                                             :exclusions [org.clojure/tools.namespace]}

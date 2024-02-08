@@ -19,7 +19,11 @@
                   :lib lib
                   :version version
                   :basis basis
-                  :src-dirs src-dirs})
+                  :src-dirs src-dirs
+                  :pom-data [[:licenses
+                              [:license
+                               [:name "Unlicense"]
+                               [:url "http://unlicense.org/"]]]]})
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
     (b/jar {:class-dir class-dir
