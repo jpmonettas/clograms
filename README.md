@@ -50,11 +50,15 @@ The latest released version is: [![Clojars Project](https://img.shields.io/cloja
 clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/clograms {:mvn/version "RELEASE"}}}' -M -m clograms.server --platform clj clojure-project-folder
 ```
 
+**Run the command from outside your project folder (instead of with .) so your dependecies don't get loaded inside Clogram's process which can lead to some confilcts**
+
 ### Index a ClojureScript project :
 
 ```bash
 clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/clograms {:mvn/version "RELEASE"}}}' -M -m clograms.server --platform cljs clojurescript-project-folder
 ```
+
+
 
 When indexing finishes, point your browser to http://localhost:3000 and wait a little bit for it to load, it needs to transfer the entire index to the browser.
 
