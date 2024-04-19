@@ -12,10 +12,10 @@
 
         ring-cors/ring-cors            {:mvn/version "0.1.13"}
         lambdaisland/garden-watcher    {:mvn/version "0.3.5"}
-        http-kit/http-kit              {:mvn/version "2.3.0"}
+        http-kit/http-kit              {:mvn/version "2.7.0"}
         com.cognitect/transit-clj      {:mvn/version "1.0.329"}
         org.clojure/tools.cli          {:mvn/version "1.0.219"}
-        com.github.jpmonettas/clindex  {:mvn/version "0.4.94"}
+        com.github.jpmonettas/clindex  {:mvn/version "0.4.95"}
         ;;clindex                      {:local/root "/home/jmonetta/my-projects/clindex"}
 
         ;;;;;;;;
@@ -37,7 +37,7 @@
 
         org.clojure/clojurescript      {:mvn/version "1.11.60"}
         org.clojure/core.async         {:mvn/version "1.5.648"}
-        com.taoensso/sente             {:mvn/version "1.14.0"}
+        com.taoensso/sente             {:mvn/version "1.19.2"}
         datascript/datascript          {:mvn/version "0.18.8"}
         expound/expound                {:mvn/version "0.7.2"}}
  :aliases
