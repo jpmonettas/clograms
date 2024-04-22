@@ -1,4 +1,4 @@
-{:deps {:aliases [:dev]}
+{:deps {:aliases [:shadow #_:storm]} ;; do :shadow or :storm
  :dev-http {9500 "resources/public/"}
  :nrepl {:port 9000}
  :builds {:app {:output-dir "resources/public/js/"
@@ -12,5 +12,5 @@
                                    :optimizations :simple}
                 :modules {:main {:init-fn clograms.core/init}}
                 :devtools {:after-load clograms.core/mount-root
-                           :preloads [flow-storm.storm-preload]}
+                           #_#_:preloads [flow-storm.storm-preload]}
                 :release {:compiler-options {:optimizations :simple}}}}}
