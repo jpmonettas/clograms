@@ -144,7 +144,7 @@ Clograms is based on [clindex](https://github.com/jpmonettas/clindex) a Clojure[
 ```bash
 cd clograms
 
-make watch-ui # will start shadow-cljs and watch the ui, open your browser at http://localhost:9500/clograms.html
+make watch-ui # will start shadow-cljs and watch the ui, open your browser at http://localhost:9500/clograms.html?server_port=3000
 
 make watch-css # will watch garden files and build css files
 ```

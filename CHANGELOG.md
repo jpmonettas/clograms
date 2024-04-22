@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Add server_url to query string
+
 ## 0.1.142 (2024-02-08)
 
 - Make watcher off by default. Can be enable with --watch

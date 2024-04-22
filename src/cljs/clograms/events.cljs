@@ -31,7 +31,9 @@
 (def inter-check (re-frame/after (partial check-and-throw ::clograms-spec/db)))
 
 (defn initialize-db-and-load []
-  (let [port (.. js/window -location -port)]
+  (let [url-params (js/URLSearchParams. (-> js/window .-location .-search))
+        url-port (.get url-params "server_port")
+        port (or url-port (.. js/window -location -port))]
    {:db db/default-db
     :dispatch-n [[::reload-config port]
                  [::reload-db port]
